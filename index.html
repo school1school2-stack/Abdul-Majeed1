@@ -14,7 +14,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات مشروعك السحابي من Firebase
+        // إعدادات مشروعك السحابي من Firebase (youy-apps)
         const firebaseConfig = {
             apiKey: "AIzaSyAVrIim7aXjg0hGrMk0qVrXT8gaRIpHoBk",
             authDomain: "youy-apps.firebaseapp.com",
@@ -33,7 +33,7 @@
         let currentStudentId = null;
         let allStudents = [];
 
-        const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع', 'المجموعة الخامسة'];
+        const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
         // جلب البيانات من السحابة لحظياً
         window.initRealtimeSync = function() {
@@ -45,7 +45,6 @@
                 renderView();
             }, (error) => {
                 console.error("خطأ الاتصال بالسحابة: ", error);
-                alert("تعذر الاتصال بالسحابة. يرجى التأكد من تغيير قواعد Firestore إلى (allow read, write: if true;)");
             });
         };
 
@@ -53,7 +52,7 @@
             activeClass = className;
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('class-view').classList.remove('hidden');
-            document.getElementById('class-title-header').innerText = `مجموعة / فصل: ${className}`;
+            document.getElementById('class-title-header').innerText = `فصل: ${className}`;
             renderView();
         };
 
@@ -64,9 +63,8 @@
             renderView();
         };
 
-        // إضافة الطلاب دفعة واحدة من الصفحة العامة
+        // إضافة الطلاب دفعة واحدة للقائمة العامة بالسحابة (بدون فصل مخصص)
         window.addBulkStudentsGeneral = async function() {
-            const targetClass = document.getElementById('target-class-select').value;
             const bulkText = document.getElementById('bulk-students-input').value.trim();
             
             if(!bulkText) return alert('الرجاء إدخال قائمة الطلاب في المربع');
@@ -83,7 +81,7 @@
                         await addDoc(collection(db, "fifi_students_tracker"), {
                             name: name,
                             email: email,
-                            className: targetClass,
+                            className: 'غير موزع', // يحفظ في السحابة العامة فوراً
                             phone: '966566688614',
                             actions: [],
                             attendanceStats: { absents: 0, lates: 0, excuses: 0, lefts: 0 },
@@ -98,10 +96,10 @@
             }
 
             document.getElementById('bulk-students-input').value = '';
-            alert(`تم بنجاح إضافة ${count} طالب إلى ${targetClass} وحفظهم بالسحابة!`);
+            alert(`تم بنجاح حفظ ${count} طالب في القائمة العامة بالسحابة! يمكنك الآن توزيعهم من داخل الفصول.`);
         };
 
-        // البحث في القائمة العامة لإدراج طالب
+        // البحث داخل الفصل في القائمة العامة لإدراج طالب إلى الفصل الحالي
         window.searchGlobalStudents = function() {
             const query = document.getElementById('global-search-input').value.trim().toLowerCase();
             const resultsBox = document.getElementById('global-search-results');
@@ -112,10 +110,11 @@
                 return;
             }
 
+            // تصفية الطلاب المطابقين من السحابة العامة
             const matches = allStudents.filter(s => s.name.toLowerCase().includes(query) || (s.email && s.email.toLowerCase().includes(query)));
 
             if(matches.length === 0) {
-                resultsBox.innerHTML = `<div class="p-3 text-sm text-gray-500">لا توجد نتائج مطابقة في السحابة.</div>`;
+                resultsBox.innerHTML = `<div class="p-3 text-sm text-gray-500">لا توجد نتائج مطابقة في السحابة العامة.</div>`;
                 resultsBox.classList.remove('hidden');
                 return;
             }
@@ -126,9 +125,9 @@
                     <div class="p-3 hover:bg-indigo-50 flex justify-between items-center border-b text-sm">
                         <div>
                             <span class="font-bold text-gray-800">${student.name}</span>
-                            <span class="text-xs text-gray-500 block">${student.email || ''} (الحالي: ${student.className})</span>
+                            <span class="text-xs text-indigo-600 block">${student.email || ''} (الحالة: ${student.className})</span>
                         </div>
-                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-indigo-700">إدراج هنا</button>
+                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-green-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-700">➕ إدراج في ${activeClass}</button>
                     </div>
                 `;
             });
@@ -142,7 +141,6 @@
                 });
                 document.getElementById('global-search-input').value = '';
                 document.getElementById('global-search-results').classList.add('hidden');
-                alert('تم إدراج الطالب في هذه المجموعة بنجاح!');
             } catch (e) {
                 alert('خطأ أثناء الإدراج: ' + e.message);
             }
@@ -210,6 +208,7 @@
         };
 
         function renderView() {
+            // تحديث إحصائيات الفصول بالصفحة الرئيسية
             classList.forEach(cls => {
                 const countBadge = document.getElementById(`count-${cls.replace(/\s+/g, '-')}`);
                 if(countBadge) {
@@ -218,13 +217,19 @@
                 }
             });
 
+            // تحديث عدد الطلاب الإجمالي بالسحابة
+            const totalCountBadge = document.getElementById('total-cloud-count');
+            if(totalCountBadge) {
+                totalCountBadge.innerText = `إجمالي المحفوظين بالسحابة: ${allStudents.length} طالب`;
+            }
+
             if(activeClass) {
                 const container = document.getElementById('class-students-container');
                 container.innerHTML = '';
                 const students = allStudents.filter(s => s.className === activeClass);
 
                 if(students.length === 0) {
-                    container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا توجد طلاب في هذه المجموعة حالياً. استخدم خانة البحث أعلاه لإدراجهم من القائمة العامة.</p>`;
+                    container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث في الأعلى للبحث عن الطلاب المحفوظين بالسحابة وإدراجهم هنا.</p>`;
                     return;
                 }
 
@@ -377,9 +382,9 @@
 
     <main class="container mx-auto p-4 max-w-4xl">
 
-        <!-- الصفحة العامة (أيقونات الفصول الخمسة + إضافة دفعة للطلاب) -->
+        <!-- الصفحة العامة (الفصول الأربعة + حفظ الدفعة بالسحابة العامة) -->
         <div id="main-dashboard" class="py-4">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">الفصول والمجموعات الدراسية</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">الفصول الدراسية</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <div onclick="openClass('الفصل الأول')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
@@ -414,56 +419,41 @@
                     </div>
                     <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
                 </div>
-                <!-- الأيقونة الخامسة -->
-                <div onclick="openClass('المجموعة الخامسة')" class="bg-white p-6 rounded-3xl shadow border-2 border-purple-100 hover:border-purple-600 cursor-pointer transition flex items-center justify-between md:col-span-2">
-                    <div>
-                        <span class="text-3xl mb-1 block">⭐</span>
-                        <h3 class="text-xl font-bold text-purple-900">المجموعة الخامسة (إضافية / أخرى)</h3>
-                        <p class="text-sm text-gray-500 mt-1" id="count-المجموعة-الخامسة">0 طلاب</p>
-                    </div>
-                    <span class="bg-purple-50 text-purple-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
-                </div>
             </div>
 
-            <!-- إضافة الطلاب دفعة واحدة -->
+            <!-- إضافة الطلاب دفعة واحدة وحفظهم في السحابة العامة مباشرة -->
             <div class="bg-white p-6 rounded-3xl shadow-lg border border-green-200">
-                <h3 class="font-bold text-lg text-green-700 mb-2 flex items-center gap-2">📥 إضافة دفعة طلاب عامة</h3>
-                <p class="text-xs text-gray-500 mb-4">اختر الفصل أو المجموعة، ثم الصق القائمة (سطر اسم، سطر إيميل):</p>
-                
-                <div class="mb-3">
-                    <select id="target-class-select" class="w-full border p-3 rounded-xl text-sm bg-gray-50 font-bold focus:ring-2 focus:ring-green-500">
-                        <option value="الفصل الأول">أول ثانوي / 1</option>
-                        <option value="الفصل الثاني">أول ثانوي / 2</option>
-                        <option value="الفصل الثالث">أول ثانوي / 3</option>
-                        <option value="الفصل الرابع">أول ثانوي / 4</option>
-                        <option value="المجموعة الخامسة">المجموعة الخامسة</option>
-                    </select>
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-lg text-green-700 flex items-center gap-2">📥 إضافة وحفظ الطلاب في السحابة العامة</h3>
+                    <span class="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full" id="total-cloud-count">إجمالي المحفوظين بالسحابة: 0 طالب</span>
                 </div>
+                <p class="text-xs text-gray-500 mb-4">الصق القائمة هنا (سطر اسم الطالب، يليه سطر الإيميل). سيتم حفظ جميع الأسماء في السحابة فوراً لتوزعهم بعدها داخل الفصول بسهولة:</p>
 
-                <textarea id="bulk-students-input" rows="5" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa&#10;علي خالد العمري&#10;a.amri@moe.gov.sa" class="w-full border p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-3 font-sans"></textarea>
+                <textarea id="bulk-students-input" rows="6" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa&#10;علي خالد العمري&#10;a.amri@moe.gov.sa" class="w-full border p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-3 font-sans"></textarea>
                 
-                <button onclick="addBulkStudentsGeneral()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition text-sm">حفظ وإضافة الدفعة للسحابة</button>
+                <button onclick="addBulkStudentsGeneral()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition text-sm">حفظ وحفظ الكل في السحابة العامة</button>
             </div>
         </div>
 
-        <!-- واجهة الفصل أو المجموعة المستقلة -->
+        <!-- واجهة الفصل المستقلة -->
         <div id="class-view" class="hidden py-4">
             <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow">
-                <button onclick="backToHome()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition">⬅ العودة للقائمة الرئيسية</button>
-                <h2 class="text-xl font-bold text-indigo-700" id="class-title-header">المجموعة</h2>
+                <button onclick="backToHome()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition">⬅ العودة للرئيسية</button>
+                <h2 class="text-xl font-bold text-indigo-700" id="class-title-header">الفصل</h2>
                 <div class="w-16"></div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl shadow mb-6 relative">
+            <!-- خانة البحث لتخصيص وإدراج الطالب من السحابة العامة إلى هذا الفصل -->
+            <div class="bg-white p-4 rounded-2xl shadow mb-6 relative border border-indigo-100">
                 <div class="flex items-center gap-3">
                     <span class="text-xl">🔍</span>
-                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث عن طالب في القائمة العامة لإدراجه هنا..." class="w-full border-none focus:outline-none text-sm">
+                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب المحفوظ بالسحابة لإدراجه في هذا الفصل..." class="w-full border-none focus:outline-none text-sm">
                 </div>
                 <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl rounded-2xl mt-2 border max-h-60 overflow-y-auto z-30"></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="class-students-container">
-                <!-- الطلاب هنا -->
+                <!-- طلاب الفصل المخصصين -->
             </div>
         </div>
 
@@ -506,14 +496,4 @@
                 <button onclick="recordAction('غير مهتم', -1)" class="p-3 rounded-xl border border-orange-200 bg-orange-50 text-orange-800 flex justify-between items-center"><span>غير مهتم</span> <span class="bg-orange-200 text-orange-900 px-2 py-0.5 rounded-md">-1.0</span></button>
                 <button onclick="recordAction('نسيان ملف أو واجب', -5)" class="p-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-800 flex justify-between items-center"><span>نسيان ملف أو واجب</span> <span class="bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md">-5.0</span></button>
 
-                <button onclick="recordAction('استخدام الهاتف', -1)" class="p-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 flex justify-between items-center"><span>استخدام الهاتف</span> <span class="bg-rose-200 text-rose-900 px-2 py-0.5 rounded-md">-1.0</span></button>
-                <button onclick="recordAction('إنجاز ملف', 5)" class="p-3 rounded-xl border border-teal-200 bg-teal-50 text-teal-800 flex justify-between items-center"><span>إنجاز ملف</span> <span class="bg-teal-200 text-teal-900 px-2 py-0.5 rounded-md">5.0</span></button>
-
-                <button onclick="recordAction('هدية', 5)" class="p-3 rounded-xl border border-pink-200 bg-pink-50 text-pink-800 flex justify-between items-center col-span-2"><span>هدية / مكافأة</span> <span class="bg-pink-200 text-pink-900 px-2 py-0.5 rounded-md">5.0</span></button>
-            </div>
-
-            <button onclick="closeActionModal()" class="w-full bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-xs">إلغاء النافذة</button>
-        </div>
-    </div>
-</body>
-</html>
+                <button onclick="recordAction('استخدام الهاتف', -1)" class="p-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 flex justify-between items-center"><span>استخدام الهاتف</span> <span class="bg-rose-200 text-rose-9
