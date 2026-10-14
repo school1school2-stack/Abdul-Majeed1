@@ -29,7 +29,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let activeClass = 'الفصل الأول';
+        let activeClass = null;
         let currentStudentId = null;
         let allStudents = [];
 
@@ -40,42 +40,45 @@
                 snapshot.forEach((docSnap) => {
                     allStudents.push({ id: docSnap.id, ...docSnap.data() });
                 });
-                renderStudents();
+                renderView();
             });
         };
 
-        window.switchClass = function(className) {
+        window.openClass = function(className) {
             activeClass = className;
-            document.querySelectorAll('.class-btn').forEach(btn => {
-                if(btn.innerText.includes(className.replace('الفصل ', 'أول ثانوي/'))) {
-                    btn.className = "class-btn px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold shadow transition";
-                } else {
-                    btn.className = "class-btn px-4 py-2 bg-white text-indigo-600 border border-indigo-300 rounded-xl font-bold shadow transition";
-                }
-            });
-            document.getElementById('current-class-title').innerText = `إدارة طلاب: ${className}`;
-            renderStudents();
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('class-view').classList.remove('hidden');
+            document.getElementById('class-title-header').innerText = `فصل: ${className}`;
+            renderView();
         };
 
-        // إضافة الطلاب دفعة واحدة (كل سطر: الاسم | الإيميل)
-        window.addBulkStudents = async function() {
+        window.backToHome = function() {
+            activeClass = null;
+            document.getElementById('class-view').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+            renderView();
+        };
+
+        // إضافة الطلاب دفعة واحدة من الصفحة العامة وتحديد الفصل المستهدف
+        window.addBulkStudentsGeneral = async function() {
+            const targetClass = document.getElementById('target-class-select').value;
             const bulkText = document.getElementById('bulk-students-input').value.trim();
+            
             if(!bulkText) return alert('الرجاء إدخال قائمة الطلاب في المربع');
 
-            const lines = bulkText.split('\n');
+            const rawLines = bulkText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             let count = 0;
 
-            for (let line of lines) {
-                const parts = line.split('|');
-                const name = parts[0] ? parts[0].trim() : '';
-                const email = parts[1] ? parts[1].trim() : 'غير متوفر';
+            for (let i = 0; i < rawLines.length; i += 2) {
+                const name = rawLines[i];
+                const email = rawLines[i + 1] || 'غير متوفر';
 
                 if(name) {
                     try {
                         await addDoc(collection(db, "fifi_students_tracker"), {
                             name: name,
                             email: email,
-                            className: activeClass,
+                            className: targetClass,
                             phone: '966566688614',
                             actions: ['بداية المتابعة'],
                             attendance: 'حاضر',
@@ -89,7 +92,54 @@
             }
 
             document.getElementById('bulk-students-input').value = '';
-            alert(`تم بنجاح إضافة ${count} طالب إلى ${activeClass}!`);
+            alert(`تم بنجاح إضافة ${count} طالب إلى ${targetClass}!`);
+        };
+
+        // البحث في القائمة العامة لإدراج طالب داخل الفصل الحالي
+        window.searchGlobalStudents = function() {
+            const query = document.getElementById('global-search-input').value.trim().toLowerCase();
+            const resultsBox = document.getElementById('global-search-results');
+            
+            if(!query) {
+                resultsBox.innerHTML = '';
+                resultsBox.classList.add('hidden');
+                return;
+            }
+
+            const matches = allStudents.filter(s => s.name.toLowerCase().includes(query) || (s.email && s.email.toLowerCase().includes(query)));
+
+            if(matches.length === 0) {
+                resultsBox.innerHTML = `<div class="p-3 text-sm text-gray-500">لا توجد نتائج مطابقة في السحابة.</div>`;
+                resultsBox.classList.remove('hidden');
+                return;
+            }
+
+            resultsBox.innerHTML = '';
+            matches.forEach(student => {
+                resultsBox.innerHTML += `
+                    <div class="p-3 hover:bg-indigo-50 flex justify-between items-center border-b text-sm">
+                        <div>
+                            <span class="font-bold text-gray-800">${student.name}</span>
+                            <span class="text-xs text-gray-500 block">${student.email || ''} (الفصل الحالي: ${student.className})</span>
+                        </div>
+                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-indigo-700">إدراج هنا</button>
+                    </div>
+                `;
+            });
+            resultsBox.classList.remove('hidden');
+        };
+
+        window.transferStudentToCurrentClass = async function(id) {
+            try {
+                await updateDoc(doc(db, "fifi_students_tracker", id), {
+                    className: activeClass
+                });
+                document.getElementById('global-search-input').value = '';
+                document.getElementById('global-search-results').classList.add('hidden');
+                alert('تم إدراج الطالب في هذا الفصل بنجاح!');
+            } catch (e) {
+                alert('خطأ أثناء الإدراج: ' + e.message);
+            }
         };
 
         window.deleteStudent = async function(id) {
@@ -118,46 +168,43 @@
             }
         };
 
-        window.filterStudents = function() {
-            renderStudents();
-        };
-
-        function renderStudents() {
-            const container = document.getElementById('students-container');
-            container.innerHTML = '';
-            
-            const searchQuery = document.getElementById('search-student').value.trim().toLowerCase();
-            
-            // جلب طلاب الفصل الحالي أو مطابقة البحث العام
-            const students = allStudents.filter(s => {
-                const inClass = s.className === activeClass;
-                const matchesSearch = s.name.toLowerCase().includes(searchQuery) || (s.email && s.email.toLowerCase().includes(searchQuery));
-                if(searchQuery) {
-                    return matchesSearch; // البحث يشمل الجميع أو حسب الرغبة
+        function renderView() {
+            // تحديث أعداد الطلاب على أيقونات الفصول في الصفحة العامة
+            ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'].forEach(cls => {
+                const countBadge = document.getElementById(`count-${cls}`);
+                if(countBadge) {
+                    const count = allStudents.filter(s => s.className === cls).length;
+                    countBadge.innerText = `${count} طلاب`;
                 }
-                return inClass;
             });
 
-            if(students.length === 0) {
-                container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-8">لا توجد طلاب مطابقين للبحث أو مضافين في هذا الفصل حالياً.</p>`;
-                return;
+            // إذا كنا داخل فصل، نعرض طلابه
+            if(activeClass) {
+                const container = document.getElementById('class-students-container');
+                container.innerHTML = '';
+                const students = allStudents.filter(s => s.className === activeClass);
+
+                if(students.length === 0) {
+                    container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا يوجد طلاب في هذا الفصل حالياً. استخدم خانة البحث في الأعلى لإدراج الطلاب من القائمة العامة.</p>`;
+                    return;
+                }
+
+                students.forEach(student => {
+                    container.innerHTML += `
+                        <div class="bg-white p-4 rounded-2xl shadow flex items-center justify-between border border-gray-100">
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-800">${student.name}</h3>
+                                <p class="text-xs text-indigo-600 font-semibold"><span class="text-gray-500">${student.email || 'بدون إيميل'}</span></p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="openActionModal('${student.id}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-xl text-sm font-bold hover:bg-indigo-150 transition">📝 رصد</button>
+                                <button onclick="openModal('${student.id}')" class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-sm font-bold hover:bg-emerald-150 transition">📊 الملف</button>
+                                <button onclick="deleteStudent('${student.id}')" class="text-red-400 hover:text-red-600 p-1">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
             }
-
-            students.forEach(student => {
-                container.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl shadow flex items-center justify-between border border-gray-100">
-                        <div>
-                            <h3 class="font-bold text-lg text-gray-800">${student.name}</h3>
-                            <p class="text-xs text-indigo-600 font-semibold">${student.className} | <span class="text-gray-500">${student.email || 'بدون إيميل'}</span></p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="openActionModal('${student.id}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-xl text-sm font-bold hover:bg-indigo-100 transition">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-sm font-bold hover:bg-emerald-100 transition">📊 الملف</button>
-                            <button onclick="deleteStudent('${student.id}')" class="text-red-400 hover:text-red-600 p-1">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
         }
 
         window.openActionModal = function(id) {
@@ -180,8 +227,9 @@
                 <div class="text-center mb-6">
                     <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-2 shadow-inner">👤</div>
                     <h2 class="text-xl font-bold text-gray-900">${student.name}</h2>
-                    <p class="text-sm text-gray-500">${student.className} - ${student.email || ''}</p>
-                    <a href="https://wa.me/${student.phone}" target="_blank" class="inline-block mt-2 bg-green-50 text-green-600 px-4 py-1.5 rounded-full text-xs font-bold border border-green-200">💬 بطاقة وصول ولي الأمر</a>
+                    <p class="text-xs text-gray-500 font-mono mt-1">${student.email || ''}</p>
+                    <p class="text-sm text-indigo-600 font-semibold mt-1">${student.className}</p>
+                    <a href="https://wa.me/${student.phone}" target="_blank" class="inline-block mt-3 bg-green-50 text-green-600 px-4 py-1.5 rounded-full text-xs font-bold border border-green-200">💬 بطاقة وصول ولي الأمر</a>
                 </div>
 
                 <div class="bg-indigo-50/50 p-4 rounded-2xl mb-4 border border-indigo-100">
@@ -215,38 +263,99 @@
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen">
 
-    <header class="bg-indigo-600 text-white p-4 shadow-md text-center">
+    <header class="bg-indigo-600 text-white p-5 shadow-md text-center">
         <h1 class="text-2xl font-bold">نظام المتابعة السحابي للطلاب</h1>
         <p class="text-sm opacity-90">المعلم: عبدالعزيز الفيفي | الكفايات اللغوية</p>
     </header>
 
     <main class="container mx-auto p-4 max-w-4xl">
-        <!-- أزرار الفصول -->
-        <div class="flex justify-center gap-2 mb-6 overflow-x-auto py-2">
-            <button onclick="switchClass('الفصل الأول')" class="class-btn px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold shadow transition">أول ثانوي/1</button>
-            <button onclick="switchClass('الفصل الثاني')" class="class-btn px-4 py-2 bg-white text-indigo-600 border border-indigo-300 rounded-xl font-bold shadow transition">أول ثانوي/2</button>
-            <button onclick="switchClass('الفصل الثالث')" class="class-btn px-4 py-2 bg-white text-indigo-600 border border-indigo-300 rounded-xl font-bold shadow transition">أول ثانوي/3</button>
-            <button onclick="switchClass('الفصل الرابع')" class="class-btn px-4 py-2 bg-white text-indigo-600 border border-indigo-300 rounded-xl font-bold shadow transition">أول ثانوي/4</button>
+
+        <!-- الصفحة العامة (أيقونات الفصول الكبيرة + أيقونة إضافة دفعة للطلاب) -->
+        <div id="main-dashboard" class="py-4">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">الفصول الدراسية</h2>
+            
+            <!-- أيقونات الفصول الأربعة الكبيرة -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div onclick="openClass('الفصل الأول')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
+                    <div>
+                        <span class="text-3xl mb-1 block">👨‍🎓</span>
+                        <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 1</h3>
+                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل الأول">0 طلاب</p>
+                    </div>
+                    <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
+                </div>
+                <div onclick="openClass('الفصل الثاني')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
+                    <div>
+                        <span class="text-3xl mb-1 block">👨‍🎓</span>
+                        <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 2</h3>
+                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل الثاني">0 طلاب</p>
+                    </div>
+                    <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
+                </div>
+                <div onclick="openClass('الفصل الثالث')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
+                    <div>
+                        <span class="text-3xl mb-1 block">👨‍🎓</span>
+                        <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 3</h3>
+                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل الثالث">0 طلاب</p>
+                    </div>
+                    <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
+                </div>
+                <div onclick="openClass('الفصل الرابع')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
+                    <div>
+                        <span class="text-3xl mb-1 block">👨‍🎓</span>
+                        <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 4</h3>
+                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل الرابع">0 طلاب</p>
+                    </div>
+                    <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
+                </div>
+            </div>
+
+            <!-- قسم إضافة الطلاب دفعة واحدة في الصفحة العامة -->
+            <div class="bg-white p-6 rounded-3xl shadow-lg border border-green-200">
+                <h3 class="font-bold text-lg text-green-700 mb-2 flex items-center gap-2">📥 إضافة دفعة طلاب عامة</h3>
+                <p class="text-xs text-gray-500 mb-4">اختر الفصل المستهدف أولاً، ثم الصق القائمة بحيث يكون <strong>سطر اسم الطالب</strong> يليه <strong>سطر إيميل منصة مدرستي</strong>:</p>
+                
+                <div class="mb-3">
+                    <label class="block text-xs font-bold text-gray-700 mb-1">حدد الفصل المستهدف للدفعة:</label>
+                    <select id="target-class-select" class="w-full border p-3 rounded-xl text-sm bg-gray-50 font-bold focus:ring-2 focus:ring-green-500">
+                        <option value="الفصل الأول">أول ثانوي / 1</option>
+                        <option value="الفصل الثاني">أول ثانوي / 2</option>
+                        <option value="الفصل الثالث">أول ثانوي / 3</option>
+                        <option value="الفصل الرابع">أول ثانوي / 4</option>
+                    </select>
+                </div>
+
+                <textarea id="bulk-students-input" rows="5" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa&#10;علي خالد العمري&#10;a.amri@moe.gov.sa" class="w-full border p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-3 font-sans"></textarea>
+                
+                <button onclick="addBulkStudentsGeneral()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition text-sm">حفظ وإضافة الدفعة للسحابة</button>
+            </div>
         </div>
 
-        <!-- قسم إضافة الطلاب دفعة واحدة (اسم الطالب | إيميل مدرستي) -->
-        <div class="bg-white p-5 rounded-2xl shadow mb-6 border border-indigo-50">
-            <h2 class="font-bold text-lg text-indigo-700 mb-2" id="current-class-title">إضافة دفعة طلاب لـ: الفصل الأول</h2>
-            <p class="text-xs text-gray-500 mb-3">ضع كل طالب في سطر مستقل بالصيغة التالية: <code class="bg-gray-100 p-1 rounded text-indigo-600">اسم الطالب | إيميل منصة مدرستي</code></p>
-            <textarea id="bulk-students-input" rows="4" placeholder="محمد أحمد الفيفي | m.feefi@moe.gov.sa&#10;علي خالد العمري | a.amri@moe.gov.sa" class="w-full border p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3"></textarea>
-            <button onclick="addBulkStudents()" class="bg-green-600 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-green-700 transition text-sm">حفظ وإضافة الدفعة للفصل</button>
+        <!-- واجهة الفصل المستقلة (تظهر فقط عند الدخول لفصل، تحتوي على خانة البحث والفلترة فقط) -->
+        <div id="class-view" class="hidden py-4">
+            <!-- شريط علوي للعودة -->
+            <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow">
+                <button onclick="backToHome()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition">⬅ العودة للقائمة الرئيسية</button>
+                <h2 class="text-xl font-bold text-indigo-700" id="class-title-header">الفصل</h2>
+                <div class="w-20"></div> <!-- للتوسيط -->
+            </div>
+
+            <!-- خانة البحث والبحث من القائمة العامة لإدراج الطالب -->
+            <div class="bg-white p-4 rounded-2xl shadow mb-6 relative">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">🔍</span>
+                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث عن طالب في القائمة العامة لإدراجه في هذا الفصل..." class="w-full border-none focus:outline-none text-sm">
+                </div>
+                <!-- نتائج البحث المنسدلة -->
+                <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl rounded-2xl mt-2 border max-h-60 overflow-y-auto z-30"></div>
+            </div>
+
+            <!-- قائمة طلاب الفصل الحالي -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="class-students-container">
+                <!-- يتم تعبئة الطلاب هنا -->
+            </div>
         </div>
 
-        <!-- شريط البحث السريع والفلترة -->
-        <div class="bg-white p-4 rounded-2xl shadow mb-6 flex items-center gap-3">
-            <span class="text-xl">🔍</span>
-            <input type="text" id="search-student" oninput="filterStudents()" placeholder="ابحث باسم الطالب أو الإيميل..." class="w-full border-none focus:outline-none text-sm">
-        </div>
-
-        <!-- قائمة الطلاب -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="students-container">
-            <!-- يتم تعبئة الطلاب من السحابة هنا -->
-        </div>
     </main>
 
     <!-- نافذة ملف الطالب المفصل -->
@@ -257,7 +366,7 @@
         </div>
     </div>
 
-    <!-- نافذة رصد السلوكيات -->
+    <!-- نافذة رصد السلوكيات والأنشطة -->
     <div id="action-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl">
             <h3 class="text-lg font-bold text-center mb-4 text-indigo-700">تسجيل تفاعل للطالب</h3>
