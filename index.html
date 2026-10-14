@@ -8,11 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; }
-        /* تأثير النبضة والوميض عند الضغط على الزر */
         .click-effect:active {
             transform: scale(0.95);
-            background-color: #e2e8f0 !important;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            opacity: 0.8;
         }
     </style>
     <!-- استيراد مكتبات Firebase (Realtime Database) -->
@@ -37,10 +35,12 @@
         let activeClass = null;
         let currentStudentId = null;
         let allStudents = [];
+        let customActions = []; // التقييمات المخصصة من الإعدادات
 
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
         window.initRealtimeSync = function() {
+            // جلب الطلاب
             const studentsRef = ref(db, 'fifi_students_tracker');
             onValue(studentsRef, (snapshot) => {
                 allStudents = [];
@@ -55,11 +55,24 @@
                             className: studentItem.className || 'غير موزع',
                             phone: studentItem.phone || '966566688614',
                             actions: studentItem.actions || [],
-                            attendanceStats: studentItem.attendanceStats || { absents: 0, lates: 0, excuses: 0, lefts: 0 }
+                            attendanceStats: studentItem.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
                         });
                     });
                 }
                 renderView();
+            });
+
+            // جلب التقييمات المخصصة من الإعدادات السحابية
+            const settingsRef = ref(db, 'fifi_custom_actions');
+            onValue(settingsRef, (snapshot) => {
+                customActions = [];
+                const data = snapshot.val();
+                if (data) {
+                    Object.keys(data).forEach((key) => {
+                        customActions.push({ id: key, ...data[key] });
+                    });
+                }
+                renderCustomActionsUI();
             });
         };
 
@@ -77,6 +90,64 @@
             document.getElementById('main-dashboard').classList.remove('hidden');
             renderView();
         };
+
+        // فتح وإغلاق نافذة الإعدادات
+        window.openSettingsModal = function() {
+            document.getElementById('settings-modal').classList.remove('hidden');
+            document.getElementById('settings-modal').classList.add('flex');
+        };
+        window.closeSettingsModal = function() {
+            document.getElementById('settings-modal').classList.add('hidden');
+            document.getElementById('settings-modal').classList.remove('flex');
+        };
+
+        // إضافة أداة رصد جديدة من الإعدادات
+        window.saveNewCustomAction = async function() {
+            const name = document.getElementById('new-action-name').value.trim();
+            const score = parseFloat(document.getElementById('new-action-score').value);
+            const color = document.getElementById('new-action-color').value;
+
+            if(!name || isNaN(score)) {
+                alert('الرجاء إدخال اسم التقييم والدرجة بشكل صحيح.');
+                return;
+            }
+
+            const settingsRef = ref(db, 'fifi_custom_actions');
+            const newRef = push(settingsRef);
+            await set(newRef, { name, score, color });
+
+            document.getElementById('new-action-name').value = '';
+            document.getElementById('new-action-score').value = '';
+            alert('تم إضافة أداة الرصد بنجاح وتحديثها في السحابة! 🚀');
+        };
+
+        // حذف أداة رصد من الإعدادات
+        window.deleteCustomAction = async function(id) {
+            if(confirm('هل أنت متأكد من حذف أداة الرصد هذه؟')) {
+                await remove(ref(db, `fifi_custom_actions/${id}`));
+            }
+        };
+
+        // عرض الأزرار المخصصة داخل نافذة الرصد
+        function renderCustomActionsUI() {
+            const container = document.getElementById('custom-actions-container');
+            if(!container) return;
+            container.innerHTML = '';
+
+            if(customActions.length === 0) {
+                container.innerHTML = `<p class="text-xs text-gray-400 col-span-2 text-center py-2">لا توجد تقييمات مخصصة. أضفها من أيقونة الإعدادات ⚙️ بالأعلى.</p>`;
+                return;
+            }
+
+            customActions.forEach(act => {
+                container.innerHTML += `
+                    <button onclick="recordAction('${act.name}', ${act.score}, null, this)" class="click-effect p-4 rounded-2xl border-2 text-white font-black text-sm flex justify-between items-center shadow-sm transition-all cursor-pointer" style="background-color: ${act.color}; border-color: rgba(0,0,0,0.1);">
+                        <span>${act.name}</span> 
+                        <span class="bg-white/30 text-white px-2.5 py-1 rounded-lg text-xs font-black">${act.score}</span>
+                    </button>
+                `;
+            });
+        }
 
         window.superSmartBulkAdd = async function() {
             const bulkText = document.getElementById('bulk-students-input').value.trim();
@@ -101,8 +172,7 @@
                     await set(newStudentRef, {
                         name: name, email: email, className: 'غير موزع',
                         phone: '966566688614', actions: [],
-                        attendanceStats: { absents: 0, lates: 0, excuses: 0, lefts: 0 },
-                        createdAt: new Date().toISOString()
+                        attendanceStats: { absents: 0, lates: 0, excuses: 0 }
                     });
                     count++;
                 }
@@ -134,7 +204,7 @@
                     </div>
                 `;
             });
-            resultsBox.classList.remove('hidden');
+            resultsBox.classList.add('hidden');
         };
 
         window.transferStudentToCurrentClass = async function(id) {
@@ -161,11 +231,9 @@
             }
         };
 
-        // تسجيل السلوك مع الوميض والاختفاء الفوري لنافذة الرصد وتثبيت الوقت
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null, btnElement) {
             if(!currentStudentId) return;
             
-            // تأثير وميض بصري على الزر المختار
             if(btnElement) {
                 btnElement.style.transform = "scale(0.92)";
                 btnElement.style.opacity = "0.7";
@@ -181,7 +249,7 @@
 
                 const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
                 const updatedActions = [newRecord, ...(student.actions || [])];
-                let attStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0, lefts: 0 };
+                let attStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
 
                 if(attendanceType === 'غائب') attStats.absents = (attStats.absents || 0) + 1;
                 if(attendanceType === 'متأخر') attStats.lates = (attStats.lates || 0) + 1;
@@ -190,7 +258,6 @@
                 const studentRef = ref(db, `fifi_students_tracker/${currentStudentId}`);
                 await update(studentRef, { actions: updatedActions, attendanceStats: attStats });
                 
-                // إغلاق نافذة الرصد فوراً بعد الضغط ليعلم المستخدم بالاستجابة
                 setTimeout(() => {
                     if(btnElement) { btnElement.style.transform = "scale(1)"; btnElement.style.opacity = "1"; }
                     closeActionModal();
@@ -198,18 +265,14 @@
             }
         };
 
-        // حذف سجل سلوك أو غياب معين من تقرير الطالب
         window.deleteStudentAction = async function(actionIndex) {
             if(!currentStudentId) return;
             const student = allStudents.find(s => s.id === currentStudentId);
             if(student && student.actions) {
                 let updatedActions = [...student.actions];
-                updatedActions.splice(actionIndex, 1); // حذف العنصر المحدد
-
+                updatedActions.splice(actionIndex, 1);
                 const studentRef = ref(db, `fifi_students_tracker/${currentStudentId}`);
                 await update(studentRef, { actions: updatedActions });
-                
-                // تحديث نافذة التقرير المفتوحة مباشرة
                 student.actions = updatedActions;
                 openModal(currentStudentId);
             }
@@ -266,9 +329,9 @@
                                 <p class="text-xs text-indigo-600 font-semibold"><span class="text-gray-500">${student.email || 'بدون إيميل'}</span></p>
                             </div>
                             <div class="flex gap-1.5 items-center">
-                                <button onclick="openActionModal('${student.id}')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-indigo-100">📝 رصد</button>
-                                <button onclick="openModal('${student.id}')" class="bg-emerald-50 text-emerald-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-100">📊 التقرير</button>
-                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-rose-100">🗑️ إزالة</button>
+                                <button onclick="openActionModal('${student.id}')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-indigo-100 cursor-pointer">📝 رصد</button>
+                                <button onclick="openModal('${student.id}')" class="bg-emerald-50 text-emerald-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-100 cursor-pointer">📊 التقرير</button>
+                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ إزالة</button>
                             </div>
                         </div>
                     `;
@@ -290,11 +353,11 @@
         };
 
         window.openModal = function(id) {
-            currentStudentId = id; // لتحديث الحذف بشكل مباشر
+            currentStudentId = id;
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
 
-            const att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0, lefts: 0 };
+            const att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
             const actions = student.actions || [];
 
             const modalContent = document.getElementById('modal-content');
@@ -368,9 +431,15 @@
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen">
 
-    <header class="bg-indigo-600 text-white p-5 shadow-md text-center">
-        <h1 class="text-2xl font-bold">نظام المتابعة السحابي للطلاب</h1>
-        <p class="text-sm opacity-90">المعلم: عبدالعزيز الفيفي | الكفايات اللغوية</p>
+    <header class="bg-indigo-600 text-white p-5 shadow-md flex justify-between items-center px-8">
+        <div>
+            <h1 class="text-2xl font-bold">نظام المتابعة السحابي للطلاب</h1>
+            <p class="text-xs opacity-90">المعلم: عبدالعزيز الفيفي | الكفايات اللغوية</p>
+        </div>
+        <!-- أيقونة الإعدادات -->
+        <button onclick="openSettingsModal()" class="bg-indigo-700 hover:bg-indigo-800 text-white px-4 py-2.5 rounded-2xl font-bold text-sm flex items-center gap-2 cursor-pointer shadow-md transition-all">
+            ⚙️ إعدادات الرصد
+        </button>
     </header>
 
     <main class="container mx-auto p-4 max-w-4xl">
@@ -449,7 +518,48 @@
 
     </main>
 
-    <!-- نافذة تقرير ملف الطالب الكبرى (مع زر حذف لكل سجل) -->
+    <!-- نافذة إعدادات أدوات الرصد والتقييمات المخصصة -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeSettingsModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
+            <h3 class="text-2xl font-black text-center mb-1 text-indigo-900">⚙️ إعدادات أدوات الرصد</h3>
+            <p class="text-xs text-center text-gray-500 mb-6">أنشئ تقييمات وسلوكيات جديدة وحدد درجاتها وألوانها لتظهر فوراً في نافذة رصد الطلاب</p>
+
+            <div class="bg-gray-50 p-4 rounded-2xl border mb-6 space-y-3">
+                <h4 class="font-bold text-sm text-gray-800">➕ إضافة تقييم أو سلوك جديد</h4>
+                <input type="text" id="new-action-name" placeholder="اسم التقييم (مثال: حفظ القرآن، مشاركة مميزة...)" class="w-full border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (مثال: 1 أو -1 أو 5)" class="border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    
+                    <!-- قائمة منسدلة بأكثر من 15 لوناً مختلفاً -->
+                    <select id="new-action-color" class="border p-2.5 rounded-xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="#28a745">🟢 أخضر عشبي</option>
+                        <option value="#20c997">🔹 أخضر فيروزي</option>
+                        <option value="#007bff">🔵 أزرق غامق</option>
+                        <option value="#17a2b8">🟦 سماوي فاتح</option>
+                        <option value="#6610f2">🟣 بنفسجي ملكي</option>
+                        <option value="#6f42c1">🔮 أرجواني</option>
+                        <option value="#e83e8c">🩷 وردي زاهي</option>
+                        <option value="#dc3545">🔴 أحمر قاني</option>
+                        <option value="#fd7e14">🟠 برتقالي ساطع</option>
+                        <option value="#ffc107">🟡 أصفر ذهبي</option>
+                        <option value="#fd79a8">🌸 زهري فاتح</option>
+                        <option value="#6c757d">⚪ رمادي رسمي</option>
+                        <option value="#343a40">⚫ أسود فحمي</option>
+                        <option value="#00cec9">🪩 تركواز لامع</option>
+                        <option value="#e17055">🧱 قرميدي</option>
+                    </select>
+                </div>
+
+                <button onclick="saveNewCustomAction()" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700 transition cursor-pointer">حفظ وإضافة التقييم الجديد 🚀</button>
+            </div>
+
+            <button onclick="closeSettingsModal()" class="w-full bg-gray-800 text-white py-3 rounded-2xl font-black text-base cursor-pointer hover:bg-gray-900">إغلاق الإعدادات</button>
+        </div>
+    </div>
+
+    <!-- نافذة تقرير ملف الطالب الكبرى -->
     <div id="student-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-8 relative shadow-2xl">
             <button onclick="closeModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
@@ -457,13 +567,14 @@
         </div>
     </div>
 
-    <!-- نافذة رصد التقييمات الشاملة الكبرى (مع تأثير الوميض والتفاعل الفوري) -->
+    <!-- نافذة رصد التقييمات الشاملة (تشمل الأزرار الافتراضية والتقييمات المخصصة من الإعدادات) -->
     <div id="action-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-2xl w-full p-8 relative shadow-2xl max-h-[95vh] overflow-y-auto">
             <button onclick="closeActionModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
             <h3 class="text-2xl font-black text-center mb-1 text-indigo-900" id="action-student-name">رصد الطالب</h3>
-            <p class="text-xs text-center text-gray-500 mb-6">اضغط على السلوك أو التقييم وسيتم حفظه فوراً وإغلاق النافذة لتأكيد استجابة اللمس</p>
+            <p class="text-xs text-center text-gray-500 mb-6">اختر التقييم أو السلوك أدناه وسيتم حفظه فوراً باليوم والتاريخ والوقت</p>
 
+            <!-- خيارات الحضور الأساسية -->
             <div class="grid grid-cols-4 gap-3 mb-6">
                 <button onclick="recordAction('حاضر', 0, null, this)" class="click-effect p-4 rounded-2xl bg-emerald-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟢 حاضر</button>
                 <button onclick="recordAction('غائب', 0, 'غائب', this)" class="click-effect p-4 rounded-2xl bg-rose-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔴 غائب</button>
@@ -471,24 +582,9 @@
                 <button onclick="recordAction('متأخر', 0, 'متأخر', this)" class="click-effect p-4 rounded-2xl bg-amber-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟠 متأخر</button>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold">
-                <button onclick="recordAction('إجابة صحيحة', 1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-emerald-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>✅ إجابة صحيحة</span> <span class="bg-emerald-200 text-emerald-900 px-2.5 py-1 rounded-lg text-xs font-black">1.0</span></button>
-                <button onclick="recordAction('إجابة خاطئة', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-rose-200 bg-rose-50 text-rose-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>❌ إجابة خاطئة</span> <span class="bg-rose-200 text-rose-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
-
-                <button onclick="recordAction('مشاركة', 1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-cyan-200 bg-cyan-50 text-cyan-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>💡 مشاركة</span> <span class="bg-cyan-200 text-cyan-900 px-2.5 py-1 rounded-lg text-xs font-black">1.0</span></button>
-                <button onclick="recordAction('حل الواجب', 3, null, this)" class="click-effect p-4 rounded-2xl border-2 border-teal-200 bg-teal-50 text-teal-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>📘 حل الواجب</span> <span class="bg-teal-200 text-teal-900 px-2.5 py-1 rounded-lg text-xs font-black">3.0</span></button>
-
-                <button onclick="recordAction('لم يحل الواجب', -3, null, this)" class="click-effect p-4 rounded-2xl border-2 border-red-200 bg-red-50 text-red-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>📕 لم يحل الواجب</span> <span class="bg-red-200 text-red-900 px-2.5 py-1 rounded-lg text-xs font-black">-3.0</span></button>
-                <button onclick="recordAction('النوم في الحصة', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-purple-200 bg-purple-50 text-purple-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>💤 النوم في الحصة</span> <span class="bg-purple-200 text-purple-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
-
-                <button onclick="recordAction('التحدث أثناء الدرس', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-indigo-200 bg-indigo-50 text-indigo-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>🗣️ التحدث أثناء الدرس</span> <span class="bg-indigo-200 text-indigo-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
-                <button onclick="recordAction('خرج ولم يعد', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-sky-200 bg-sky-50 text-sky-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>🏃‍♂️ خرج ولم يعد</span> <span class="bg-sky-200 text-sky-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
-
-                <button onclick="recordAction('غير مهتم', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-orange-200 bg-orange-50 text-orange-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>😑 غير مهتم</span> <span class="bg-orange-200 text-orange-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
-                <button onclick="recordAction('استخدام الهاتف', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-rose-200 bg-rose-50 text-rose-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>📱 استخدام الهاتف</span> <span class="bg-rose-200 text-rose-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
-
-                <button onclick="recordAction('إنجاز ملف', 5, null, this)" class="click-effect p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-emerald-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>⭐ إنجاز ملف</span> <span class="bg-emerald-200 text-emerald-900 px-2.5 py-1 rounded-lg text-xs font-black">5.0</span></button>
-                <button onclick="recordAction('هدية', 5, null, this)" class="click-effect p-4 rounded-2xl border-2 border-pink-200 bg-pink-50 text-pink-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>🎁 هدية</span> <span class="bg-pink-200 text-pink-900 px-2.5 py-1 rounded-lg text-xs font-black">5.0</span></button>
+            <!-- شبكة التقييمات والسلوكيات المخصصة التي أضفتها من الإعدادات -->
+            <div id="custom-actions-container" class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold">
+                <!-- يتم تعبئتها تلقائياً من الإعدادات -->
             </div>
             
             <button onclick="closeActionModal()" class="w-full bg-gray-800 text-white py-3 rounded-2xl font-black text-base cursor-pointer hover:bg-gray-900 shadow-lg">إغلاق</button>
