@@ -8,13 +8,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; }
+        /* تأثير النبضة والوميض عند الضغط على الزر */
+        .click-effect:active {
+            transform: scale(0.95);
+            background-color: #e2e8f0 !important;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
     </style>
     <!-- استيراد مكتبات Firebase (Realtime Database) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // إعدادات سحابتك الموحدة (youy-apps)
         const firebaseConfig = {
             apiKey: "AIzaSyAVrIIm7aXjg0hGrMk0qVrXT8gaRIpHoBk",
             authDomain: "youy-apps.firebaseapp.com",
@@ -55,8 +60,6 @@
                     });
                 }
                 renderView();
-            }, (error) => {
-                console.error("خطأ الاتصال بالسحابة: ", error);
             });
         };
 
@@ -86,38 +89,24 @@
             for(let i = 0; i < lines.length; i++) {
                 let line1 = lines[i];
                 let line2 = lines[i+1];
-
                 if(!line2) break;
-
                 let name = "", email = "";
-
                 if(!line1.includes('@') && line2.includes('@')) {
-                    name = line1; email = line2.toLowerCase();
-                    i++;
+                    name = line1; email = line2.toLowerCase(); i++;
                 } else if(line1.includes('@') && !line2.includes('@')) {
-                    email = line1.toLowerCase(); name = line2;
-                    i++;
+                    email = line1.toLowerCase(); name = line2; i++;
                 }
-
                 if(name && email) {
-                    try {
-                        const newStudentRef = push(studentsRef);
-                        await set(newStudentRef, {
-                            name: name,
-                            email: email,
-                            className: 'غير موزع',
-                            phone: '966566688614',
-                            actions: [],
-                            attendanceStats: { absents: 0, lates: 0, excuses: 0, lefts: 0 },
-                            createdAt: new Date().toISOString()
-                        });
-                        count++;
-                    } catch (e) {
-                        console.error(e);
-                    }
+                    const newStudentRef = push(studentsRef);
+                    await set(newStudentRef, {
+                        name: name, email: email, className: 'غير موزع',
+                        phone: '966566688614', actions: [],
+                        attendanceStats: { absents: 0, lates: 0, excuses: 0, lefts: 0 },
+                        createdAt: new Date().toISOString()
+                    });
+                    count++;
                 }
             }
-
             document.getElementById('bulk-students-input').value = '';
             alert(`تم حفظ القائمة العامة بنجاح (${count} طالب) في سحابتك!`);
         };
@@ -125,21 +114,14 @@
         window.searchGlobalStudents = function() {
             const query = document.getElementById('global-search-input').value.trim().toLowerCase();
             const resultsBox = document.getElementById('global-search-results');
-            
-            if(!query) {
-                resultsBox.innerHTML = '';
-                resultsBox.classList.add('hidden');
-                return;
-            }
+            if(!query) { resultsBox.innerHTML = ''; resultsBox.classList.add('hidden'); return; }
 
             const matches = allStudents.filter(s => s.name.toLowerCase().includes(query) || (s.email && s.email.toLowerCase().includes(query)));
-
             if(matches.length === 0) {
-                resultsBox.innerHTML = `<div class="p-3 text-sm text-gray-500">لا توجد نتائج مطابقة في القائمة العامة.</div>`;
+                resultsBox.innerHTML = `<div class="p-3 text-sm text-gray-500">لا توجد نتائج مطابقة.</div>`;
                 resultsBox.classList.remove('hidden');
                 return;
             }
-
             resultsBox.innerHTML = '';
             matches.forEach(student => {
                 resultsBox.innerHTML += `
@@ -148,7 +130,7 @@
                             <span class="font-bold text-gray-800">${student.name}</span>
                             <span class="text-xs text-indigo-600 block">${student.email || ''} (الحالة: ${student.className})</span>
                         </div>
-                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700">➕ إضافة إلى ${activeClass}</button>
+                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">➕ إضافة</button>
                     </div>
                 `;
             });
@@ -156,50 +138,39 @@
         };
 
         window.transferStudentToCurrentClass = async function(id) {
-            try {
-                const studentRef = ref(db, `fifi_students_tracker/${id}`);
-                await update(studentRef, { className: activeClass });
-                document.getElementById('global-search-input').value = '';
-                document.getElementById('global-search-results').classList.add('hidden');
-            } catch (e) {
-                alert('خطأ أثناء الإدراج: ' + e.message);
-            }
+            const studentRef = ref(db, `fifi_students_tracker/${id}`);
+            await update(studentRef, { className: activeClass });
+            document.getElementById('global-search-input').value = '';
+            document.getElementById('global-search-results').classList.add('hidden');
         };
 
         window.editStudent = async function(id) {
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
-
             const newName = prompt("تعديل اسم الطالب:", student.name);
             if(newName === null) return;
             const newEmail = prompt("تعديل إيميل مدرستي:", student.email || '');
-
-            try {
-                const studentRef = ref(db, `fifi_students_tracker/${id}`);
-                await update(studentRef, { name: newName.trim(), email: newEmail.trim() });
-                alert("تم تعديل البيانات بنجاح!");
-            } catch (e) {
-                alert("خطأ في التعديل: " + e.message);
-            }
+            const studentRef = ref(db, `fifi_students_tracker/${id}`);
+            await update(studentRef, { name: newName.trim(), email: newEmail.trim() });
         };
 
         window.deleteStudent = async function(id) {
-            if(confirm('هل أنت متأكد من حذف هذا الطالب نهائياً من السحابة؟')) {
-                try {
-                    const studentRef = ref(db, `fifi_students_tracker/${id}`);
-                    await remove(studentRef);
-                } catch (e) {
-                    alert('خطأ في الحذف: ' + e.message);
-                }
+            if(confirm('هل أنت متأكد من حذف هذا الطالب نهائياً؟')) {
+                const studentRef = ref(db, `fifi_students_tracker/${id}`);
+                await remove(studentRef);
             }
         };
 
-        // تسجيل السلوك أو التقييم مع تثبيت اليوم والتاريخ والوقت بدقة كاملة
-        window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
-            if(!currentStudentId) {
-                alert('الرجاء اختيار الطالب أولاً');
-                return;
+        // تسجيل السلوك مع الوميض والاختفاء الفوري لنافذة الرصد وتثبيت الوقت
+        window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null, btnElement) {
+            if(!currentStudentId) return;
+            
+            // تأثير وميض بصري على الزر المختار
+            if(btnElement) {
+                btnElement.style.transform = "scale(0.92)";
+                btnElement.style.opacity = "0.7";
             }
+
             const student = allStudents.find(s => s.id === currentStudentId);
             if(student) {
                 const now = new Date();
@@ -208,12 +179,7 @@
                 const timeFormatted = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const formattedTime = `${dayName} | ${dateFormatted} - ${timeFormatted}`;
 
-                const newRecord = {
-                    title: actionName,
-                    score: scoreChange,
-                    timestamp: formattedTime
-                };
-
+                const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
                 const updatedActions = [newRecord, ...(student.actions || [])];
                 let attStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0, lefts: 0 };
 
@@ -221,17 +187,31 @@
                 if(attendanceType === 'متأخر') attStats.lates = (attStats.lates || 0) + 1;
                 if(attendanceType === 'مستأذن') attStats.excuses = (attStats.excuses || 0) + 1;
 
-                try {
-                    const studentRef = ref(db, `fifi_students_tracker/${currentStudentId}`);
-                    await update(studentRef, {
-                        actions: updatedActions,
-                        attendanceStats: attStats
-                    });
-                    alert(`تم رصد (${actionName}) للطالب بنجاح!`);
+                const studentRef = ref(db, `fifi_students_tracker/${currentStudentId}`);
+                await update(studentRef, { actions: updatedActions, attendanceStats: attStats });
+                
+                // إغلاق نافذة الرصد فوراً بعد الضغط ليعلم المستخدم بالاستجابة
+                setTimeout(() => {
+                    if(btnElement) { btnElement.style.transform = "scale(1)"; btnElement.style.opacity = "1"; }
                     closeActionModal();
-                } catch (e) {
-                    alert('خطأ في التحديث: ' + e.message);
-                }
+                }, 200);
+            }
+        };
+
+        // حذف سجل سلوك أو غياب معين من تقرير الطالب
+        window.deleteStudentAction = async function(actionIndex) {
+            if(!currentStudentId) return;
+            const student = allStudents.find(s => s.id === currentStudentId);
+            if(student && student.actions) {
+                let updatedActions = [...student.actions];
+                updatedActions.splice(actionIndex, 1); // حذف العنصر المحدد
+
+                const studentRef = ref(db, `fifi_students_tracker/${currentStudentId}`);
+                await update(studentRef, { actions: updatedActions });
+                
+                // تحديث نافذة التقرير المفتوحة مباشرة
+                student.actions = updatedActions;
+                openModal(currentStudentId);
             }
         };
 
@@ -252,24 +232,20 @@
             const globalContainer = document.getElementById('general-students-list-container');
             if(globalContainer) {
                 globalContainer.innerHTML = '';
-                if(allStudents.length === 0) {
-                    globalContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">لا توجد أسماء محفوظة في القائمة العامة حالياً.</p>`;
-                } else {
-                    allStudents.forEach(student => {
-                        globalContainer.innerHTML += `
-                            <div class="bg-white p-3 rounded-xl border flex justify-between items-center shadow-sm text-sm">
-                                <div>
-                                    <span class="font-bold text-gray-800">${student.name}</span>
-                                    <span class="text-xs text-indigo-600 block">${student.email || 'بدون إيميل'} | الفصل: <strong class="text-gray-700">${student.className}</strong></span>
-                                </div>
-                                <div class="flex gap-1">
-                                    <button onclick="editStudent('${student.id}')" class="bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-xs font-bold hover:bg-amber-100">✏️ تعديل</button>
-                                    <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2 py-1 rounded-lg text-xs font-bold hover:bg-rose-100">🗑️ حذف</button>
-                                </div>
+                allStudents.forEach(student => {
+                    globalContainer.innerHTML += `
+                        <div class="bg-white p-3 rounded-xl border flex justify-between items-center shadow-sm text-sm">
+                            <div>
+                                <span class="font-bold text-gray-800">${student.name}</span>
+                                <span class="text-xs text-indigo-600 block">${student.email || 'بدون إيميل'} | الفصل: <strong class="text-gray-700">${student.className}</strong></span>
                             </div>
-                        `;
-                    });
-                }
+                            <div class="flex gap-1">
+                                <button onclick="editStudent('${student.id}')" class="bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-xs font-bold">✏️ تعديل</button>
+                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2 py-1 rounded-lg text-xs font-bold">🗑️ حذف</button>
+                            </div>
+                        </div>
+                    `;
+                });
             }
 
             if(activeClass) {
@@ -278,7 +254,7 @@
                 const students = allStudents.filter(s => s.className === activeClass);
 
                 if(students.length === 0) {
-                    container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث في الأعلى لإدراج الطلاب.</p>`;
+                    container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا توجد طلاب مخصصين في هذا الفصل حالياً.</p>`;
                     return;
                 }
 
@@ -290,9 +266,9 @@
                                 <p class="text-xs text-indigo-600 font-semibold"><span class="text-gray-500">${student.email || 'بدون إيميل'}</span></p>
                             </div>
                             <div class="flex gap-1.5 items-center">
-                                <button onclick="openActionModal('${student.id}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-indigo-100">📝 رصد</button>
-                                <button onclick="openModal('${student.id}')" class="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-emerald-100">📊 التقرير</button>
-                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100">🗑️ إزالة</button>
+                                <button onclick="openActionModal('${student.id}')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-indigo-100">📝 رصد</button>
+                                <button onclick="openModal('${student.id}')" class="bg-emerald-50 text-emerald-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-100">📊 التقرير</button>
+                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-rose-100">🗑️ إزالة</button>
                             </div>
                         </div>
                     `;
@@ -314,6 +290,7 @@
         };
 
         window.openModal = function(id) {
+            currentStudentId = id; // لتحديث الحذف بشكل مباشر
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
 
@@ -324,72 +301,54 @@
             modalContent.innerHTML = `
                 <div class="text-center mb-6">
                     <div class="w-24 h-24 bg-blue-500 text-white rounded-full flex items-center justify-center text-5xl font-bold mx-auto mb-3 shadow-lg">👤</div>
-                    <h2 class="text-2xl font-black text-gray-800">${student.name}</h2>
-                    <p class="text-sm font-semibold text-gray-500 mt-0.5">${student.className}</p>
-                    <a href="https://wa.me/${student.phone}" target="_blank" class="inline-block mt-3 bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-bold border border-indigo-200">🪪 بطاقة وصول ولي الأمر</a>
+                    <h2 class="text-3xl font-black text-gray-800">${student.name}</h2>
+                    <p class="text-base font-semibold text-gray-500 mt-1">${student.className}</p>
                 </div>
 
-                <div class="bg-indigo-50/70 p-4 rounded-2xl mb-5 border border-indigo-100">
-                    <h4 class="font-bold text-indigo-900 text-sm mb-1">📊 ملخص الأداء</h4>
-                    <p class="text-xs text-gray-600 leading-relaxed">يظهر الطالب أداءً متميزاً ومستوى ممتاز في مختلف الجوانب، مع المتابعة المستمرة للتكليفات والسلوكيات.</p>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2 text-center mb-5">
-                    <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
-                        <span class="block text-emerald-600 text-xs font-bold mb-1">التحضير</span>
-                        <span class="text-lg font-black text-emerald-700">98.89%</span>
-                    </div>
-                    <div class="bg-blue-50 border border-blue-200 p-3 rounded-2xl">
-                        <span class="block text-blue-600 text-xs font-bold mb-1">التقدم الإجمالي</span>
-                        <span class="text-lg font-black text-blue-700">95%</span>
-                    </div>
-                    <div class="bg-purple-50 border border-purple-200 p-3 rounded-2xl">
-                        <span class="block text-purple-600 text-xs font-bold mb-1">الأوسمة</span>
-                        <span class="text-lg font-black text-purple-700">34%</span>
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 p-4 rounded-2xl mb-5 border">
-                    <h4 class="font-bold text-gray-800 text-sm mb-3">👤 الحضور والغياب</h4>
-                    <div class="grid grid-cols-3 gap-2 mb-2 text-center">
-                        <div class="bg-rose-100 p-2 rounded-xl">
+                <div class="bg-gray-50 p-5 rounded-2xl mb-6 border">
+                    <h4 class="font-bold text-gray-800 text-base mb-3">👤 الحضور والغياب</h4>
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div class="bg-rose-100 p-3 rounded-xl">
                             <span class="block text-xs font-bold text-rose-700">غائب</span>
-                            <span class="text-lg font-black text-rose-800">${att.absents || 0}</span>
+                            <span class="text-xl font-black text-rose-800">${att.absents || 0}</span>
                         </div>
-                        <div class="bg-amber-100 p-2 rounded-xl">
+                        <div class="bg-amber-100 p-3 rounded-xl">
                             <span class="block text-xs font-bold text-amber-700">متأخر</span>
-                            <span class="text-lg font-black text-amber-800">${att.lates || 0}</span>
+                            <span class="text-xl font-black text-amber-800">${att.lates || 0}</span>
                         </div>
-                        <div class="bg-gray-200 p-2 rounded-xl">
-                            <span class="block text-xs font-bold text-gray-700">مستأذن</span>
-                            <span class="text-lg font-black text-gray-800">${att.excuses || 0}</span>
+                        <div class="bg-blue-100 p-3 rounded-xl">
+                            <span class="block text-xs font-bold text-blue-700">مستأذن</span>
+                            <span class="text-xl font-black text-blue-800">${att.excuses || 0}</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="mb-5">
-                    <h4 class="font-bold text-gray-800 text-sm mb-3 flex items-center justify-between">
-                        <span>📅 النشاطات والسلوكيات الأخيرة</span>
+                <div class="mb-6">
+                    <h4 class="font-bold text-gray-800 text-base mb-3 flex items-center justify-between">
+                        <span>📅 النشاطات والسلوكيات المسجلة (مع خيار الحذف)</span>
                         <span class="text-xs text-indigo-600 font-normal">موثق باليوم والتاريخ والوقت</span>
                     </h4>
-                    <div class="space-y-2 max-h-52 overflow-y-auto pr-1">
-                        ${actions.length === 0 ? '<p class="text-xs text-gray-400 text-center py-4">لا توجد نشاطات مسجلة حالياً</p>' : 
-                            actions.map(act => `
-                                <div class="bg-white p-3 rounded-xl border flex justify-between items-center shadow-sm">
-                                    <div class="flex items-center gap-2">
-                                        <span class="w-3 h-3 rounded-full ${act.score > 0 ? 'bg-emerald-500' : (act.score < 0 ? 'bg-rose-500' : 'bg-blue-500')}"></span>
-                                        <span class="font-bold text-xs text-gray-800">${act.title}</span>
+                    <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                        ${actions.length === 0 ? '<p class="text-sm text-gray-400 text-center py-6">لا توجد نشاطات مسجلة حالياً</p>' : 
+                            actions.map((act, index) => `
+                                <div class="bg-white p-3.5 rounded-xl border flex justify-between items-center shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-3.5 h-3.5 rounded-full ${act.score > 0 ? 'bg-emerald-500' : (act.score < 0 ? 'bg-rose-500' : 'bg-blue-500')}"></span>
+                                        <div>
+                                            <span class="font-bold text-sm text-gray-800 block">${act.title}</span>
+                                            <span class="text-[11px] text-gray-400 font-mono">${act.timestamp}</span>
+                                        </div>
                                     </div>
-                                    <span class="text-[11px] text-gray-400 font-mono">${act.timestamp}</span>
+                                    <button onclick="deleteStudentAction(${index})" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ حذف</button>
                                 </div>
                             `).join('')
                         }
                     </div>
                 </div>
 
-                <div class="flex gap-2">
-                    <button onclick="window.print()" class="flex-1 bg-gray-800 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-gray-900">🖨️ طباعة التقرير</button>
-                    <button onclick="closeModal()" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700">إغلاق</button>
+                <div class="flex gap-3">
+                    <button onclick="window.print()" class="flex-1 bg-gray-800 text-white py-3 rounded-2xl font-bold text-base hover:bg-gray-900 cursor-pointer">🖨️ طباعة التقرير</button>
+                    <button onclick="closeModal()" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-base hover:bg-indigo-700 cursor-pointer">إغلاق</button>
                 </div>
             `;
 
@@ -416,7 +375,6 @@
 
     <main class="container mx-auto p-4 max-w-4xl">
 
-        <!-- لوحة التحكم الرئيسية (4 فصول فقط + القائمة العامة) -->
         <div id="main-dashboard" class="py-4">
             <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">الفصول الدراسية</h2>
             
@@ -455,30 +413,25 @@
                 </div>
             </div>
 
-            <!-- إضافة القائمة العامة الكاملة وحفظها بالسحابة -->
             <div class="bg-white p-6 rounded-3xl shadow-lg border border-green-200 mb-6">
                 <div class="flex justify-between items-center mb-2">
                     <h3 class="font-bold text-lg text-green-700 flex items-center gap-2">📥 حفظ القائمة العامة للطلاب في السحابة</h3>
                     <span class="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full" id="total-cloud-count">إجمالي القائمة العامة بالسحابة: 0 طالب</span>
                 </div>
                 <p class="text-xs text-gray-500 mb-4">الصق القائمة الكاملة هنا (الاسم والإيميل سطر بسطر):</p>
-
                 <textarea id="bulk-students-input" rows="6" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa" class="w-full border p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-3 font-sans"></textarea>
-                
-                <button onclick="superSmartBulkAdd()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition text-sm">حفظ القائمة العامة في السحابة 🚀</button>
+                <button onclick="superSmartBulkAdd()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition text-sm cursor-pointer">حفظ القائمة العامة في السحابة 🚀</button>
             </div>
 
-            <!-- القائمة العامة في الأسفل -->
             <div class="bg-white p-6 rounded-3xl shadow-lg border">
                 <h3 class="font-bold text-base text-gray-800 mb-3">📋 القائمة العامة للطلاب المحفوظين بالسحابة</h3>
                 <div id="general-students-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
             </div>
         </div>
 
-        <!-- واجهة الفصل المستقلة -->
         <div id="class-view" class="hidden py-4">
             <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow">
-                <button onclick="backToHome()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition">⬅ العودة للرئيسية</button>
+                <button onclick="backToHome()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition cursor-pointer">⬅ العودة للرئيسية</button>
                 <h2 class="text-xl font-bold text-indigo-700" id="class-title-header">الفصل</h2>
                 <div class="w-16"></div>
             </div>
@@ -491,4 +444,56 @@
                 <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl rounded-2xl mt-2 border max-h-60 overflow-y-auto z-30"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="class-
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="class-students-container"></div>
+        </div>
+
+    </main>
+
+    <!-- نافذة تقرير ملف الطالب الكبرى (مع زر حذف لكل سجل) -->
+    <div id="student-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-8 relative shadow-2xl">
+            <button onclick="closeModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- نافذة رصد التقييمات الشاملة الكبرى (مع تأثير الوميض والتفاعل الفوري) -->
+    <div id="action-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-8 relative shadow-2xl max-h-[95vh] overflow-y-auto">
+            <button onclick="closeActionModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
+            <h3 class="text-2xl font-black text-center mb-1 text-indigo-900" id="action-student-name">رصد الطالب</h3>
+            <p class="text-xs text-center text-gray-500 mb-6">اضغط على السلوك أو التقييم وسيتم حفظه فوراً وإغلاق النافذة لتأكيد استجابة اللمس</p>
+
+            <div class="grid grid-cols-4 gap-3 mb-6">
+                <button onclick="recordAction('حاضر', 0, null, this)" class="click-effect p-4 rounded-2xl bg-emerald-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟢 حاضر</button>
+                <button onclick="recordAction('غائب', 0, 'غائب', this)" class="click-effect p-4 rounded-2xl bg-rose-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔴 غائب</button>
+                <button onclick="recordAction('مستأذن', 0, 'مستأذن', this)" class="click-effect p-4 rounded-2xl bg-blue-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔵 مستأذن</button>
+                <button onclick="recordAction('متأخر', 0, 'متأخر', this)" class="click-effect p-4 rounded-2xl bg-amber-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟠 متأخر</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold">
+                <button onclick="recordAction('إجابة صحيحة', 1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-emerald-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>✅ إجابة صحيحة</span> <span class="bg-emerald-200 text-emerald-900 px-2.5 py-1 rounded-lg text-xs font-black">1.0</span></button>
+                <button onclick="recordAction('إجابة خاطئة', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-rose-200 bg-rose-50 text-rose-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>❌ إجابة خاطئة</span> <span class="bg-rose-200 text-rose-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
+
+                <button onclick="recordAction('مشاركة', 1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-cyan-200 bg-cyan-50 text-cyan-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>💡 مشاركة</span> <span class="bg-cyan-200 text-cyan-900 px-2.5 py-1 rounded-lg text-xs font-black">1.0</span></button>
+                <button onclick="recordAction('حل الواجب', 3, null, this)" class="click-effect p-4 rounded-2xl border-2 border-teal-200 bg-teal-50 text-teal-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>📘 حل الواجب</span> <span class="bg-teal-200 text-teal-900 px-2.5 py-1 rounded-lg text-xs font-black">3.0</span></button>
+
+                <button onclick="recordAction('لم يحل الواجب', -3, null, this)" class="click-effect p-4 rounded-2xl border-2 border-red-200 bg-red-50 text-red-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>📕 لم يحل الواجب</span> <span class="bg-red-200 text-red-900 px-2.5 py-1 rounded-lg text-xs font-black">-3.0</span></button>
+                <button onclick="recordAction('النوم في الحصة', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-purple-200 bg-purple-50 text-purple-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>💤 النوم في الحصة</span> <span class="bg-purple-200 text-purple-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
+
+                <button onclick="recordAction('التحدث أثناء الدرس', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-indigo-200 bg-indigo-50 text-indigo-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>🗣️ التحدث أثناء الدرس</span> <span class="bg-indigo-200 text-indigo-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
+                <button onclick="recordAction('خرج ولم يعد', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-sky-200 bg-sky-50 text-sky-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>🏃‍♂️ خرج ولم يعد</span> <span class="bg-sky-200 text-sky-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
+
+                <button onclick="recordAction('غير مهتم', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-orange-200 bg-orange-50 text-orange-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>😑 غير مهتم</span> <span class="bg-orange-200 text-orange-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
+                <button onclick="recordAction('استخدام الهاتف', -1, null, this)" class="click-effect p-4 rounded-2xl border-2 border-rose-200 bg-rose-50 text-rose-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>📱 استخدام الهاتف</span> <span class="bg-rose-200 text-rose-900 px-2.5 py-1 rounded-lg text-xs font-black">-1.0</span></button>
+
+                <button onclick="recordAction('إنجاز ملف', 5, null, this)" class="click-effect p-4 rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-emerald-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>⭐ إنجاز ملف</span> <span class="bg-emerald-200 text-emerald-900 px-2.5 py-1 rounded-lg text-xs font-black">5.0</span></button>
+                <button onclick="recordAction('هدية', 5, null, this)" class="click-effect p-4 rounded-2xl border-2 border-pink-200 bg-pink-50 text-pink-900 flex justify-between items-center cursor-pointer shadow-sm transition-all"><span>🎁 هدية</span> <span class="bg-pink-200 text-pink-900 px-2.5 py-1 rounded-lg text-xs font-black">5.0</span></button>
+            </div>
+            
+            <button onclick="closeActionModal()" class="w-full bg-gray-800 text-white py-3 rounded-2xl font-black text-base cursor-pointer hover:bg-gray-900 shadow-lg">إغلاق</button>
+        </div>
+    </div>
+
+</body>
+</html>
