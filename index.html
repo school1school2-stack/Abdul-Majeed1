@@ -35,7 +35,7 @@
 
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
-        // جلب البيانات من سحابتك لحظياً
+        // جلب البيانات من سحابتك لحظياً وضمان قراءتها بالشكل الصحيح
         window.initRealtimeSync = function() {
             const studentsRef = ref(db, 'fifi_students_tracker');
             onValue(studentsRef, (snapshot) => {
@@ -43,7 +43,16 @@
                 const data = snapshot.val();
                 if (data) {
                     Object.keys(data).forEach((key) => {
-                        allStudents.push({ id: key, ...data[key] });
+                        const studentItem = data[key];
+                        allStudents.push({ 
+                            id: key, 
+                            name: studentItem.name || studentItem.studentName || 'بدون اسم',
+                            email: studentItem.email || studentItem.studentEmail || 'بدون إيميل',
+                            className: studentItem.className || 'غير موزع',
+                            phone: studentItem.phone || '966566688614',
+                            actions: studentItem.actions || [],
+                            attendanceStats: studentItem.attendanceStats || { absents: 0, lates: 0, excuses: 0, lefts: 0 }
+                        });
                     });
                 }
                 renderView();
@@ -67,7 +76,7 @@
             renderView();
         };
 
-        // إضافة وحفظ القائمة العامة الكاملة بالسحابة دفعة واحدة (يدعم أي تنسيق)
+        // إضافة وحفظ القائمة العامة الكاملة بالسحابة دفعة واحدة
         window.superSmartBulkAdd = async function() {
             const bulkText = document.getElementById('bulk-students-input').value.trim();
             if(!bulkText) return alert('الرجاء إدخال قائمة الطلاب في المربع');
@@ -112,7 +121,7 @@
             }
 
             document.getElementById('bulk-students-input').value = '';
-            alert(`تم حفظ القائمة العامة بنجاح (${count} طالب) في سحابتك! يمكنك الآن توزيعهم داخل الفصول.`);
+            alert(`تم حفظ القائمة العامة بنجاح (${count} طالب) في سحابتك!`);
         };
 
         // البحث في القائمة العامة لإدراج طالب في الفصل الحالي
@@ -245,7 +254,7 @@
             if(globalContainer) {
                 globalContainer.innerHTML = '';
                 if(allStudents.length === 0) {
-                    globalContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">لا توجد أسماء محفوظة في القائمة العامة حالياً.</p>`;
+                    globalContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">لا توجد أسماء محفوظة في القائمة العامة حالياً. قم بلصق القائمة بالأعلى وحفظها.</p>`;
                 } else {
                     allStudents.forEach(student => {
                         globalContainer.innerHTML += `
