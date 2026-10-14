@@ -35,12 +35,12 @@
         let activeClass = null;
         let currentStudentId = null;
         let allStudents = [];
-        let customActions = []; // التقييمات المخصصة من الإعدادات
+        let customActions = [];
+        let editingActionId = null; // لتتبع حالة التعديل
 
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
         window.initRealtimeSync = function() {
-            // جلب الطلاب
             const studentsRef = ref(db, 'fifi_students_tracker');
             onValue(studentsRef, (snapshot) => {
                 allStudents = [];
@@ -62,7 +62,6 @@
                 renderView();
             });
 
-            // جلب التقييمات المخصصة من الإعدادات السحابية
             const settingsRef = ref(db, 'fifi_custom_actions');
             onValue(settingsRef, (snapshot) => {
                 customActions = [];
@@ -73,6 +72,7 @@
                     });
                 }
                 renderCustomActionsUI();
+                renderSettingsActionsList();
             });
         };
 
@@ -91,7 +91,6 @@
             renderView();
         };
 
-        // فتح وإغلاق نافذة الإعدادات
         window.openSettingsModal = function() {
             document.getElementById('settings-modal').classList.remove('hidden');
             document.getElementById('settings-modal').classList.add('flex');
@@ -99,10 +98,12 @@
         window.closeSettingsModal = function() {
             document.getElementById('settings-modal').classList.add('hidden');
             document.getElementById('settings-modal').classList.remove('flex');
+            resetActionForm();
         };
 
-        // إضافة أداة رصد جديدة من الإعدادات
-        window.saveNewCustomAction = async function() {
+        // حفظ أو تحديث أداة الرصد
+        window.saveCustomAction = async function() {
+            const icon = document.getElementById('new-action-icon').value;
             const name = document.getElementById('new-action-name').value.trim();
             const score = parseFloat(document.getElementById('new-action-score').value);
             const color = document.getElementById('new-action-color').value;
@@ -113,36 +114,96 @@
             }
 
             const settingsRef = ref(db, 'fifi_custom_actions');
-            const newRef = push(settingsRef);
-            await set(newRef, { name, score, color });
+            
+            if(editingActionId) {
+                // تحديث أداة موجودة
+                await update(ref(db, `fifi_custom_actions/${editingActionId}`), { icon, name, score, color });
+                alert('تم تحديث أداة الرصد بنجاح! ✏️');
+            } else {
+                // إضافة أداة جديدة
+                const newRef = push(settingsRef);
+                await set(newRef, { icon, name, score, color });
+                alert('تم إضافة أداة الرصد بنجاح! 🚀');
+            }
 
-            document.getElementById('new-action-name').value = '';
-            document.getElementById('new-action-score').value = '';
-            alert('تم إضافة أداة الرصد بنجاح وتحديثها في السحابة! 🚀');
+            resetActionForm();
         };
 
-        // حذف أداة رصد من الإعدادات
+        window.editCustomAction = function(id) {
+            const act = customActions.find(a => a.id === id);
+            if(!act) return;
+
+            document.getElementById('new-action-icon').value = act.icon || '⭐';
+            document.getElementById('new-action-name').value = act.name;
+            document.getElementById('new-action-score').value = act.score;
+            document.getElementById('new-action-color').value = act.color;
+            
+            editingActionId = id;
+            document.getElementById('save-action-btn').innerText = "تعديل وتحديث الأداة ✏️";
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+        };
+
+        window.resetActionForm = function() {
+            editingActionId = null;
+            document.getElementById('new-action-name').value = '';
+            document.getElementById('new-action-score').value = '';
+            document.getElementById('new-action-icon').value = '⭐';
+            document.getElementById('save-action-btn').innerText = "حفظ وإضافة التقييم الجديد 🚀";
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        };
+
         window.deleteCustomAction = async function(id) {
             if(confirm('هل أنت متأكد من حذف أداة الرصد هذه؟')) {
                 await remove(ref(db, `fifi_custom_actions/${id}`));
             }
         };
 
-        // عرض الأزرار المخصصة داخل نافذة الرصد
+        // عرض قائمة التقييمات داخل لوحة الإعدادات للتعديل أو الحذف
+        function renderSettingsActionsList() {
+            const listContainer = document.getElementById('settings-actions-list');
+            if(!listContainer) return;
+            listContainer.innerHTML = '';
+
+            if(customActions.length === 0) {
+                listContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-2">لا توجد أدوات رصد مخصصة حالياً.</p>`;
+                return;
+            }
+
+            customActions.forEach(act => {
+                listContainer.innerHTML += `
+                    <div class="bg-white p-3 rounded-xl border flex justify-between items-center text-sm shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg">${act.icon || '⭐'}</span>
+                            <div>
+                                <span class="font-bold text-gray-800 block">${act.name}</span>
+                                <span class="text-xs text-gray-500">الدرجة: ${act.score}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-1.5">
+                            <button onclick="editCustomAction('${act.id}')" class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">✏️ تعديل</button>
+                            <button onclick="deleteCustomAction('${act.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">🗑️ حذف</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // عرض الأزرار في نافذة رصد الطالب
         function renderCustomActionsUI() {
             const container = document.getElementById('custom-actions-container');
             if(!container) return;
             container.innerHTML = '';
 
             if(customActions.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 col-span-2 text-center py-2">لا توجد تقييمات مخصصة. أضفها من أيقونة الإعدادات ⚙️ بالأعلى.</p>`;
+                container.innerHTML = `<p class="text-xs text-gray-400 col-span-2 text-center py-2">لا توجد تقييمات مخصصة. أضفها من إعدادات الرصد ⚙️.</p>`;
                 return;
             }
 
             customActions.forEach(act => {
+                const fullName = `${act.icon || ''} ${act.name}`.trim();
                 container.innerHTML += `
-                    <button onclick="recordAction('${act.name}', ${act.score}, null, this)" class="click-effect p-4 rounded-2xl border-2 text-white font-black text-sm flex justify-between items-center shadow-sm transition-all cursor-pointer" style="background-color: ${act.color}; border-color: rgba(0,0,0,0.1);">
-                        <span>${act.name}</span> 
+                    <button onclick="recordAction('${fullName}', ${act.score}, null, this)" class="click-effect p-4 rounded-2xl border-2 text-white font-black text-sm flex justify-between items-center shadow-sm transition-all cursor-pointer" style="background-color: ${act.color}; border-color: rgba(0,0,0,0.1);">
+                        <span>${fullName}</span> 
                         <span class="bg-white/30 text-white px-2.5 py-1 rounded-lg text-xs font-black">${act.score}</span>
                     </button>
                 `;
@@ -436,7 +497,6 @@
             <h1 class="text-2xl font-bold">نظام المتابعة السحابي للطلاب</h1>
             <p class="text-xs opacity-90">المعلم: عبدالعزيز الفيفي | الكفايات اللغوية</p>
         </div>
-        <!-- أيقونة الإعدادات -->
         <button onclick="openSettingsModal()" class="bg-indigo-700 hover:bg-indigo-800 text-white px-4 py-2.5 rounded-2xl font-bold text-sm flex items-center gap-2 cursor-pointer shadow-md transition-all">
             ⚙️ إعدادات الرصد
         </button>
@@ -518,21 +578,42 @@
 
     </main>
 
-    <!-- نافذة إعدادات أدوات الرصد والتقييمات المخصصة -->
+    <!-- نافذة إعدادات أدوات الرصد (مع التحكم الكامل والإضافة والتعديل والحذف والرموز والألوان) -->
     <div id="settings-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-lg w-full p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
             <h3 class="text-2xl font-black text-center mb-1 text-indigo-900">⚙️ إعدادات أدوات الرصد</h3>
-            <p class="text-xs text-center text-gray-500 mb-6">أنشئ تقييمات وسلوكيات جديدة وحدد درجاتها وألوانها لتظهر فوراً في نافذة رصد الطلاب</p>
+            <p class="text-xs text-center text-gray-500 mb-6">أنشئ أو عدل أدوات الرصد مع اختيار الأيقونة والدرجة واللون المناسب</p>
 
             <div class="bg-gray-50 p-4 rounded-2xl border mb-6 space-y-3">
-                <h4 class="font-bold text-sm text-gray-800">➕ إضافة تقييم أو سلوك جديد</h4>
-                <input type="text" id="new-action-name" placeholder="اسم التقييم (مثال: حفظ القرآن، مشاركة مميزة...)" class="w-full border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <h4 class="font-bold text-sm text-gray-800" id="form-title">➕ إضافة تقييم أو سلوك جديد</h4>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <!-- قائمة منسدلة الرموز والأيقونات التعبيرية -->
+                    <select id="new-action-icon" class="border p-2.5 rounded-xl text-lg font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="⭐">⭐ نجمة</option>
+                        <option value="✅">✅ صح</option>
+                        <option value="❌">❌ خطأ</option>
+                        <option value="💡">💡 مشاركة/فكرة</option>
+                        <option value="📘">📘 كتاب/واجب</option>
+                        <option value="🎁">🎁 هدية</option>
+                        <option value="🏆">🏆 كأس</option>
+                        <option value="🎯">🎯 هدف</option>
+                        <option value="💤">💤 نوم</option>
+                        <option value="🗣️">🗣️ تحدث</option>
+                        <option value="📱">📱 جوال</option>
+                        <option value="😑">😑 غير مهتم</option>
+                        <option value="🏃‍♂️">🏃‍♂️ هروب</option>
+                        <option value="⚡">⚡ نشاط</option>
+                        <option value="🔥">🔥 تميز</option>
+                    </select>
+
+                    <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
                 
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (مثال: 1 أو -1 أو 5)" class="border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (مثال: 1 أو -1)" class="border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     
-                    <!-- قائمة منسدلة بأكثر من 15 لوناً مختلفاً -->
                     <select id="new-action-color" class="border p-2.5 rounded-xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="#28a745">🟢 أخضر عشبي</option>
                         <option value="#20c997">🔹 أخضر فيروزي</option>
@@ -552,7 +633,16 @@
                     </select>
                 </div>
 
-                <button onclick="saveNewCustomAction()" class="w-full bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700 transition cursor-pointer">حفظ وإضافة التقييم الجديد 🚀</button>
+                <div class="flex gap-2">
+                    <button id="save-action-btn" onclick="saveCustomAction()" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700 transition cursor-pointer">حفظ وإضافة التقييم الجديد 🚀</button>
+                    <button id="cancel-edit-btn" onclick="resetActionForm()" class="hidden bg-gray-300 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-400 cursor-pointer">إلغاء</button>
+                </div>
+            </div>
+
+            <!-- قائمة أدوات الرصد الموجودة مع خيارات التعديل والحذف -->
+            <div class="space-y-2 mb-6">
+                <h4 class="font-bold text-sm text-gray-800">📋 أدوات الرصد الحالية (للتعديل أو الحذف)</h4>
+                <div id="settings-actions-list" class="max-h-48 overflow-y-auto space-y-2 pr-1 border p-2 rounded-2xl bg-gray-50"></div>
             </div>
 
             <button onclick="closeSettingsModal()" class="w-full bg-gray-800 text-white py-3 rounded-2xl font-black text-base cursor-pointer hover:bg-gray-900">إغلاق الإعدادات</button>
@@ -567,14 +657,13 @@
         </div>
     </div>
 
-    <!-- نافذة رصد التقييمات الشاملة (تشمل الأزرار الافتراضية والتقييمات المخصصة من الإعدادات) -->
+    <!-- نافذة رصد التقييمات الشاملة الكبرى -->
     <div id="action-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-2xl w-full p-8 relative shadow-2xl max-h-[95vh] overflow-y-auto">
             <button onclick="closeActionModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
             <h3 class="text-2xl font-black text-center mb-1 text-indigo-900" id="action-student-name">رصد الطالب</h3>
             <p class="text-xs text-center text-gray-500 mb-6">اختر التقييم أو السلوك أدناه وسيتم حفظه فوراً باليوم والتاريخ والوقت</p>
 
-            <!-- خيارات الحضور الأساسية -->
             <div class="grid grid-cols-4 gap-3 mb-6">
                 <button onclick="recordAction('حاضر', 0, null, this)" class="click-effect p-4 rounded-2xl bg-emerald-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟢 حاضر</button>
                 <button onclick="recordAction('غائب', 0, 'غائب', this)" class="click-effect p-4 rounded-2xl bg-rose-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔴 غائب</button>
@@ -582,10 +671,7 @@
                 <button onclick="recordAction('متأخر', 0, 'متأخر', this)" class="click-effect p-4 rounded-2xl bg-amber-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟠 متأخر</button>
             </div>
 
-            <!-- شبكة التقييمات والسلوكيات المخصصة التي أضفتها من الإعدادات -->
-            <div id="custom-actions-container" class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold">
-                <!-- يتم تعبئتها تلقائياً من الإعدادات -->
-            </div>
+            <div id="custom-actions-container" class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold"></div>
             
             <button onclick="closeActionModal()" class="w-full bg-gray-800 text-white py-3 rounded-2xl font-black text-base cursor-pointer hover:bg-gray-900 shadow-lg">إغلاق</button>
         </div>
