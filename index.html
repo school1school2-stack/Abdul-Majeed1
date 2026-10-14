@@ -16,7 +16,7 @@
     <!-- استيراد مكتبات Firebase (Realtime Database) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, push, remove, update, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAVrIIm7aXjg0hGrMk0qVrXT8gaRIpHoBk",
@@ -40,12 +40,16 @@
 
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
-        window.initRealtimeSync = function() {
-            const studentsRef = ref(db, 'fifi_students_tracker');
-            onValue(studentsRef, (snapshot) => {
-                allStudents = [];
-                const data = snapshot.val();
-                if (data) {
+        // تحميل البيانات مرة واحدة عند فتح الصفحة لضمان السرعة الفائقة
+        window.initFastLoad = async function() {
+            const dbRef = ref(db);
+            
+            try {
+                // جلب الطلاب
+                const studentsSnap = await get(child(dbRef, 'fifi_students_tracker'));
+                if (studentsSnap.exists()) {
+                    allStudents = [];
+                    const data = studentsSnap.val();
                     Object.keys(data).forEach((key) => {
                         const studentItem = data[key];
                         allStudents.push({ 
@@ -59,21 +63,23 @@
                         });
                     });
                 }
-                renderView();
-            });
 
-            const settingsRef = ref(db, 'fifi_custom_actions');
-            onValue(settingsRef, (snapshot) => {
-                customActions = [];
-                const data = snapshot.val();
-                if (data) {
+                // جلب أدوات الرصد
+                const settingsSnap = await get(child(dbRef, 'fifi_custom_actions'));
+                if (settingsSnap.exists()) {
+                    customActions = [];
+                    const data = settingsSnap.val();
                     Object.keys(data).forEach((key) => {
                         customActions.push({ id: key, ...data[key] });
                     });
                 }
+
+                renderView();
                 renderCustomActionsUI();
                 renderSettingsActionsList();
-            });
+            } catch (error) {
+                console.error("خطأ في التحميل السريع: ", error);
+            }
         };
 
         window.openClass = function(className) {
@@ -81,7 +87,7 @@
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('class-view').classList.remove('hidden');
             document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
-            renderView();
+            renderView(); // عرض فوري من الذاكرة المحلية بدون انتظار سحابة
         };
 
         window.backToHome = function() {
@@ -112,12 +118,22 @@
                 return;
             }
 
-            const settingsRef = ref(db, 'fifi_custom_actions');
             if(editingActionId) {
-                await update(ref(db, `fifi_custom_actions/${editingActionId}`), { icon, name, score, color });
+                const act = customActions.find(a => a.id === editingActionId);
+                if(act) { act.icon = icon; act.name = name; act.score = score; act.color = color; }
+                renderCustomActionsUI();
+                renderSettingsActionsList();
+                closeSettingsModal();
+                update(ref(db, `fifi_custom_actions/${editingActionId}`), { icon, name, score, color });
             } else {
+                const settingsRef = ref(db, 'fifi_custom_actions');
                 const newRef = push(settingsRef);
-                await set(newRef, { icon, name, score, color });
+                const newObj = { id: newRef.key, icon, name, score, color };
+                customActions.push(newObj);
+                renderCustomActionsUI();
+                renderSettingsActionsList();
+                closeSettingsModal();
+                set(newRef, { icon, name, score, color });
             }
             resetActionForm();
         };
@@ -145,7 +161,10 @@
 
         window.deleteCustomAction = async function(id) {
             if(confirm('هل أنت متأكد من حذف أداة الرصد هذه؟')) {
-                await remove(ref(db, `fifi_custom_actions/${id}`));
+                customActions = customActions.filter(a => a.id !== id);
+                renderCustomActionsUI();
+                renderSettingsActionsList();
+                remove(ref(db, `fifi_custom_actions/${id}`));
             }
         };
 
@@ -213,15 +232,18 @@
                 }
                 if(name && email) {
                     const newStudentRef = push(studentsRef);
-                    await set(newStudentRef, {
-                        name: name, email: email, className: 'غير موزع',
+                    const newStuObj = {
+                        id: newStudentRef.key, name: name, email: email, className: 'غير موزع',
                         phone: '966566688614', actions: [],
                         attendanceStats: { absents: 0, lates: 0, excuses: 0 }
-                    });
+                    };
+                    allStudents.push(newStuObj);
+                    set(newStudentRef, newStuObj);
                     count++;
                 }
             }
             document.getElementById('bulk-students-input').value = '';
+            renderView();
             alert(`تم حفظ القائمة العامة بنجاح (${count} طالب) في سحابتك!`);
         };
 
@@ -251,10 +273,14 @@
         };
 
         window.transferStudentToCurrentClass = async function(id) {
-            const studentRef = ref(db, `fifi_students_tracker/${id}`);
-            await update(studentRef, { className: activeClass });
-            document.getElementById('global-search-input').value = '';
-            document.getElementById('global-search-results').classList.add('hidden');
+            const student = allStudents.find(s => s.id === id);
+            if(student) {
+                student.className = activeClass;
+                renderView();
+                document.getElementById('global-search-input').value = '';
+                document.getElementById('global-search-results').classList.add('hidden');
+                update(ref(db, `fifi_students_tracker/${id}`), { className: activeClass });
+            }
         };
 
         window.editStudent = async function(id) {
@@ -263,22 +289,22 @@
             const newName = prompt("تعديل اسم الطالب:", student.name);
             if(newName === null) return;
             const newEmail = prompt("تعديل إيميل مدرستي:", student.email || '');
-            const studentRef = ref(db, `fifi_students_tracker/${id}`);
-            await update(studentRef, { name: newName.trim(), email: newEmail.trim() });
+            student.name = newName.trim();
+            student.email = newEmail.trim();
+            renderView();
+            update(ref(db, `fifi_students_tracker/${id}`), { name: student.name, email: student.email });
         };
 
         window.deleteStudent = async function(id) {
             if(confirm('هل أنت متأكد من حذف هذا الطالب نهائياً؟')) {
-                const studentRef = ref(db, `fifi_students_tracker/${id}`);
-                await remove(studentRef);
+                allStudents = allStudents.filter(s => s.id !== id);
+                renderView();
+                remove(ref(db, `fifi_students_tracker/${id}`));
             }
         };
 
-        // تسجيل السلوك بسرعة فائقة (استجابة فورية محلية وإرسال خلفي للسحابة)
         window.recordAction = function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
-
-            // إغلاق نافذة الرصد فوراً وبشكل لحظي دون أي انتظار
             closeActionModal();
 
             const student = allStudents.find(s => s.id === currentStudentId);
@@ -290,34 +316,26 @@
                 const formattedTime = `${dayName} | ${dateFormatted} - ${timeFormatted}`;
 
                 const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
-                const updatedActions = [newRecord, ...(student.actions || [])];
-                let attStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
+                student.actions = [newRecord, ...(student.actions || [])];
+                
+                if(attendanceType === 'غائب') student.attendanceStats.absents = (student.attendanceStats.absents || 0) + 1;
+                if(attendanceType === 'متأخر') student.attendanceStats.lates = (student.attendanceStats.lates || 0) + 1;
+                if(attendanceType === 'مستأذن') student.attendanceStats.excuses = (student.attendanceStats.excuses || 0) + 1;
 
-                if(attendanceType === 'غائب') attStats.absents = (attStats.absents || 0) + 1;
-                if(attendanceType === 'متأخر') attStats.lates = (attStats.lates || 0) + 1;
-                if(attendanceType === 'مستأذن') attStats.excuses = (attStats.excuses || 0) + 1;
-
-                // تحديث البيانات محلياً فوراً لشعور السرعة
-                student.actions = updatedActions;
-                student.attendanceStats = attStats;
-
-                // إرسال التحديث إلى السحابة في الخلفية بهدوء
-                const studentRef = ref(db, `fifi_students_tracker/${currentStudentId}`);
-                update(studentRef, { actions: updatedActions, attendanceStats: attStats });
+                update(ref(db, `fifi_students_tracker/${currentStudentId}`), {
+                    actions: student.actions,
+                    attendanceStats: student.attendanceStats
+                });
             }
         };
 
-        window.deleteStudentAction = async function(actionIndex) {
+        window.deleteStudentAction = function(actionIndex) {
             if(!currentStudentId) return;
             const student = allStudents.find(s => s.id === currentStudentId);
             if(student && student.actions) {
-                let updatedActions = [...student.actions];
-                updatedActions.splice(actionIndex, 1);
-                student.actions = updatedActions;
-                openModal(currentStudentId); // تحديث نافذة التقرير محلياً فوراً
-                
-                const studentRef = ref(db, `fifi_students_tracker/${currentStudentId}`);
-                await update(studentRef, { actions: updatedActions });
+                student.actions.splice(actionIndex, 1);
+                openModal(currentStudentId); // تحديث التقرير فوراً بدون انتظار
+                update(ref(db, `fifi_students_tracker/${currentStudentId}`), { actions: student.actions });
             }
         };
 
@@ -431,7 +449,7 @@
 
                 <div class="mb-6">
                     <h4 class="font-bold text-gray-800 text-base mb-3 flex items-center justify-between">
-                        <span>📅 النشاطات والسلوكيات المسجلة (مع خيار الحذف)</span>
+                        <span>📅 النشاطات والسلوكيات المسجلة (مع خيار الحذف الفوري)</span>
                         <span class="text-xs text-indigo-600 font-normal">موثق باليوم والتاريخ والوقت</span>
                     </h4>
                     <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
@@ -468,7 +486,7 @@
         };
 
         window.onload = function() {
-            initRealtimeSync();
+            initFastLoad();
         };
     </script>
 </head>
