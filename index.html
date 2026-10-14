@@ -40,7 +40,23 @@
 
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
-        // التحميل السريع الفوري عند فتح الصفحة
+        // التقييمات الافتراضية المطلوبة من الصورة
+        const defaultActions = [
+            { id: 'def_1', icon: '✅', name: 'إجابة صحيحة', score: 1.0, color: '#28a745' },
+            { id: 'def_2', icon: '❌', name: 'إجابة خاطئة', score: -1.0, color: '#dc3545' },
+            { id: 'def_3', icon: '💡', name: 'مشاركة', score: 1.0, color: '#17a2b8' },
+            { id: 'def_4', icon: '📘', name: 'حل الواجب', score: 3.0, color: '#20c997' },
+            { id: 'def_5', icon: '📕', name: 'لم يحل الواجب', score: -3.0, color: '#e83e8c' },
+            { id: 'def_6', icon: '💤', name: 'النوم في الحصة', score: -1.0, color: '#6610f2' },
+            { id: 'def_7', icon: '🗣️', name: 'التحدث أثناء الدرس', score: -1.0, color: '#6f42c1' },
+            { id: 'def_8', icon: '🏃‍♂️', name: 'خرج ولم يعد', score: -1.0, color: '#007bff' },
+            { id: 'def_9', icon: '😑', name: 'غير مهتم', score: -1.0, color: '#fd7e14' },
+            { id: 'def_10', icon: '📁', name: 'نسيان ملف أو واجب', score: -5.0, color: '#ffc107' },
+            { id: 'def_11', icon: '📱', name: 'استخدام الهاتف', score: -1.0, color: '#d9534f' },
+            { id: 'def_12', icon: '⭐', name: 'إنجاز ملف', score: 5.0, color: '#00cec9' },
+            { id: 'def_13', icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
+        ];
+
         window.initFastLoad = async function() {
             const dbRef = ref(db);
             try {
@@ -69,6 +85,10 @@
                     Object.keys(data).forEach((key) => {
                         customActions.push({ id: key, ...data[key] });
                     });
+                } else {
+                    // إذا لم تكن موجودة بالسحابة، ضع الافتراضية واحفظها
+                    customActions = defaultActions;
+                    set(ref(db, 'fifi_custom_actions'), defaultActions);
                 }
 
                 renderView();
@@ -81,7 +101,6 @@
 
         window.openClass = function(className) {
             activeClass = className;
-            // الانتقال الفوري بدون استدعاء شبكة لتجاوز أي بطء
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('class-view').classList.remove('hidden');
             document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
@@ -198,7 +217,7 @@
             if(!container) return;
             container.innerHTML = '';
             if(customActions.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 col-span-2 text-center py-2">لا توجد تقييمات مخصصة. أضفها من إعدادات الرصد ⚙️.</p>`;
+                container.innerHTML = `<p class="text-xs text-gray-400 col-span-2 text-center py-2">لا توجد تقييمات. أضفها من إعدادات الرصد ⚙️.</p>`;
                 return;
             }
             customActions.forEach(act => {
@@ -302,7 +321,6 @@
             }
         };
 
-        // تسجيل الحضور والغياب أو السلوك بسرعة فائقة
         window.recordAction = function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -324,7 +342,6 @@
                     student.actions = [newRecord, ...(student.actions || [])];
                 }
 
-                // تحديث فوري محلي وفتح التقرير لترى النتيجة مباشرة
                 openModal(currentStudentId);
 
                 update(ref(db, `fifi_students_tracker/${currentStudentId}`), {
@@ -334,7 +351,6 @@
             }
         };
 
-        // حذف نشاط أو سلوك
         window.deleteStudentAction = function(actionIndex) {
             if(!currentStudentId) return;
             const student = allStudents.find(s => s.id === currentStudentId);
@@ -345,7 +361,6 @@
             }
         };
 
-        // تعديل/حذف عدادات الحضور والغياب والاستئذان
         window.adjustAttendance = function(type, delta) {
             if(!currentStudentId) return;
             const student = allStudents.find(s => s.id === currentStudentId);
