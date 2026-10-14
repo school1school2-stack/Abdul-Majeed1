@@ -14,7 +14,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // إعدادات مشروعك السحابي من Firebase (youy-apps)
+        // إعدادات مشروعك السحابي من Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAVrIim7aXjg0hGrMk0qVrXT8gaRIpHoBk",
             authDomain: "youy-apps.firebaseapp.com",
@@ -33,7 +33,6 @@
         let currentStudentId = null;
         let allStudents = [];
 
-        // قائمة الفصول الخمسة المعتمدة
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع', 'المجموعة الخامسة'];
 
         // جلب البيانات من السحابة لحظياً
@@ -44,6 +43,9 @@
                     allStudents.push({ id: docSnap.id, ...docSnap.data() });
                 });
                 renderView();
+            }, (error) => {
+                console.error("خطأ الاتصال بالسحابة: ", error);
+                alert("تعذر الاتصال بالسحابة. يرجى التأكد من تغيير قواعد Firestore إلى (allow read, write: if true;)");
             });
         };
 
@@ -90,12 +92,13 @@
                         count++;
                     } catch (e) {
                         console.error(e);
+                        alert("خطأ أثناء الحفظ: " + e.message);
                     }
                 }
             }
 
             document.getElementById('bulk-students-input').value = '';
-            alert(`تم بنجاح إضافة ${count} طالب إلى ${targetClass}!`);
+            alert(`تم بنجاح إضافة ${count} طالب إلى ${targetClass} وحفظهم بالسحابة!`);
         };
 
         // البحث في القائمة العامة لإدراج طالب
@@ -411,7 +414,7 @@
                     </div>
                     <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
                 </div>
-                <!-- الأيقونة الخامسة الجديدة -->
+                <!-- الأيقونة الخامسة -->
                 <div onclick="openClass('المجموعة الخامسة')" class="bg-white p-6 rounded-3xl shadow border-2 border-purple-100 hover:border-purple-600 cursor-pointer transition flex items-center justify-between md:col-span-2">
                     <div>
                         <span class="text-3xl mb-1 block">⭐</span>
@@ -422,10 +425,10 @@
                 </div>
             </div>
 
-            <!-- إضافة الطلاب دفعة واحدة وتشمل المجموعة الخامسة -->
+            <!-- إضافة الطلاب دفعة واحدة -->
             <div class="bg-white p-6 rounded-3xl shadow-lg border border-green-200">
                 <h3 class="font-bold text-lg text-green-700 mb-2 flex items-center gap-2">📥 إضافة دفعة طلاب عامة</h3>
-                <p class="text-xs text-gray-500 mb-4">اختر الفصل أو المجموعة المستهدفة، ثم الصق القائمة (سطر اسم، سطر إيميل):</p>
+                <p class="text-xs text-gray-500 mb-4">اختر الفصل أو المجموعة، ثم الصق القائمة (سطر اسم، سطر إيميل):</p>
                 
                 <div class="mb-3">
                     <select id="target-class-select" class="w-full border p-3 rounded-xl text-sm bg-gray-50 font-bold focus:ring-2 focus:ring-green-500">
