@@ -40,12 +40,10 @@
 
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
-        // تحميل البيانات مرة واحدة عند فتح الصفحة لضمان السرعة الفائقة
+        // التحميل السريع الفوري عند فتح الصفحة
         window.initFastLoad = async function() {
             const dbRef = ref(db);
-            
             try {
-                // جلب الطلاب
                 const studentsSnap = await get(child(dbRef, 'fifi_students_tracker'));
                 if (studentsSnap.exists()) {
                     allStudents = [];
@@ -64,7 +62,6 @@
                     });
                 }
 
-                // جلب أدوات الرصد
                 const settingsSnap = await get(child(dbRef, 'fifi_custom_actions'));
                 if (settingsSnap.exists()) {
                     customActions = [];
@@ -78,16 +75,17 @@
                 renderCustomActionsUI();
                 renderSettingsActionsList();
             } catch (error) {
-                console.error("خطأ في التحميل السريع: ", error);
+                console.error("خطأ في التحميل: ", error);
             }
         };
 
         window.openClass = function(className) {
             activeClass = className;
+            // الانتقال الفوري بدون استدعاء شبكة لتجاوز أي بطء
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('class-view').classList.remove('hidden');
             document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
-            renderView(); // عرض فوري من الذاكرة المحلية بدون انتظار سحابة
+            renderClassStudents();
         };
 
         window.backToHome = function() {
@@ -276,7 +274,7 @@
             const student = allStudents.find(s => s.id === id);
             if(student) {
                 student.className = activeClass;
-                renderView();
+                renderClassStudents();
                 document.getElementById('global-search-input').value = '';
                 document.getElementById('global-search-results').classList.add('hidden');
                 update(ref(db, `fifi_students_tracker/${id}`), { className: activeClass });
@@ -299,10 +297,12 @@
             if(confirm('هل أنت متأكد من حذف هذا الطالب نهائياً؟')) {
                 allStudents = allStudents.filter(s => s.id !== id);
                 renderView();
+                if(activeClass) renderClassStudents();
                 remove(ref(db, `fifi_students_tracker/${id}`));
             }
         };
 
+        // تسجيل الحضور والغياب أو السلوك بسرعة فائقة
         window.recordAction = function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -315,12 +315,17 @@
                 const timeFormatted = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const formattedTime = `${dayName} | ${dateFormatted} - ${timeFormatted}`;
 
-                const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
-                student.actions = [newRecord, ...(student.actions || [])];
-                
-                if(attendanceType === 'غائب') student.attendanceStats.absents = (student.attendanceStats.absents || 0) + 1;
-                if(attendanceType === 'متأخر') student.attendanceStats.lates = (student.attendanceStats.lates || 0) + 1;
-                if(attendanceType === 'مستأذن') student.attendanceStats.excuses = (student.attendanceStats.excuses || 0) + 1;
+                if(attendanceType) {
+                    if(attendanceType === 'غائب') student.attendanceStats.absents = (student.attendanceStats.absents || 0) + 1;
+                    if(attendanceType === 'متأخر') student.attendanceStats.lates = (student.attendanceStats.lates || 0) + 1;
+                    if(attendanceType === 'مستأذن') student.attendanceStats.excuses = (student.attendanceStats.excuses || 0) + 1;
+                } else {
+                    const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
+                    student.actions = [newRecord, ...(student.actions || [])];
+                }
+
+                // تحديث فوري محلي وفتح التقرير لترى النتيجة مباشرة
+                openModal(currentStudentId);
 
                 update(ref(db, `fifi_students_tracker/${currentStudentId}`), {
                     actions: student.actions,
@@ -329,13 +334,28 @@
             }
         };
 
+        // حذف نشاط أو سلوك
         window.deleteStudentAction = function(actionIndex) {
             if(!currentStudentId) return;
             const student = allStudents.find(s => s.id === currentStudentId);
             if(student && student.actions) {
                 student.actions.splice(actionIndex, 1);
-                openModal(currentStudentId); // تحديث التقرير فوراً بدون انتظار
+                openModal(currentStudentId);
                 update(ref(db, `fifi_students_tracker/${currentStudentId}`), { actions: student.actions });
+            }
+        };
+
+        // تعديل/حذف عدادات الحضور والغياب والاستئذان
+        window.adjustAttendance = function(type, delta) {
+            if(!currentStudentId) return;
+            const student = allStudents.find(s => s.id === currentStudentId);
+            if(student) {
+                if(type === 'absents') student.attendanceStats.absents = Math.max(0, (student.attendanceStats.absents || 0) + delta);
+                if(type === 'lates') student.attendanceStats.lates = Math.max(0, (student.attendanceStats.lates || 0) + delta);
+                if(type === 'excuses') student.attendanceStats.excuses = Math.max(0, (student.attendanceStats.excuses || 0) + delta);
+
+                openModal(currentStudentId);
+                update(ref(db, `fifi_students_tracker/${currentStudentId}`), { attendanceStats: student.attendanceStats });
             }
         };
 
@@ -371,33 +391,35 @@
                     `;
                 });
             }
+        }
 
-            if(activeClass) {
-                const container = document.getElementById('class-students-container');
-                container.innerHTML = '';
-                const students = allStudents.filter(s => s.className === activeClass);
+        function renderClassStudents() {
+            if(!activeClass) return;
+            const container = document.getElementById('class-students-container');
+            if(!container) return;
+            container.innerHTML = '';
+            const students = allStudents.filter(s => s.className === activeClass);
 
-                if(students.length === 0) {
-                    container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا توجد طلاب مخصصين في هذا الفصل حالياً.</p>`;
-                    return;
-                }
-
-                students.forEach(student => {
-                    container.innerHTML += `
-                        <div class="bg-white p-4 rounded-2xl shadow flex items-center justify-between border border-gray-100">
-                            <div>
-                                <h3 class="font-bold text-lg text-gray-800">${student.name}</h3>
-                                <p class="text-xs text-indigo-600 font-semibold"><span class="text-gray-500">${student.email || 'بدون إيميل'}</span></p>
-                            </div>
-                            <div class="flex gap-1.5 items-center">
-                                <button onclick="openActionModal('${student.id}')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-indigo-100 cursor-pointer">📝 رصد</button>
-                                <button onclick="openModal('${student.id}')" class="bg-emerald-50 text-emerald-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-100 cursor-pointer">📊 التقرير</button>
-                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ إزالة</button>
-                            </div>
-                        </div>
-                    `;
-                });
+            if(students.length === 0) {
+                container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا توجد طلاب مخصصين في هذا الفصل حالياً.</p>`;
+                return;
             }
+
+            students.forEach(student => {
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-2xl shadow flex items-center justify-between border border-gray-100">
+                        <div>
+                            <h3 class="font-bold text-lg text-gray-800">${student.name}</h3>
+                            <p class="text-xs text-indigo-600 font-semibold"><span class="text-gray-500">${student.email || 'بدون إيميل'}</span></p>
+                        </div>
+                        <div class="flex gap-1.5 items-center">
+                            <button onclick="openActionModal('${student.id}')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-indigo-100 cursor-pointer">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-emerald-50 text-emerald-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-100 cursor-pointer">📊 التقرير</button>
+                            <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ إزالة</button>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
         window.openActionModal = function(id) {
@@ -430,26 +452,37 @@
                 </div>
 
                 <div class="bg-gray-50 p-5 rounded-2xl mb-6 border">
-                    <h4 class="font-bold text-gray-800 text-base mb-3">👤 الحضور والغياب</h4>
+                    <h4 class="font-bold text-gray-800 text-base mb-3 flex items-center justify-between">
+                        <span>👤 الحضور والغياب (مع إمكانية التعديل أو الحذف)</span>
+                    </h4>
                     <div class="grid grid-cols-3 gap-3 text-center">
-                        <div class="bg-rose-100 p-3 rounded-xl">
-                            <span class="block text-xs font-bold text-rose-700">غائب</span>
-                            <span class="text-xl font-black text-rose-800">${att.absents || 0}</span>
+                        <div class="bg-rose-100 p-3 rounded-xl flex flex-col justify-between">
+                            <span class="block text-xs font-bold text-rose-700">غائب (${att.absents || 0})</span>
+                            <div class="flex justify-center gap-2 mt-2">
+                                <button onclick="adjustAttendance('absents', 1)" class="bg-rose-500 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">+</button>
+                                <button onclick="adjustAttendance('absents', -1)" class="bg-rose-700 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">-</button>
+                            </div>
                         </div>
-                        <div class="bg-amber-100 p-3 rounded-xl">
-                            <span class="block text-xs font-bold text-amber-700">متأخر</span>
-                            <span class="text-xl font-black text-amber-800">${att.lates || 0}</span>
+                        <div class="bg-amber-100 p-3 rounded-xl flex flex-col justify-between">
+                            <span class="block text-xs font-bold text-amber-700">متأخر (${att.lates || 0})</span>
+                            <div class="flex justify-center gap-2 mt-2">
+                                <button onclick="adjustAttendance('lates', 1)" class="bg-amber-500 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">+</button>
+                                <button onclick="adjustAttendance('lates', -1)" class="bg-amber-700 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">-</button>
+                            </div>
                         </div>
-                        <div class="bg-blue-100 p-3 rounded-xl">
-                            <span class="block text-xs font-bold text-blue-700">مستأذن</span>
-                            <span class="text-xl font-black text-blue-800">${att.excuses || 0}</span>
+                        <div class="bg-blue-100 p-3 rounded-xl flex flex-col justify-between">
+                            <span class="block text-xs font-bold text-blue-700">مستأذن (${att.excuses || 0})</span>
+                            <div class="flex justify-center gap-2 mt-2">
+                                <button onclick="adjustAttendance('excuses', 1)" class="bg-blue-500 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">+</button>
+                                <button onclick="adjustAttendance('excuses', -1)" class="bg-blue-700 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">-</button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-6">
                     <h4 class="font-bold text-gray-800 text-base mb-3 flex items-center justify-between">
-                        <span>📅 النشاطات والسلوكيات المسجلة (مع خيار الحذف الفوري)</span>
+                        <span>📅 النشاطات والسلوكيات المسجلة (مع خيار الحذف)</span>
                         <span class="text-xs text-indigo-600 font-normal">موثق باليوم والتاريخ والوقت</span>
                     </h4>
                     <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
