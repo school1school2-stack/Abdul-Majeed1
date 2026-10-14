@@ -10,7 +10,7 @@
         body { font-family: 'Cairo', sans-serif; }
         .click-effect:active {
             transform: scale(0.95);
-            opacity: 0.8;
+            opacity: 0.7;
         }
     </style>
     <!-- استيراد مكتبات Firebase (Realtime Database) -->
@@ -36,7 +36,7 @@
         let currentStudentId = null;
         let allStudents = [];
         let customActions = [];
-        let editingActionId = null; // لتتبع حالة التعديل
+        let editingActionId = null;
 
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
@@ -101,7 +101,6 @@
             resetActionForm();
         };
 
-        // حفظ أو تحديث أداة الرصد
         window.saveCustomAction = async function() {
             const icon = document.getElementById('new-action-icon').value;
             const name = document.getElementById('new-action-name').value.trim();
@@ -114,32 +113,24 @@
             }
 
             const settingsRef = ref(db, 'fifi_custom_actions');
-            
             if(editingActionId) {
-                // تحديث أداة موجودة
                 await update(ref(db, `fifi_custom_actions/${editingActionId}`), { icon, name, score, color });
-                alert('تم تحديث أداة الرصد بنجاح! ✏️');
             } else {
-                // إضافة أداة جديدة
                 const newRef = push(settingsRef);
                 await set(newRef, { icon, name, score, color });
-                alert('تم إضافة أداة الرصد بنجاح! 🚀');
             }
-
             resetActionForm();
         };
 
         window.editCustomAction = function(id) {
             const act = customActions.find(a => a.id === id);
             if(!act) return;
-
             document.getElementById('new-action-icon').value = act.icon || '⭐';
             document.getElementById('new-action-name').value = act.name;
             document.getElementById('new-action-score').value = act.score;
             document.getElementById('new-action-color').value = act.color;
-            
             editingActionId = id;
-            document.getElementById('save-action-btn').innerText = "تعديل وتحديث الأداة ✏️";
+            document.getElementById('save-action-btn').innerText = "تعديل الأداة ✏️";
             document.getElementById('cancel-edit-btn').classList.remove('hidden');
         };
 
@@ -158,17 +149,14 @@
             }
         };
 
-        // عرض قائمة التقييمات داخل لوحة الإعدادات للتعديل أو الحذف
         function renderSettingsActionsList() {
             const listContainer = document.getElementById('settings-actions-list');
             if(!listContainer) return;
             listContainer.innerHTML = '';
-
             if(customActions.length === 0) {
                 listContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-2">لا توجد أدوات رصد مخصصة حالياً.</p>`;
                 return;
             }
-
             customActions.forEach(act => {
                 listContainer.innerHTML += `
                     <div class="bg-white p-3 rounded-xl border flex justify-between items-center text-sm shadow-sm">
@@ -188,21 +176,18 @@
             });
         }
 
-        // عرض الأزرار في نافذة رصد الطالب
         function renderCustomActionsUI() {
             const container = document.getElementById('custom-actions-container');
             if(!container) return;
             container.innerHTML = '';
-
             if(customActions.length === 0) {
                 container.innerHTML = `<p class="text-xs text-gray-400 col-span-2 text-center py-2">لا توجد تقييمات مخصصة. أضفها من إعدادات الرصد ⚙️.</p>`;
                 return;
             }
-
             customActions.forEach(act => {
                 const fullName = `${act.icon || ''} ${act.name}`.trim();
                 container.innerHTML += `
-                    <button onclick="recordAction('${fullName}', ${act.score}, null, this)" class="click-effect p-4 rounded-2xl border-2 text-white font-black text-sm flex justify-between items-center shadow-sm transition-all cursor-pointer" style="background-color: ${act.color}; border-color: rgba(0,0,0,0.1);">
+                    <button onclick="recordAction('${fullName}', ${act.score}, null)" class="click-effect p-4 rounded-2xl border-2 text-white font-black text-sm flex justify-between items-center shadow-sm transition-all cursor-pointer" style="background-color: ${act.color}; border-color: rgba(0,0,0,0.1);">
                         <span>${fullName}</span> 
                         <span class="bg-white/30 text-white px-2.5 py-1 rounded-lg text-xs font-black">${act.score}</span>
                     </button>
@@ -213,11 +198,9 @@
         window.superSmartBulkAdd = async function() {
             const bulkText = document.getElementById('bulk-students-input').value.trim();
             if(!bulkText) return alert('الرجاء إدخال قائمة الطلاب في المربع');
-
             const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l !== "");
             let count = 0;
             const studentsRef = ref(db, 'fifi_students_tracker');
-
             for(let i = 0; i < lines.length; i++) {
                 let line1 = lines[i];
                 let line2 = lines[i+1];
@@ -246,7 +229,6 @@
             const query = document.getElementById('global-search-input').value.trim().toLowerCase();
             const resultsBox = document.getElementById('global-search-results');
             if(!query) { resultsBox.innerHTML = ''; resultsBox.classList.add('hidden'); return; }
-
             const matches = allStudents.filter(s => s.name.toLowerCase().includes(query) || (s.email && s.email.toLowerCase().includes(query)));
             if(matches.length === 0) {
                 resultsBox.innerHTML = `<div class="p-3 text-sm text-gray-500">لا توجد نتائج مطابقة.</div>`;
@@ -265,7 +247,7 @@
                     </div>
                 `;
             });
-            resultsBox.classList.add('hidden');
+            resultsBox.classList.remove('hidden');
         };
 
         window.transferStudentToCurrentClass = async function(id) {
@@ -292,13 +274,12 @@
             }
         };
 
-        window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null, btnElement) {
+        // تسجيل السلوك بسرعة فائقة (استجابة فورية محلية وإرسال خلفي للسحابة)
+        window.recordAction = function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
-            
-            if(btnElement) {
-                btnElement.style.transform = "scale(0.92)";
-                btnElement.style.opacity = "0.7";
-            }
+
+            // إغلاق نافذة الرصد فوراً وبشكل لحظي دون أي انتظار
+            closeActionModal();
 
             const student = allStudents.find(s => s.id === currentStudentId);
             if(student) {
@@ -316,13 +297,13 @@
                 if(attendanceType === 'متأخر') attStats.lates = (attStats.lates || 0) + 1;
                 if(attendanceType === 'مستأذن') attStats.excuses = (attStats.excuses || 0) + 1;
 
+                // تحديث البيانات محلياً فوراً لشعور السرعة
+                student.actions = updatedActions;
+                student.attendanceStats = attStats;
+
+                // إرسال التحديث إلى السحابة في الخلفية بهدوء
                 const studentRef = ref(db, `fifi_students_tracker/${currentStudentId}`);
-                await update(studentRef, { actions: updatedActions, attendanceStats: attStats });
-                
-                setTimeout(() => {
-                    if(btnElement) { btnElement.style.transform = "scale(1)"; btnElement.style.opacity = "1"; }
-                    closeActionModal();
-                }, 200);
+                update(studentRef, { actions: updatedActions, attendanceStats: attStats });
             }
         };
 
@@ -332,10 +313,11 @@
             if(student && student.actions) {
                 let updatedActions = [...student.actions];
                 updatedActions.splice(actionIndex, 1);
+                student.actions = updatedActions;
+                openModal(currentStudentId); // تحديث نافذة التقرير محلياً فوراً
+                
                 const studentRef = ref(db, `fifi_students_tracker/${currentStudentId}`);
                 await update(studentRef, { actions: updatedActions });
-                student.actions = updatedActions;
-                openModal(currentStudentId);
             }
         };
 
@@ -578,7 +560,7 @@
 
     </main>
 
-    <!-- نافذة إعدادات أدوات الرصد (مع التحكم الكامل والإضافة والتعديل والحذف والرموز والألوان) -->
+    <!-- نافذة إعدادات أدوات الرصد -->
     <div id="settings-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-lg w-full p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
@@ -589,7 +571,6 @@
                 <h4 class="font-bold text-sm text-gray-800" id="form-title">➕ إضافة تقييم أو سلوك جديد</h4>
                 
                 <div class="grid grid-cols-3 gap-2">
-                    <!-- قائمة منسدلة الرموز والأيقونات التعبيرية -->
                     <select id="new-action-icon" class="border p-2.5 rounded-xl text-lg font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="⭐">⭐ نجمة</option>
                         <option value="✅">✅ صح</option>
@@ -639,7 +620,6 @@
                 </div>
             </div>
 
-            <!-- قائمة أدوات الرصد الموجودة مع خيارات التعديل والحذف -->
             <div class="space-y-2 mb-6">
                 <h4 class="font-bold text-sm text-gray-800">📋 أدوات الرصد الحالية (للتعديل أو الحذف)</h4>
                 <div id="settings-actions-list" class="max-h-48 overflow-y-auto space-y-2 pr-1 border p-2 rounded-2xl bg-gray-50"></div>
@@ -665,10 +645,10 @@
             <p class="text-xs text-center text-gray-500 mb-6">اختر التقييم أو السلوك أدناه وسيتم حفظه فوراً باليوم والتاريخ والوقت</p>
 
             <div class="grid grid-cols-4 gap-3 mb-6">
-                <button onclick="recordAction('حاضر', 0, null, this)" class="click-effect p-4 rounded-2xl bg-emerald-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟢 حاضر</button>
-                <button onclick="recordAction('غائب', 0, 'غائب', this)" class="click-effect p-4 rounded-2xl bg-rose-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔴 غائب</button>
-                <button onclick="recordAction('مستأذن', 0, 'مستأذن', this)" class="click-effect p-4 rounded-2xl bg-blue-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔵 مستأذن</button>
-                <button onclick="recordAction('متأخر', 0, 'متأخر', this)" class="click-effect p-4 rounded-2xl bg-amber-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟠 متأخر</button>
+                <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-4 rounded-2xl bg-emerald-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟢 حاضر</button>
+                <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-4 rounded-2xl bg-rose-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔴 غائب</button>
+                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-4 rounded-2xl bg-blue-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔵 مستأذن</button>
+                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-4 rounded-2xl bg-amber-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟠 متأخر</button>
             </div>
 
             <div id="custom-actions-container" class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold"></div>
