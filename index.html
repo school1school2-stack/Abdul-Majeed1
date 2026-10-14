@@ -14,7 +14,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, push, remove, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // إعدادات مشروعك السحابي من Firebase (youy-apps)
+        // إعدادات سحابتك الموحدة (youy-apps)
         const firebaseConfig = {
             apiKey: "AIzaSyAVrIIm7aXjg0hGrMk0qVrXT8gaRIpHoBk",
             authDomain: "youy-apps.firebaseapp.com",
@@ -35,7 +35,7 @@
 
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
-        // جلب البيانات من Realtime Database لحظياً
+        // جلب البيانات من سحابتك لحظياً
         window.initRealtimeSync = function() {
             const studentsRef = ref(db, 'fifi_students_tracker');
             onValue(studentsRef, (snapshot) => {
@@ -67,21 +67,32 @@
             renderView();
         };
 
-        // إضافة وحفظ القائمة العامة الكاملة بالسحابة دفعة واحدة
-        window.addBulkStudentsGeneral = async function() {
+        // إضافة وحفظ القائمة العامة الكاملة بالسحابة دفعة واحدة (يدعم أي تنسيق)
+        window.superSmartBulkAdd = async function() {
             const bulkText = document.getElementById('bulk-students-input').value.trim();
             if(!bulkText) return alert('الرجاء إدخال قائمة الطلاب في المربع');
 
-            const rawLines = bulkText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l !== "");
             let count = 0;
-
             const studentsRef = ref(db, 'fifi_students_tracker');
 
-            for (let i = 0; i < rawLines.length; i += 2) {
-                const name = rawLines[i];
-                const email = rawLines[i + 1] || 'غير متوفر';
+            for(let i = 0; i < lines.length; i++) {
+                let line1 = lines[i];
+                let line2 = lines[i+1];
 
-                if(name) {
+                if(!line2) break;
+
+                let name = "", email = "";
+
+                if(!line1.includes('@') && line2.includes('@')) {
+                    name = line1; email = line2.toLowerCase();
+                    i++;
+                } else if(line1.includes('@') && !line2.includes('@')) {
+                    email = line1.toLowerCase(); name = line2;
+                    i++;
+                }
+
+                if(name && email) {
                     try {
                         const newStudentRef = push(studentsRef);
                         await set(newStudentRef, {
@@ -96,13 +107,12 @@
                         count++;
                     } catch (e) {
                         console.error(e);
-                        alert("خطأ أثناء الحفظ: " + e.message);
                     }
                 }
             }
 
             document.getElementById('bulk-students-input').value = '';
-            alert(`تم حفظ القائمة العامة بنجاح (${count} طالب) في السحابة! يمكنك الآن توزيعهم وتخصيصهم داخل الفصول.`);
+            alert(`تم حفظ القائمة العامة بنجاح (${count} طالب) في سحابتك! يمكنك الآن توزيعهم داخل الفصول.`);
         };
 
         // البحث في القائمة العامة لإدراج طالب في الفصل الحالي
@@ -423,19 +433,17 @@
                     <h3 class="font-bold text-lg text-green-700 flex items-center gap-2">📥 حفظ القائمة العامة للطلاب في السحابة</h3>
                     <span class="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full" id="total-cloud-count">إجمالي القائمة العامة بالسحابة: 0 طالب</span>
                 </div>
-                <p class="text-xs text-gray-500 mb-4">الصق القائمة الكاملة هنا (سطر اسم الطالب، يليه سطر الإيميل):</p>
+                <p class="text-xs text-gray-500 mb-4">الصق القائمة الكاملة هنا (الاسم والإيميل سطر بسطر):</p>
 
                 <textarea id="bulk-students-input" rows="6" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa" class="w-full border p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-3 font-sans"></textarea>
                 
-                <button onclick="addBulkStudentsGeneral()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition text-sm">حفظ القائمة العامة في السحابة</button>
+                <button onclick="superSmartBulkAdd()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition text-sm">حفظ القائمة العامة في السحابة 🚀</button>
             </div>
 
-            <!-- القائمة العامة ( وليست فصول ) في الأسفل -->
+            <!-- القائمة العامة (وليست فصول) في الأسفل -->
             <div class="bg-white p-6 rounded-3xl shadow-lg border">
                 <h3 class="font-bold text-base text-gray-800 mb-3">📋 القائمة العامة للطلاب المحفوظين بالسحابة</h3>
-                <div id="general-students-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    <!-- يتم تعبئتها تلقائياً -->
-                </div>
+                <div id="general-students-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
             </div>
         </div>
 
