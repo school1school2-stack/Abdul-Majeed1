@@ -40,7 +40,6 @@
 
         const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
 
-        // التقييمات الافتراضية المطلوبة من الصورة
         const defaultActions = [
             { id: 'def_1', icon: '✅', name: 'إجابة صحيحة', score: 1.0, color: '#28a745' },
             { id: 'def_2', icon: '❌', name: 'إجابة خاطئة', score: -1.0, color: '#dc3545' },
@@ -86,7 +85,6 @@
                         customActions.push({ id: key, ...data[key] });
                     });
                 } else {
-                    // إذا لم تكن موجودة بالسحابة، ضع الافتراضية واحفظها
                     customActions = defaultActions;
                     set(ref(db, 'fifi_custom_actions'), defaultActions);
                 }
@@ -321,6 +319,7 @@
             }
         };
 
+        // دالة رصد الحضور والغياب والسلوكيات وتحديث التقرير فوراً
         window.recordAction = function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -337,10 +336,11 @@
                     if(attendanceType === 'غائب') student.attendanceStats.absents = (student.attendanceStats.absents || 0) + 1;
                     if(attendanceType === 'متأخر') student.attendanceStats.lates = (student.attendanceStats.lates || 0) + 1;
                     if(attendanceType === 'مستأذن') student.attendanceStats.excuses = (student.attendanceStats.excuses || 0) + 1;
-                } else {
-                    const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
-                    student.actions = [newRecord, ...(student.actions || [])];
                 }
+                
+                // تسجيل الإجراء في السجل دائماً ليعكس في التقرير
+                const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
+                student.actions = [newRecord, ...(student.actions || [])];
 
                 openModal(currentStudentId);
 
