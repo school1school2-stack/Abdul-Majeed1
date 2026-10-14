@@ -33,6 +33,9 @@
         let currentStudentId = null;
         let allStudents = [];
 
+        // قائمة الفصول الخمسة المعتمدة
+        const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع', 'المجموعة الخامسة'];
+
         // جلب البيانات من السحابة لحظياً
         window.initRealtimeSync = function() {
             onSnapshot(collection(db, "fifi_students_tracker"), (snapshot) => {
@@ -48,7 +51,7 @@
             activeClass = className;
             document.getElementById('main-dashboard').classList.add('hidden');
             document.getElementById('class-view').classList.remove('hidden');
-            document.getElementById('class-title-header').innerText = `فصل: ${className}`;
+            document.getElementById('class-title-header').innerText = `مجموعة / فصل: ${className}`;
             renderView();
         };
 
@@ -120,7 +123,7 @@
                     <div class="p-3 hover:bg-indigo-50 flex justify-between items-center border-b text-sm">
                         <div>
                             <span class="font-bold text-gray-800">${student.name}</span>
-                            <span class="text-xs text-gray-500 block">${student.email || ''} (الفصل الحالي: ${student.className})</span>
+                            <span class="text-xs text-gray-500 block">${student.email || ''} (الحالي: ${student.className})</span>
                         </div>
                         <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-indigo-700">إدراج هنا</button>
                     </div>
@@ -136,13 +139,12 @@
                 });
                 document.getElementById('global-search-input').value = '';
                 document.getElementById('global-search-results').classList.add('hidden');
-                alert('تم إدراج الطالب في هذا الفصل بنجاح!');
+                alert('تم إدراج الطالب في هذه المجموعة بنجاح!');
             } catch (e) {
                 alert('خطأ أثناء الإدراج: ' + e.message);
             }
         };
 
-        // تعديل بيانات الطالب
         window.editStudent = async function(id) {
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
@@ -162,7 +164,6 @@
             }
         };
 
-        // حذف الطالب
         window.deleteStudent = async function(id) {
             if(confirm('هل أنت متأكد من حذف هذا الطالب نهائياً من السحابة؟')) {
                 try {
@@ -173,7 +174,6 @@
             }
         };
 
-        // تسجيل إجراء مع حفظ التاريخ والوقت الموثق
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             const student = allStudents.find(s => s.id === currentStudentId);
@@ -207,8 +207,8 @@
         };
 
         function renderView() {
-            ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'].forEach(cls => {
-                const countBadge = document.getElementById(`count-${cls}`);
+            classList.forEach(cls => {
+                const countBadge = document.getElementById(`count-${cls.replace(/\s+/g, '-')}`);
                 if(countBadge) {
                     const count = allStudents.filter(s => s.className === cls).length;
                     countBadge.innerText = `${count} طلاب`;
@@ -221,7 +221,7 @@
                 const students = allStudents.filter(s => s.className === activeClass);
 
                 if(students.length === 0) {
-                    container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا يوجد طلاب في هذا الفصل حالياً. استخدم خانة البحث أعلاه للإدراج من القائمة العامة.</p>`;
+                    container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا توجد طلاب في هذه المجموعة حالياً. استخدم خانة البحث أعلاه لإدراجهم من القائمة العامة.</p>`;
                     return;
                 }
 
@@ -257,7 +257,6 @@
             document.getElementById('action-modal').classList.remove('flex');
         };
 
-        // تقرير ملف الطالب الملّون الكبير الجاهز للطباعة والتوثيق
         window.openModal = function(id) {
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
@@ -267,7 +266,6 @@
 
             const modalContent = document.getElementById('modal-content');
             modalContent.innerHTML = `
-                <!-- رأس ملف الطالب -->
                 <div class="text-center mb-6">
                     <div class="w-24 h-24 bg-blue-500 text-white rounded-full flex items-center justify-center text-5xl font-bold mx-auto mb-3 shadow-lg">👤</div>
                     <h2 class="text-2xl font-black text-gray-800">${student.name}</h2>
@@ -275,13 +273,11 @@
                     <a href="https://wa.me/${student.phone}" target="_blank" class="inline-block mt-3 bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-xs font-bold border border-indigo-200">🪪 بطاقة وصول ولي الأمر</a>
                 </div>
 
-                <!-- ملخص الأداء -->
                 <div class="bg-indigo-50/70 p-4 rounded-2xl mb-5 border border-indigo-100">
-                    <h4 class="font-bold text-indigo-900 text-sm mb-1 flex items-center gap-1">📊 ملخص الأداء</h4>
-                    <p class="text-xs text-gray-600 leading-relaxed">يظهر الطالب أداءً متميزاً ومستوى ممتاز في مختلف الجوانب، حيث يتميز بإنجازه للمشاريع والتكليفات باتقان وبقدرته الممتازة على الحفظ والاستظهار.</p>
+                    <h4 class="font-bold text-indigo-900 text-sm mb-1">📊 ملخص الأداء</h4>
+                    <p class="text-xs text-gray-600 leading-relaxed">يظهر الطالب أداءً متميزاً ومستوى ممتاز في مختلف الجوانب، مع المتابعة المستمرة للتكليفات والسلوكيات.</p>
                 </div>
 
-                <!-- المؤشرات الثلاثة الملونة -->
                 <div class="grid grid-cols-3 gap-2 text-center mb-5">
                     <div class="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
                         <span class="block text-emerald-600 text-xs font-bold mb-1">التحضير</span>
@@ -297,9 +293,8 @@
                     </div>
                 </div>
 
-                <!-- بطاقة الحضور والغياب الملونة المطابقة للصورة -->
                 <div class="bg-gray-50 p-4 rounded-2xl mb-5 border">
-                    <h4 class="font-bold text-gray-800 text-sm mb-3 flex items-center gap-1">👤 الحضور والغياب</h4>
+                    <h4 class="font-bold text-gray-800 text-sm mb-3">👤 الحضور والغياب</h4>
                     <div class="grid grid-cols-3 gap-2 mb-2 text-center">
                         <div class="bg-rose-100 p-2 rounded-xl">
                             <span class="block text-xs font-bold text-rose-700">غائب</span>
@@ -330,7 +325,6 @@
                     </div>
                 </div>
 
-                <!-- الأعمال والسلوكيات الموثقة بالوقت والتاريخ -->
                 <div class="mb-5">
                     <h4 class="font-bold text-gray-800 text-sm mb-3 flex items-center justify-between">
                         <span>📅 النشاطات والسلوكيات الأخيرة</span>
@@ -380,16 +374,16 @@
 
     <main class="container mx-auto p-4 max-w-4xl">
 
-        <!-- الصفحة العامة (أيقونات الفصول الكبيرة + إضافة دفعة للطلاب) -->
+        <!-- الصفحة العامة (أيقونات الفصول الخمسة + إضافة دفعة للطلاب) -->
         <div id="main-dashboard" class="py-4">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">الفصول الدراسية</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">الفصول والمجموعات الدراسية</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <div onclick="openClass('الفصل الأول')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
                     <div>
                         <span class="text-3xl mb-1 block">👨‍🎓</span>
                         <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 1</h3>
-                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل الأول">0 طلاب</p>
+                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل-الأول">0 طلاب</p>
                     </div>
                     <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
                 </div>
@@ -397,7 +391,7 @@
                     <div>
                         <span class="text-3xl mb-1 block">👨‍🎓</span>
                         <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 2</h3>
-                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل الثاني">0 طلاب</p>
+                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل-الثاني">0 طلاب</p>
                     </div>
                     <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
                 </div>
@@ -405,7 +399,7 @@
                     <div>
                         <span class="text-3xl mb-1 block">👨‍🎓</span>
                         <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 3</h3>
-                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل الثالث">0 طلاب</p>
+                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل-الثالث">0 طلاب</p>
                     </div>
                     <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
                 </div>
@@ -413,16 +407,25 @@
                     <div>
                         <span class="text-3xl mb-1 block">👨‍🎓</span>
                         <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 4</h3>
-                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل الرابع">0 طلاب</p>
+                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل-الرابع">0 طلاب</p>
                     </div>
                     <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
                 </div>
+                <!-- الأيقونة الخامسة الجديدة -->
+                <div onclick="openClass('المجموعة الخامسة')" class="bg-white p-6 rounded-3xl shadow border-2 border-purple-100 hover:border-purple-600 cursor-pointer transition flex items-center justify-between md:col-span-2">
+                    <div>
+                        <span class="text-3xl mb-1 block">⭐</span>
+                        <h3 class="text-xl font-bold text-purple-900">المجموعة الخامسة (إضافية / أخرى)</h3>
+                        <p class="text-sm text-gray-500 mt-1" id="count-المجموعة-الخامسة">0 طلاب</p>
+                    </div>
+                    <span class="bg-purple-50 text-purple-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
+                </div>
             </div>
 
-            <!-- إضافة الطلاب دفعة واحدة -->
+            <!-- إضافة الطلاب دفعة واحدة وتشمل المجموعة الخامسة -->
             <div class="bg-white p-6 rounded-3xl shadow-lg border border-green-200">
                 <h3 class="font-bold text-lg text-green-700 mb-2 flex items-center gap-2">📥 إضافة دفعة طلاب عامة</h3>
-                <p class="text-xs text-gray-500 mb-4">اختر الفصل، ثم الصق القائمة بأسلوب: (سطر اسم الطالب، يليه سطر الإيميل):</p>
+                <p class="text-xs text-gray-500 mb-4">اختر الفصل أو المجموعة المستهدفة، ثم الصق القائمة (سطر اسم، سطر إيميل):</p>
                 
                 <div class="mb-3">
                     <select id="target-class-select" class="w-full border p-3 rounded-xl text-sm bg-gray-50 font-bold focus:ring-2 focus:ring-green-500">
@@ -430,6 +433,7 @@
                         <option value="الفصل الثاني">أول ثانوي / 2</option>
                         <option value="الفصل الثالث">أول ثانوي / 3</option>
                         <option value="الفصل الرابع">أول ثانوي / 4</option>
+                        <option value="المجموعة الخامسة">المجموعة الخامسة</option>
                     </select>
                 </div>
 
@@ -439,32 +443,30 @@
             </div>
         </div>
 
-        <!-- واجهة الفصل المستقلة -->
+        <!-- واجهة الفصل أو المجموعة المستقلة -->
         <div id="class-view" class="hidden py-4">
             <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow">
                 <button onclick="backToHome()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition">⬅ العودة للقائمة الرئيسية</button>
-                <h2 class="text-xl font-bold text-indigo-700" id="class-title-header">الفصل</h2>
+                <h2 class="text-xl font-bold text-indigo-700" id="class-title-header">المجموعة</h2>
                 <div class="w-16"></div>
             </div>
 
-            <!-- خانة البحث لإدراج طالب من العام -->
             <div class="bg-white p-4 rounded-2xl shadow mb-6 relative">
                 <div class="flex items-center gap-3">
                     <span class="text-xl">🔍</span>
-                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث عن طالب في القائمة العامة لإدراجه في هذا الفصل..." class="w-full border-none focus:outline-none text-sm">
+                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث عن طالب في القائمة العامة لإدراجه هنا..." class="w-full border-none focus:outline-none text-sm">
                 </div>
                 <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl rounded-2xl mt-2 border max-h-60 overflow-y-auto z-30"></div>
             </div>
 
-            <!-- بطاقات الطلاب -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="class-students-container">
-                <!-- يتم تعبئة الطلاب هنا -->
+                <!-- الطلاب هنا -->
             </div>
         </div>
 
     </main>
 
-    <!-- نافذة تقرير ملف الطالب الملونة الكبيرة -->
+    <!-- نافذة تقرير ملف الطالب -->
     <div id="student-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
             <button onclick="closeModal()" class="absolute top-4 left-4 bg-gray-200 text-gray-700 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-gray-300">✕</button>
@@ -472,13 +474,12 @@
         </div>
     </div>
 
-    <!-- نافذة رصد التقييمات الشاملة (مطابقة للخيارات والألوان بالصورة) -->
+    <!-- نافذة رصد التقييمات الشاملة -->
     <div id="action-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 relative shadow-2xl">
             <h3 class="text-lg font-bold text-center mb-1 text-indigo-900" id="action-student-name">رصد الطالب</h3>
             <p class="text-xs text-center text-gray-500 mb-4">اختر التقييم وسيتم حفظه فوراً بالتاريخ والوقت</p>
 
-            <!-- صفوف الحضور والغياب -->
             <div class="grid grid-cols-4 gap-2 mb-3">
                 <button onclick="recordAction('حاضر', 0)" class="p-2.5 rounded-xl bg-emerald-500 text-white font-bold text-xs">🟢 حاضر</button>
                 <button onclick="recordAction('غائب', 0, 'غائب')" class="p-2.5 rounded-xl bg-rose-500 text-white font-bold text-xs">🔴 غائب</button>
@@ -486,7 +487,6 @@
                 <button onclick="recordAction('متأخر', 0, 'متأخر')" class="p-2.5 rounded-xl bg-amber-500 text-white font-bold text-xs">🟠 متأخر</button>
             </div>
 
-            <!-- الخيارات السلوكية والأنشطة الشبكية المطابقة للصورة -->
             <div class="grid grid-cols-2 gap-2 mb-4 text-xs font-bold">
                 <button onclick="recordAction('إجابة صحيحة', 1)" class="p-3 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 flex justify-between items-center"><span>إجابة صحيحة</span> <span class="bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-md">1.0</span></button>
                 <button onclick="recordAction('إجابة خاطئة', -1)" class="p-3 rounded-xl border border-rose-200 bg-rose-50 text-rose-800 flex justify-between items-center"><span>إجابة خاطئة</span> <span class="bg-rose-200 text-rose-900 px-2 py-0.5 rounded-md">-1.0</span></button>
