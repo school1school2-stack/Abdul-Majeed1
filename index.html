@@ -12,7 +12,7 @@
 
     <style>
         :root { --maroon: #800000; --gold: #d4af37; --bg: #fdfaf1; --danger: #c62828; --success: #28a745; --info: #17a2b8; }
-        body { font-family: 'Tajawal', sans-serif; min-height: 100vh; background: var(--bg); padding: 15px; font-size: 1rem; transition: background 0.5s ease; }
+        html, body { font-family: 'Tajawal', sans-serif; height: 100vh; overflow: hidden; background: var(--bg); margin: 0; padding: 0; font-size: 1rem; transition: background 0.5s ease; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         
         /* تصميم بطاقات الفصول الاحترافية ثلاثية الأبعاد */
@@ -28,7 +28,7 @@
             border-color: var(--gold);
         }
 
-        /* تصميم بطاقة الطالب الاحترافية المطابقة للشكل المطلوب */
+        /* تصميم بطاقة الطالب الاحترافية */
         .student-row-card {
             background: linear-gradient(135deg, #ffffff 0%, #fafaf9 100%);
             border: 1px solid #e2e8f0;
@@ -123,7 +123,7 @@
             document.body.style.background = selectedTheme.bg;
             const header = document.getElementById('main-header');
             if(header) {
-                header.className = `p-4 shadow-md border-b transition-all duration-500 ${selectedTheme.headerBg}`;
+                header.className = `p-4 shadow-md border-b transition-all duration-500 shrink-0 ${selectedTheme.headerBg}`;
             }
             window.currentTheme = selectedTheme;
             renderView();
@@ -502,7 +502,6 @@
             }
 
             students.forEach(student => {
-                let totalScore = 0;
                 let actionsListHtml = '';
                 
                 if(student.actions && Array.isArray(student.actions) && student.actions.length > 0) {
@@ -511,7 +510,6 @@
                         if(act.score < 0) badgeBg = "bg-rose-500 text-white";
                         if(act.score === 0) badgeBg = "bg-sky-500 text-white";
                         
-                        // استخراج الأيقونة الخاصة بالإجراء (الفيس)
                         let displayIcon = '⭐';
                         let matchedAct = customActions.find(ca => act.title.includes(ca.name));
                         if(matchedAct && matchedAct.icon) {
@@ -544,7 +542,6 @@
                 container.innerHTML += `
                     <div class="student-row-card p-4 rounded-2xl flex items-center justify-between transition gap-4 flex-wrap sm:flex-nowrap">
                         
-                        <!-- يسار الكرت: أيقونة الاسم، الاسم، البريد (بالضغط عليه يفتح التقرير) -->
                         <div class="flex items-center gap-3.5 cursor-pointer flex-grow" onclick="openModal('${student.id}')" title="اضغط لعرض التقرير المفصل">
                             <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-xl font-black shadow-md shrink-0">👤</div>
                             <div>
@@ -553,12 +550,10 @@
                             </div>
                         </div>
 
-                        <!-- وسط الكرت: الأيقونات والفيسات المسجلة للطالب -->
                         <div class="flex items-center gap-3 overflow-x-auto py-1">
                             ${actionsListHtml}
                         </div>
 
-                        <!-- يمين الكرت: أزرار التحكم السريع (رصد، تقرير، حذف) -->
                         <div class="flex gap-2 items-center shrink-0">
                             <button onclick="openActionModal('${student.id}')" class="bg-stone-800 hover:bg-stone-900 text-amber-100 px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition">📝 رصد</button>
                             <button onclick="openModal('${student.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition">📊 التقرير</button>
@@ -948,9 +943,10 @@
         };
     </script>
 </head>
-<body class="text-slate-900 min-h-screen flex flex-col justify-between text-sm">
+<body class="text-slate-900 h-screen flex flex-col justify-between text-sm overflow-hidden">
 
-    <header id="main-header" class="p-4 shadow-md border-b">
+    <!-- الترويسة العلوية الثابتة -->
+    <header id="main-header" class="p-4 shadow-md border-b shrink-0 z-20">
         <div class="container mx-auto max-w-5xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
                 <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
@@ -963,7 +959,8 @@
         </div>
     </header>
 
-    <main class="container mx-auto p-3 max-w-5xl flex-grow my-3">
+    <!-- الإطار الداخلي القابل للتمرير (المحتوى يتغير ويتحرك داخله فقط) -->
+    <main class="container mx-auto p-3 max-w-5xl flex-grow overflow-y-auto my-2">
 
         <div id="main-dashboard" class="py-1 space-y-4">
             <h2 class="text-lg font-black text-slate-900 text-center">الفصول الدراسية</h2>
@@ -1034,10 +1031,12 @@
 
     </main>
 
-    <footer class="bg-slate-900 text-slate-300 py-4 text-center text-xs font-bold border-t border-slate-800">
+    <!-- التذييل السفلي الثابت -->
+    <footer class="bg-slate-900 text-slate-300 py-3 text-center text-xs font-bold border-t border-slate-800 shrink-0 z-20">
         <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
     </footer>
 
+    <!-- النوافذ المنبثقة (Modals) -->
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-700 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200">✕</button>
