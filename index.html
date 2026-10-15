@@ -878,6 +878,7 @@
             }
         };
 
+        // دالة رصد الأنشطة والحضور المعدلة بحيث تستبدل حالة الحضور/الغياب لنفس اليوم
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -895,21 +896,29 @@
                 let actionsList = student.actions || [];
                 
                 if(attendanceType) {
-                    if(attendanceType === 'حاضر' || attendanceType === 'متأخر' || attendanceType === 'مستأذن' || attendanceType === 'عن بعد') {
-                        actionsList = actionsList.filter(act => {
-                            let isSameDay = act.timestamp.includes(todayDateOnly);
-                            let isAbsence = act.title.includes('غائب');
-                            if(isSameDay && isAbsence) {
-                                if(attendanceStats.absents > 0) attendanceStats.absents--;
-                                return false;
-                            }
-                            return true;
-                        });
-                    }
+                    const attendanceKeywords = ['حاضر', 'غائب', 'غائب بعذر', 'مستأذن', 'متأخر', 'عن بعد', 'هارب'];
+                    
+                    // تصفية وحذف سجلات الحضور/الغياب السابقة لنفس اليوم لمنع التكرار واستبدالها
+                    actionsList = actionsList.filter(act => {
+                        let isSameDay = act.timestamp.includes(todayDateOnly);
+                        let isPreviousAttendance = attendanceKeywords.some(keyword => act.title.includes(keyword));
+                        
+                        if (isSameDay && isPreviousAttendance) {
+                            if (act.title.includes('غائب') && attendanceStats.absents > 0) attendanceStats.absents--;
+                            if (act.title.includes('متأخر') && attendanceStats.lates > 0) attendanceStats.lates--;
+                            if (act.title.includes('مستأذن') && attendanceStats.excuses > 0) attendanceStats.excuses--;
+                            return false;
+                        }
+                        return true;
+                    });
 
-                    if(attendanceType.includes('غائب') || attendanceType === 'غائب' || attendanceType === 'غائب بعذر') attendanceStats.absents++;
-                    if(attendanceType === 'متأخر') attendanceStats.lates++;
-                    if(attendanceType === 'مستأذن') attendanceStats.excuses++;
+                    if (attendanceType.includes('غائب')) {
+                        attendanceStats.absents++;
+                    } else if (attendanceType === 'متأخر') {
+                        attendanceStats.lates++;
+                    } else if (attendanceType === 'مستأذن') {
+                        attendanceStats.excuses++;
+                    }
                 }
                 
                 const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
