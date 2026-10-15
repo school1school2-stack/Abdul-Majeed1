@@ -85,7 +85,11 @@
             { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50" },
             { name: "الفانيلا اللاتيه", bg: "linear-gradient(135deg, #faf7f2 0%, #f0eae1 100%)", headerBg: "bg-amber-950 text-orange-100 border-amber-900", btnPrimary: "bg-amber-950 hover:bg-black text-orange-100" },
             { name: "السحاب الفرنسي", bg: "linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%)", headerBg: "bg-sky-900 text-sky-50 border-sky-800", btnPrimary: "bg-sky-900 hover:bg-sky-950 text-white" },
-            { name: "الزمرد الخفيف", bg: "linear-gradient(135deg, #f4fcf7 0%, #e6f4ed 100%)", headerBg: "bg-emerald-900 text-emerald-50 border-emerald-800", btnPrimary: "bg-emerald-800 hover:bg-emerald-900 text-white" }
+            { name: "الزمرد الخفيف", bg: "linear-gradient(135deg, #f4fcf7 0%, #e6f4ed 100%)", headerBg: "bg-emerald-900 text-emerald-50 border-emerald-800", btnPrimary: "bg-emerald-800 hover:bg-emerald-900 text-white" },
+            { name: "الشمبانيا الملكي", bg: "linear-gradient(135deg, #fffcf4 0%, #f7f1e3 100%)", headerBg: "bg-yellow-900 text-yellow-50 border-yellow-800", btnPrimary: "bg-yellow-800 hover:bg-yellow-900 text-white" },
+            { name: "الكوارتز الوردي", bg: "linear-gradient(135deg, #fdf8f8 0%, #f9f0f0 100%)", headerBg: "bg-rose-900 text-rose-50 border-rose-800", btnPrimary: "bg-rose-800 hover:bg-rose-900 text-white" },
+            { name: "النحاس الدافئ", bg: "linear-gradient(135deg, #faf6f5 0%, #f0eae6 100%)", headerBg: "bg-orange-950 text-orange-50 border-orange-900", btnPrimary: "bg-orange-900 hover:bg-orange-950 text-white" },
+            { name: "اللافندر الملكي الفاتح", bg: "linear-gradient(135deg, #f7f5fa 0%, #edeaf2 100%)", headerBg: "bg-purple-950 text-purple-50 border-purple-900", btnPrimary: "bg-purple-900 hover:bg-purple-950 text-white" }
         ];
 
         function applyRandomTheme() {
@@ -114,10 +118,7 @@
             { icon: '📁', name: 'نسيان ملف أو واجب', score: -5.0, color: '#ffc107' },
             { icon: '📱', name: 'استخدام الهاتف', score: -1.0, color: '#d9534f' },
             { icon: '⭐', name: 'إنجاز ملف', score: 5.0, color: '#00cec9' },
-            { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' },
-            { icon: '🏆', name: 'كأس التميز', score: 5.0, color: '#f39c12' },
-            { icon: '⚡', name: 'نشاط تفاعلي', score: 2.0, color: '#3498db' },
-            { icon: '🔥', name: 'إنجاز استثنائي', score: 4.0, color: '#e74c3c' }
+            { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
         function initSystem() {
@@ -957,26 +958,40 @@
             <div id="actions-tab-content" class="space-y-3 hidden">
                 <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border p-2.5 rounded-xl text-xs font-bold"></select>
                 <div class="grid grid-cols-3 gap-2">
-                    <select id="new-action-icon" class="border p-2.5 rounded-xl text-sm font-bold">
+                    <select id="new-action-icon" class="border border-slate-200 p-2.5 rounded-xl text-base font-bold bg-white">
                         <option value="⭐">⭐ نجمة</option>
                         <option value="✅">✅ صح</option>
                         <option value="❌">❌ خطأ</option>
                         <option value="💡">💡 مشاركة</option>
                         <option value="📘">📘 واجب</option>
+                        <option value="📕">📕 عدم حل</option>
                         <option value="🎁">🎁 هدية</option>
                         <option value="🏆">🏆 كأس</option>
+                        <option value="💤">💤 نوم</option>
+                        <option value="🗣️">🗣️ تحدث</option>
+                        <option value="📱">📱 جوال</option>
+                        <option value="😑">😑 غير مهتم</option>
+                        <option value="🏃‍♂️">🏃‍♂️ هروب</option>
+                        <option value="📁">📁 نسيان</option>
                         <option value="⚡">⚡ نشاط</option>
                         <option value="🔥">🔥 تميز</option>
                     </select>
-                    <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border p-2.5 rounded-xl text-xs font-bold">
+                    <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white focus:outline-none">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة" class="border p-2.5 rounded-xl text-xs font-bold">
-                    <select id="new-action-color" class="border p-2.5 rounded-xl text-xs font-bold">
-                        <option value="#28a745">🟢 أخضر</option>
-                        <option value="#007bff">🔵 أزرق</option>
-                        <option value="#dc3545">🔴 أحمر</option>
-                        <option value="#f39c12">🟡 أصفر</option>
+                    <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (1 أو -1)" class="border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white">
+                    <select id="new-action-color" class="border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white">
+                        <option value="#28a745">🟢 أخضر عشبي</option>
+                        <option value="#20c997">🔹 أخضر فيروزي</option>
+                        <option value="#007bff">🔵 أزرق غامق</option>
+                        <option value="#17a2b8">🟦 سماوي فاتح</option>
+                        <option value="#6610f2">🟣 بنفسجي ملكي</option>
+                        <option value="#6f42c1">🔮 أرجواني</option>
+                        <option value="#e83e8c">🩷 وردي زاهي</option>
+                        <option value="#dc3545">🔴 أحمر قاني</option>
+                        <option value="#fd7e14">🟠 برتقالي ساطع</option>
+                        <option value="#ffc107">🟡 أصفر ذهبي</option>
+                        <option value="#6c757d">⚪ رمادي رسمي</option>
                     </select>
                 </div>
                 <button id="save-action-btn" onclick="saveCustomActionFromDropdown()" class="w-full bg-slate-800 text-white py-2.5 rounded-xl text-xs font-bold hover:bg-black">حفظ التقييم 🚀</button>
@@ -1002,7 +1017,7 @@
                 <button onclick="recordAction('متأخر', 0, 'متأخر')" class="p-2.5 rounded-xl bg-amber-600 text-white font-bold text-xs cursor-pointer hover:bg-amber-700">🟠 متأخر</button>
             </div>
             <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-3 max-h-48 overflow-y-auto"></div>
-            <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-black">إغلاق</button>
+            <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer">إغلاق</button>
         </div>
     </div>
 
