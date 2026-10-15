@@ -102,7 +102,6 @@
             }
         ];
 
-        // تطبيق ثيم عشوائي فخم عند تحميل الصفحة
         function applyRandomTheme() {
             const randomIndex = Math.floor(Math.random() * themes.length);
             const selectedTheme = themes[randomIndex];
@@ -497,7 +496,7 @@
 
         window.recordAction = function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
-            closeActionModal();
+            closeActionModal(); // إغلاق نافذة الرصد فوراً والعودة لقائمة الطلاب
 
             const student = allStudents.find(s => s.id === currentStudentId);
             if(student) {
@@ -516,8 +515,7 @@
                 const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
                 student.actions = [newRecord, ...(student.actions || [])];
 
-                openModal(currentStudentId);
-                renderClassStudents(); // تحديث درجات الطالب في واجهة الفصل
+                renderClassStudents(); // تحديث درجات ومحصلة الطالب مباشرة في واجهة الفصل
 
                 update(ref(db, `fifi_students_tracker/${currentStudentId}`), {
                     actions: student.actions,
@@ -532,7 +530,7 @@
             if(student && student.actions) {
                 student.actions.splice(actionIndex, 1);
                 openModal(currentStudentId);
-                renderClassStudents(); // تحديث درجات الطالب عند حذف إجراء
+                renderClassStudents();
                 update(ref(db, `fifi_students_tracker/${currentStudentId}`), { actions: student.actions });
             }
         };
@@ -609,7 +607,6 @@
             students.forEach(student => {
                 const btnPrimaryClass = window.currentTheme ? window.currentTheme.btnPrimary.split(' ')[0] : 'bg-slate-700';
                 
-                // حساب مجموع درجات التقييمات للطالب (سواء موجبة أو سالبة)
                 let totalScore = 0;
                 if(student.actions && Array.isArray(student.actions)) {
                     student.actions.forEach(act => {
@@ -617,7 +614,6 @@
                     });
                 }
 
-                // تنسيق لون ومظهر مجموع الدرجات بجانب الاسم
                 let scoreBadgeBg = "bg-slate-100 text-slate-700 border-slate-200";
                 if(totalScore > 0) scoreBadgeBg = "bg-emerald-50 text-emerald-700 border-emerald-200";
                 if(totalScore < 0) scoreBadgeBg = "bg-rose-50 text-rose-700 border-rose-200";
