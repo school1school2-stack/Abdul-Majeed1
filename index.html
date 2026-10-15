@@ -15,16 +15,29 @@
         body { font-family: 'Tajawal', sans-serif; min-height: 100vh; background: var(--bg); padding: 15px; font-size: 1rem; transition: background 0.5s ease; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         
-        /* تصميم بطاقة الطالب الفاخرة ثلاثية الأبعاد */
+        /* تصميم بطاقات الفصول الاحترافية ثلاثية الأبعاد */
+        .class-3d-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 10px 25px -5px rgba(128, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            transition: all 0.3s ease;
+        }
+        .class-3d-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px rgba(128, 0, 0, 0.12), 0 10px 12px -5px rgba(0, 0, 0, 0.06);
+            border-color: var(--gold);
+        }
+
+        /* تصميم بطاقة الطالب الاحترافية المتناسقة مع لوحة الإضافات */
         .student-3d-card {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            background: linear-gradient(135deg, #ffffff 0%, #fafaf9 100%);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
             transition: all 0.3s ease;
         }
         .student-3d-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.08), 0 10px 12px -5px rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
             border-color: #cbd5e1;
         }
         
@@ -43,7 +56,7 @@
         
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 1rem; }
         th { background: var(--maroon); color: var(--gold); padding: 14px; font-size: 1.05rem; }
-        td { border-bottom: 1px solid #eee; padding: 12px; text-align: center; vertical-align: middle; }
+        td { border-bottom: 1px solid #eee; padding: 12px; text-align: right; vertical-align: middle; }
         
         .btn-approve { background: var(--success); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
         .btn-reject { background: var(--danger); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
@@ -206,11 +219,11 @@
                         classOptionsHtml += `<option value="class_غير موزع">❌ إزالة من الفصل</option>`;
 
                         tr.innerHTML = `
-                            <td class="name-cell" style="text-align: right; font-weight: bold;">
+                            <td style="text-align: right; font-weight: bold; font-size: 1.05rem; color: #1e293b;">
                                 ${name}
                                 <div style="font-size: 0.8rem; color: #800000; margin-top: 3px;">الفصل: ${data.className || 'غير موزع'}</div>
                             </td>
-                            <td class="email-cell">${email}</td>
+                            <td style="font-size: 0.95rem; color: #475569;">${email}</td>
                             <td>
                                 <select class="action-select" onchange="handleAction(this, '${email}', '${name.replace(/'/g, "\\'")}', '${doc.id}')">
                                     <option value="" disabled selected>⚙️ خيارات الإجراء</option>
@@ -446,22 +459,31 @@
             renderView();
         };
 
+        const classGradients = [
+            "bg-gradient-to-br from-amber-50 via-white to-amber-100/40 border-amber-200 text-amber-950",
+            "bg-gradient-to-br from-emerald-50 via-white to-emerald-100/40 border-emerald-200 text-emerald-950",
+            "bg-gradient-to-br from-sky-50 via-white to-sky-100/40 border-sky-200 text-sky-950",
+            "bg-gradient-to-br from-purple-50 via-white to-purple-100/40 border-purple-200 text-purple-950",
+            "bg-gradient-to-br from-rose-50 via-white to-rose-100/40 border-rose-200 text-rose-950",
+            "bg-gradient-to-br from-teal-50 via-white to-teal-100/40 border-teal-200 text-teal-950"
+        ];
+
         function renderView() {
             const classesContainer = document.getElementById('dynamic-classes-grid');
             if(!classesContainer) return;
             classesContainer.innerHTML = '';
 
-            classList.forEach(cls => {
+            classList.forEach((cls, idx) => {
                 const count = allStudents.filter(s => s.className === cls).length;
-                const cardBgClass = window.currentTheme ? window.currentTheme.cardBg : 'bg-white/95';
+                const gradientStyle = classGradients[idx % classGradients.length];
                 classesContainer.innerHTML += `
-                    <div onclick="openClass('${cls}')" class="student-3d-card p-6 rounded-2xl cursor-pointer transition flex items-center justify-between">
+                    <div onclick="openClass('${cls}')" class="class-3d-card ${gradientStyle} p-6 rounded-2xl cursor-pointer transition flex items-center justify-between border shadow-sm">
                         <div>
                             <span class="text-3xl mb-1.5 block">📚</span>
-                            <h3 class="text-xl font-black text-slate-900">${cls}</h3>
-                            <p class="text-xs text-slate-500 mt-1 font-bold">${count} طلاب مخصصين</p>
+                            <h3 class="text-xl font-black tracking-wide">${cls}</h3>
+                            <p class="text-xs opacity-75 mt-1 font-bold">${count} طلاب مخصصين</p>
                         </div>
-                        <span class="bg-slate-100 text-slate-700 w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shadow-xs">➔</span>
+                        <span class="bg-white/80 backdrop-blur-xs w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shadow-xs">➔</span>
                     </div>
                 `;
             });
@@ -495,7 +517,7 @@
                 container.innerHTML += `
                     <div class="student-3d-card p-5 rounded-2xl flex items-center justify-between transition">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200/60 text-amber-800 flex items-center justify-center text-xl font-black shadow-inner">👤</div>
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200/50 border border-amber-300 text-amber-900 flex items-center justify-center text-xl font-black shadow-inner">👤</div>
                             <div>
                                 <div class="flex items-center gap-3">
                                     <h3 class="font-black text-lg text-slate-900 tracking-wide">${student.name}</h3>
