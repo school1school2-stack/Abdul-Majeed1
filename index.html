@@ -39,12 +39,12 @@
         let editingClassIndex = null;
 
         const themes = [
-            { name: "الذهب الأبيض", bg: "linear-gradient(135deg, #fdfbf7 0%, #eef2f3 100%)", headerBg: "bg-stone-800 text-amber-100 border-stone-700", btnPrimary: "bg-stone-800 hover:bg-stone-900 text-amber-100" },
-            { name: "اللؤلؤ الطبيعي", bg: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", headerBg: "bg-slate-700 text-slate-100 border-slate-600", btnPrimary: "bg-slate-700 hover:bg-slate-800 text-white" },
-            { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50" },
-            { name: "الفانيلا اللاتيه", bg: "linear-gradient(135deg, #faf7f2 0%, #f0eae1 100%)", headerBg: "bg-amber-950 text-orange-100 border-amber-900", btnPrimary: "bg-amber-950 hover:bg-black text-orange-100" },
-            { name: "السحاب الفرنسي", bg: "linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%)", headerBg: "bg-sky-900 text-sky-50 border-sky-800", btnPrimary: "bg-sky-900 hover:bg-sky-950 text-white" },
-            { name: "الزمرد الخفيف", bg: "linear-gradient(135deg, #f4fcf7 0%, #e6f4ed 100%)", headerBg: "bg-emerald-900 text-emerald-50 border-emerald-800", btnPrimary: "bg-emerald-800 hover:bg-emerald-900 text-white" }
+            { name: "الذهب الأبيض", bg: "linear-gradient(135deg, #fdfbf7 0%, #eef2f3 100%)", headerBg: "bg-stone-800 text-amber-100 border-stone-700", btnPrimary: "bg-stone-800 hover:bg-stone-900 text-amber-100", cardBg: "bg-stone-50/90 border-stone-200" },
+            { name: "اللؤلؤ الطبيعي", bg: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", headerBg: "bg-slate-700 text-slate-100 border-slate-600", btnPrimary: "bg-slate-700 hover:bg-slate-800 text-white", cardBg: "bg-slate-50/90 border-slate-200" },
+            { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50", cardBg: "bg-amber-50/60 border-amber-200" },
+            { name: "الفانيلا اللاتيه", bg: "linear-gradient(135deg, #faf7f2 0%, #f0eae1 100%)", headerBg: "bg-amber-950 text-orange-100 border-amber-900", btnPrimary: "bg-amber-950 hover:bg-black text-orange-100", cardBg: "bg-orange-50/50 border-orange-200" },
+            { name: "السحاب الفرنسي", bg: "linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%)", headerBg: "bg-sky-900 text-sky-50 border-sky-800", btnPrimary: "bg-sky-900 hover:bg-sky-950 text-white", cardBg: "bg-sky-50/70 border-sky-200" },
+            { name: "الزمرد الخفيف", bg: "linear-gradient(135deg, #f4fcf7 0%, #e6f4ed 100%)", headerBg: "bg-emerald-900 text-emerald-50 border-emerald-800", btnPrimary: "bg-emerald-800 hover:bg-emerald-900 text-white", cardBg: "bg-emerald-50/70 border-emerald-200" }
         ];
 
         function applyRandomTheme() {
@@ -56,6 +56,7 @@
                 header.className = `p-4 shadow-md border-b transition-all duration-500 ${selectedTheme.headerBg}`;
             }
             window.currentTheme = selectedTheme;
+            renderClassStudents();
         }
 
         const defaultActions = [
@@ -120,11 +121,11 @@
             renderView();
         };
 
-        // تعبئة قائمة اختيار الطلاب المنسدلة الدائمة للفصل الحالي
+        // تعبئة قائمة اختيار الطلاب المنسدلة وجعل السطر الأول فارغاً/للبحث
         function populateClassDropdown() {
             const selectEl = document.getElementById('class-student-select');
             if(!selectEl) return;
-            selectEl.innerHTML = `<option value="">-- اختر طالباً لإضافته إلى ${activeClass} --</option>`;
+            selectEl.innerHTML = `<option value="">🔍 اضغط هنا لاختيار الطالب أو ابحث بالاسم...</option>`;
             
             allStudents.forEach(student => {
                 const statusText = student.className && student.className !== 'غير موزع' ? ` (مضاف في: ${student.className})` : '';
@@ -132,7 +133,7 @@
             });
         }
 
-        // إضافة الطالب مباشرة عند اختياره من القائمة المنسدلة الدائمة
+        // إضافة الطالب مباشرة عند اختياره من القائمة المنسدلة
         window.onSelectStudentToAdd = async function() {
             const selectEl = document.getElementById('class-student-select');
             const id = selectEl.value;
@@ -142,7 +143,7 @@
             if(student) {
                 student.className = activeClass;
                 renderClassStudents();
-                populateClassDropdown(); // تحديث القائمة
+                populateClassDropdown(); // إعادة تعيين القائمة
                 await db.collection("allowed_students").doc(id).update({ className: activeClass });
             }
         };
@@ -423,8 +424,9 @@
 
             classList.forEach(cls => {
                 const count = allStudents.filter(s => s.className === cls).length;
+                const cardBgClass = window.currentTheme ? window.currentTheme.cardBg : 'bg-white/95';
                 classesContainer.innerHTML += `
-                    <div onclick="openClass('${cls}')" class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-slate-400 cursor-pointer transition flex items-center justify-between" style="background: rgba(255, 255, 255, 0.95);">
+                    <div onclick="openClass('${cls}')" class="glass-card p-4 rounded-2xl shadow-sm border hover:border-slate-400 cursor-pointer transition flex items-center justify-between ${cardBgClass}">
                         <div>
                             <span class="text-2xl mb-1 block">📚</span>
                             <h3 class="text-base font-bold text-slate-800">${cls}</h3>
@@ -450,6 +452,7 @@
 
             students.forEach(student => {
                 const btnPrimaryClass = window.currentTheme ? window.currentTheme.btnPrimary.split(' ')[0] : 'bg-slate-700';
+                const cardBgClass = window.currentTheme ? window.currentTheme.cardBg : 'bg-white';
                 
                 let totalScore = 0;
                 if(student.actions && Array.isArray(student.actions)) {
@@ -464,7 +467,7 @@
                 const formattedScore = totalScore > 0 ? `+${totalScore}` : totalScore;
 
                 container.innerHTML += `
-                    <div class="bg-white p-3.5 rounded-2xl shadow-2xs flex items-center justify-between border border-slate-200 hover:shadow-xs transition">
+                    <div class="p-3.5 rounded-2xl shadow-2xs flex items-center justify-between border transition ${cardBgClass}">
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="font-bold text-sm text-slate-800">${student.name}</h3>
@@ -620,12 +623,12 @@
                 <div class="w-12"></div>
             </div>
 
-            <!-- قائمة منسدلة دائمة وثابتة لجميع أسماء الطلاب -->
+            <!-- القائمة المنسدلة الدائمة مع جعل السطر الأول مخصصاً للبحث والاختيار -->
             <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
                 <div class="flex items-center gap-2">
                     <span class="text-sm">🔍</span>
                     <select id="class-student-select" onchange="onSelectStudentToAdd()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer">
-                        <option value="">-- جاري تحميل قائمة الطلاب... --</option>
+                        <option value="">🔍 اضغط هنا لاختيار الطالب أو ابحث بالاسم...</option>
                     </select>
                 </div>
             </div>
