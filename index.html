@@ -77,7 +77,6 @@
             customActions = defaultActions;
             
             try {
-                // جلب بيانات الطلاب من كولكشن مستقل لتجنب الثقل
                 const snapshot = await db.collection("fifi_students_collection").get();
                 allStudents = [];
                 snapshot.forEach(doc => {
@@ -486,6 +485,7 @@
             }
         };
 
+        // تحسين العرض لمنع ثقل المتصفح عند زيادة عدد الطلاب
         function renderView() {
             const classesContainer = document.getElementById('dynamic-classes-grid');
             if(!classesContainer) return;
@@ -513,7 +513,8 @@
             const globalContainer = document.getElementById('general-students-list-container');
             if(globalContainer) {
                 globalContainer.innerHTML = '';
-                allStudents.forEach(student => {
+                const limitStudents = allStudents.slice(0, 50); // عرض أول 50 طالباً لتسريع الأداء منعاً للثقل
+                limitStudents.forEach(student => {
                     globalContainer.innerHTML += `
                         <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center shadow-2xs text-xs">
                             <div>
@@ -527,6 +528,9 @@
                         </div>
                     `;
                 });
+                if(allStudents.length > 50) {
+                    globalContainer.innerHTML += `<p class="text-center text-[10px] text-slate-400 py-1">يتم عرض أول 50 طالباً لتسريع الأداء. استخدم خانة البحث للوصول لأي طالب.</p>`;
+                }
             }
         }
 
