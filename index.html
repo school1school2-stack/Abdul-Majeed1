@@ -606,7 +606,6 @@
                         actionCounts[key].totalScore += act.score;
                     });
 
-                    // تجميع وعرض جميع السلوكيات بدون قيد أو حذف
                     Object.values(actionCounts).forEach(item => {
                         let badgeBg = "bg-sky-500 text-white";
                         if(item.totalScore > 0) badgeBg = "bg-emerald-500 text-white";
@@ -646,7 +645,6 @@
                             </div>
                         </div>
 
-                        <!-- شريط التمرير الأفقي الفعال بالكامل لجميع السلوكيات -->
                         <div class="flex items-center gap-2 overflow-x-auto py-1.5 bg-slate-50/70 px-2 rounded-xl min-h-[46px] w-full" style="scrollbar-width: thin; -webkit-overflow-scrolling: touch;">
                             ${actionsListHtml}
                         </div>
@@ -880,7 +878,6 @@
             }
         };
 
-        // دالة رصد السلوكيات والأنشطة (تم إزالة حذف السابقة تماماً لتتراكم الحالات الجديدة مع القديمة)
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -896,7 +893,6 @@
                 let attendanceStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
                 let actionsList = student.actions || [];
                 
-                // تحديث العدادات الإحصائية عند رصد أزرار الحضور والغياب (مع الاحتفاظ بالسجلات كاملة)
                 if(attendanceType) {
                     if (attendanceType.includes('غائب')) {
                         attendanceStats.absents++;
@@ -907,7 +903,6 @@
                     }
                 }
                 
-                // إضافة السلوك أو الرصد الجديد بجانب السطور السابقة دون حذف أي شيء
                 const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
                 student.actions = [newRecord, ...actionsList];
 
@@ -1159,9 +1154,22 @@
                 <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border p-2.5 rounded-xl text-xs font-bold"></select>
                 <div class="grid grid-cols-3 gap-2">
                     <select id="new-action-icon" class="border border-slate-200 p-2.5 rounded-xl text-base font-bold bg-white">
-                        <option value="⚠️">⚠️ تنبيه هامة</option>
+                        <!-- الرموز الأساسية القديمة -->
+                        <option value="✅">✅ إجابة صحيحة / صح</option>
+                        <option value="❌">❌ إجابة خاطئة / خطأ</option>
+                        <option value="💡">💡 مشاركة / فكرة</option>
+                        <option value="📘">📘 حل الواجب</option>
+                        <option value="📕">📕 لم يحل الواجب</option>
+                        <option value="📁">📁 نسيان ملف</option>
+                        <option value="📂">📂 إنجاز ملف</option>
+                        <option value="💤">💤 النوم في الحصة</option>
+                        <option value="🗣️">🗣️ التحدث أثناء الدرس</option>
+                        <option value="📱">📱 استخدام الهاتف</option>
+                        <option value="🎁">🎁 هدية</option>
+
+                        <!-- الرموز والتنبيهات الإضافية -->
+                        <option value="⚠️">⚠️ تنبيه هام</option>
                         <option value="🛑">🛑 إيقاف / منع</option>
-                        <option value="❌">❌ خطأ / سلبي</option>
                         <option value="⏳">⏳ تأخير / انتظار</option>
                         <option value="👎">👎 استهجان / تقصير</option>
                         <option value="🚫">🚫 محظور / مخالفة</option>
@@ -1170,15 +1178,12 @@
                         
                         <option value="✍️">✍️ كتابة / تدوين</option>
                         <option value="📝">📝 اختبار / تحضير</option>
-                        <option value="✅">✅ صح / إنجاز</option>
                         <option value="💯">💯 درجة كاملة / مثالي</option>
                         <option value="⭐">⭐ نجمة تفوق</option>
                         <option value="🌟">🌟 تميز ساطع</option>
                         <option value="👍">👍 تأييد / أحسنت</option>
                         
                         <option value="🏆">🏆 كأس تفوق</option>
-                        <option value="💡">💡 فكرة إبداعية / مشاركة</option>
-                        <option value="📘">📘 حل الواجب</option>
                         <option value="🔥">🔥 حماس ونشاط</option>
                         <option value="⚡">⚡ استجابة سريعة</option>
                         <option value="🎯">🎯 تركيز وإصابة الهدف</option>
