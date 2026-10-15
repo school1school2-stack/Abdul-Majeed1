@@ -17,14 +17,14 @@
         import { getDatabase, ref, set, push, remove, update, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyAVrIIm7aXjg0hGrMk0qVrXT8gaRIpHoBk",
-            authDomain: "youy-apps.firebaseapp.com",
-            databaseURL: "https://youy-apps-default-rtdb.firebaseio.com",
-            projectId: "youy-apps",
-            storageBucket: "youy-apps.firebasestorage.app",
-            messagingSenderId: "690543747528",
-            appId: "1:690543747528:web:10c85ef0c93b79596620fd",
-            measurementId: "G-LL8PGM8G8E"
+            apiKey: "AIzaSyDbppVi6vpLyX7Q-dqc6De745MBMGKUpQ",
+            authDomain: "aziztest-a0f6c.firebaseapp.com",
+            databaseURL: "https://aziztest-a0f6c-default-rtdb.firebaseio.com",
+            projectId: "aziztest-a0f6c",
+            storageBucket: "aziztest-a0f6c.firebasestorage.app",
+            messagingSenderId: "843503616133",
+            appId: "1:843503616133:web:e04b79015132e81f5369ec",
+            measurementId: "G-LFMSMEQC8Z"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -78,11 +78,10 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل سريع جداً باستخدام الذاكرة المحلية أولاً ثم مزامنة السحابة
+        // تحميل فوري تماماً عبر الذاكرة المحلية أولاً ثم جلب التحديثات بالسحابة
         window.initFastLoad = async function() {
             applyRandomTheme();
 
-            // قراءة من الذاكرة المحلية لظهور الفصول فوراً بدون أي تأخير
             const cachedStudents = localStorage.getItem('fifi_cached_students');
             const cachedActions = localStorage.getItem('fifi_cached_actions');
             const cachedClasses = localStorage.getItem('fifi_cached_classes');
@@ -96,7 +95,6 @@
             renderSettingsActionsDropdown();
             renderClassesListUI();
 
-            // جلب التحديثات من السحابة في الخلفية
             const dbRef = ref(db);
             try {
                 const [studentsSnap, settingsSnap, classesSnap] = await Promise.all([
@@ -366,7 +364,6 @@
             });
         }
 
-        // تحسين وحل مشكلة البطء: الحفظ الجماعي بطلب سحابي واحد فوري
         window.superSmartBulkAdd = async function() {
             const bulkText = document.getElementById('bulk-students-input').value.trim();
             if(!bulkText) return alert('الرجاء إدخال قائمة الطلاب في المربع');
@@ -402,7 +399,6 @@
                 document.getElementById('bulk-students-input').value = '';
                 localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
                 renderView();
-                // تحديث السحابة دفعة واحدة بدون أي تعليق
                 update(studentsRef, updates);
                 alert(`تم حفظ ${count} طالب في السحابة بنجاح وبسرعة فائقة ✅`);
             } else {
@@ -410,7 +406,6 @@
             }
         };
 
-        // زر نسخ الكل
         window.copyAllStudents = function() {
             if(allStudents.length === 0) return alert('لا توجد أسماء للنسخ');
             let textToCopy = "";
@@ -422,7 +417,6 @@
             });
         };
 
-        // زر حذف الكل
         window.deleteAllStudents = async function() {
             if(confirm('تحذير: هل أنت متأكد من حذف جميع الطلاب من السحابة نهائياً؟')) {
                 allStudents = [];
@@ -928,7 +922,7 @@
             <div class="grid grid-cols-4 gap-1.5 mb-3">
                 <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-emerald-700 transition flex flex-col items-center justify-center">🟢 حاضر</button>
                 <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-rose-700 transition flex flex-col items-center justify-center">🔴 غائب</button>
-                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-sky-700 transition flex flex-col items-center justify-center">🔵 مستأذن</button>
+                <button onclick="recordPathAction('مستأذن', 0, 'مستأذن')" class="click-effect p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-sky-700 transition flex flex-col items-center justify-center">🔵 مستأذن</button>
                 <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-amber-700 transition flex flex-col items-center justify-center">🟠 متأخر</button>
             </div>
 
