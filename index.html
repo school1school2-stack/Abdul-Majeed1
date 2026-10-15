@@ -75,7 +75,7 @@
         let currentStudentId = null;
         let allStudents = [];
         let customActions = [];
-        let classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
+        let classList = [];
         let editingActionIndex = null;
         let editingClassIndex = null;
 
@@ -124,10 +124,34 @@
         function initSystem() {
             applyRandomTheme();
             customActions = defaultActions;
-            fetchStudents();
+            fetchClassesAndStudents();
             renderCustomActionsUI();
             renderSettingsActionsDropdown();
+        }
+
+        async function fetchClassesAndStudents() {
+            try {
+                const classDoc = await db.collection("system_settings").doc("classes_config").get();
+                if (classDoc.exists && classDoc.data().classList) {
+                    classList = classDoc.data().classList;
+                } else {
+                    classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
+                    await db.collection("system_settings").doc("classes_config").set({ classList: classList });
+                }
+            } catch (e) {
+                classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
+            }
             renderClassesListUI();
+            renderView();
+            fetchStudents();
+        }
+
+        async function saveClassesToCloud() {
+            try {
+                await db.collection("system_settings").doc("classes_config").set({ classList: classList });
+            } catch (e) {
+                console.error("خطأ في حفظ الفصول بالسحاب", e);
+            }
         }
 
         function fetchStudents() {
@@ -534,10 +558,12 @@
                 classList.push(name);
             }
 
+            await saveClassesToCloud();
             classNameInput.value = '';
             renderClassesListUI();
             renderView();
             fetchStudents();
+            alert('تم حفظ الفصل سحابياً بنجاح ✅');
         };
 
         window.editClassItem = function(index) {
@@ -557,6 +583,7 @@
                         await db.collection("allowed_students").doc(stu.id).update({ className: 'غير موزع' });
                     }
                 }
+                await saveClassesToCloud();
                 renderClassesListUI();
                 renderView();
                 fetchStudents();
