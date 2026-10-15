@@ -12,36 +12,32 @@
 
     <style>
         :root { --maroon: #800000; --gold: #d4af37; --bg: #fdfaf1; --danger: #c62828; --success: #28a745; --info: #17a2b8; }
-        body { font-family: 'Tajawal', sans-serif; min-height: 100vh; background: var(--bg); padding: 10px; font-size: 0.95rem; transition: background 0.5s ease; }
+        body { font-family: 'Tajawal', sans-serif; min-height: 100vh; background: var(--bg); padding: 10px; transition: background 0.5s ease; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         .glass-card { backdrop-filter: blur(10px); transition: all 0.5s ease; }
         
-        .admin-card { background: white; max-width: 1050px; margin: auto; border-radius: 14px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border-top: 6px solid var(--maroon); }
+        .admin-card { background: white; max-width: 1050px; margin: auto; border-radius: 15px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border-top: 8px solid var(--maroon); }
         .header { text-align: center; border-bottom: 2px solid var(--gold); margin-bottom: 20px; padding-bottom: 10px; }
-        .header h2 { font-size: 1.5rem; color: var(--maroon); font-weight: 900; }
-        .header p { font-size: 0.95rem; color: #555; }
-        
-        .bulk-section { background: #f4f4f4; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1.5px dashed var(--maroon); }
-        .bulk-section label { font-size: 0.95rem; }
-        textarea { width: 100%; height: 120px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: sans-serif; font-size: 0.9rem; resize: vertical; box-sizing: border-box; }
+        .bulk-section { background: #f4f4f4; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px dashed var(--maroon); }
+        textarea { width: 100%; height: 150px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: sans-serif; resize: vertical; box-sizing: border-box; }
         .controls { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: 0.3s; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-upload { background: var(--maroon); color: var(--gold); }
         .btn-copy { background: var(--info); color: white; }
         .btn-delete-all { background: var(--danger); color: white; }
         
-        .pending-section { background: #fff8e1; border: 2px solid #ffc107; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
-        .pending-section h3 { color: #d32f2f; margin-top: 0; font-size: 1.1rem; }
+        .pending-section { background: #fff8e1; border: 2px solid #ffc107; padding: 15px; border-radius: 10px; margin-bottom: 25px; display: none; }
+        .pending-section h3 { color: #d32f2f; margin-top: 0; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 0.95rem; }
-        th { background: var(--maroon); color: var(--gold); padding: 12px; font-size: 1rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th { background: var(--maroon); color: var(--gold); padding: 12px; }
         td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; vertical-align: middle; }
         
-        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
-        .btn-reject { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
+        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-reject { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
         .action-select {
-            padding: 6px 12px;
+            padding: 6px 10px;
             border-radius: 6px;
             border: 1px solid #b0bec5;
             background-color: #f8f9fa;
@@ -55,10 +51,10 @@
         }
         .action-select:hover { border-color: var(--maroon); background-color: #fff; }
 
-        .stats-bar { display: flex; justify-content: space-between; background: #e9ecef; padding: 12px 15px; border-radius: 8px; font-weight: bold; color: var(--maroon); font-size: 1rem; margin-bottom: 15px; }
+        .stats-bar { display: flex; justify-content: space-between; background: #e9ecef; padding: 15px; border-radius: 8px; font-weight: bold; color: var(--maroon); font-size: 1.1rem; margin-bottom: 15px; }
         .search-container { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px; }
-        .search-container h3 { margin: 0; font-size: 1.1rem; color: var(--maroon); }
-        .search-box { padding: 8px 12px; width: 100%; max-width: 300px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.9rem; outline: none; transition: 0.3s; }
+        .search-container h3 { margin: 0; }
+        .search-box { padding: 10px 15px; width: 100%; max-width: 350px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; outline: none; transition: 0.3s; }
         .search-box:focus { border-color: var(--maroon); box-shadow: 0 0 5px rgba(128,0,0,0.2); }
     </style>
 
@@ -86,7 +82,10 @@
         const themes = [
             { name: "الذهب الأبيض", bg: "linear-gradient(135deg, #fdfbf7 0%, #eef2f3 100%)", headerBg: "bg-stone-800 text-amber-100 border-stone-700", btnPrimary: "bg-stone-800 hover:bg-stone-900 text-amber-100", cardBg: "bg-stone-50/90 border-stone-200" },
             { name: "اللؤلؤ الطبيعي", bg: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", headerBg: "bg-slate-700 text-slate-100 border-slate-600", btnPrimary: "bg-slate-700 hover:bg-slate-800 text-white", cardBg: "bg-slate-50/90 border-slate-200" },
-            { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50", cardBg: "bg-amber-50/60 border-amber-200" }
+            { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50", cardBg: "bg-amber-50/60 border-amber-200" },
+            { name: "الفانيلا اللاتيه", bg: "linear-gradient(135deg, #faf7f2 0%, #f0eae1 100%)", headerBg: "bg-amber-950 text-orange-100 border-amber-900", btnPrimary: "bg-amber-950 hover:bg-black text-orange-100", cardBg: "bg-orange-50/50 border-orange-200" },
+            { name: "السحاب الفرنسي", bg: "linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%)", headerBg: "bg-sky-900 text-sky-50 border-sky-800", btnPrimary: "bg-sky-900 hover:bg-sky-950 text-white", cardBg: "bg-sky-50/70 border-sky-200" },
+            { name: "الزمرد الخفيف", bg: "linear-gradient(135deg, #f4fcf7 0%, #e6f4ed 100%)", headerBg: "bg-emerald-900 text-emerald-50 border-emerald-800", btnPrimary: "bg-emerald-800 hover:bg-emerald-900 text-white", cardBg: "bg-emerald-50/70 border-emerald-200" }
         ];
 
         function applyRandomTheme() {
@@ -111,10 +110,7 @@
             { icon: '💤', name: 'النوم في الحصة', score: -1.0, color: '#6610f2' },
             { icon: '🗣️', name: 'التحدث أثناء الدرس', score: -1.0, color: '#6f42c1' },
             { icon: '⭐', name: 'إنجاز ملف', score: 5.0, color: '#00cec9' },
-            { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' },
-            { icon: '🏆', name: 'كأس التميز', score: 5.0, color: '#f39c12' },
-            { icon: '⚡', name: 'نشاط تفاعلي', score: 2.0, color: '#3498db' },
-            { icon: '🔥', name: 'إنجاز استثنائي', score: 4.0, color: '#e74c3c' }
+            { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
         function initSystem() {
@@ -166,11 +162,11 @@
                         classOptionsHtml += `<option value="class_غير موزع">❌ إزالة من الفصل</option>`;
 
                         tr.innerHTML = `
-                            <td class="name-cell" style="text-align: right; font-weight: bold; font-size: 0.95rem;">
+                            <td class="name-cell" style="text-align: right; font-weight: bold;">
                                 ${name}
                                 <div style="font-size: 0.75rem; color: #800000; margin-top: 2px;">الفصل: ${data.className || 'غير موزع'}</div>
                             </td>
-                            <td class="email-cell" style="font-size: 0.95rem;">${email}</td>
+                            <td class="email-cell">${email}</td>
                             <td>
                                 <select class="action-select" onchange="handleAction(this, '${email}', '${name.replace(/'/g, "\\'")}', '${doc.id}')">
                                     <option value="" disabled selected>⚙️ خيارات الإجراء</option>
@@ -208,8 +204,8 @@
                     if(pendingTbody) {
                         pendingTbody.innerHTML += `
                             <tr>
-                                <td style="font-size:0.95rem;">${data.name}</td>
-                                <td style="font-size:0.95rem;">${email}</td>
+                                <td>${data.name}</td>
+                                <td>${email}</td>
                                 <td>
                                     <button class="btn-approve" onclick="approveStudent('${email}', '${data.name}')">✅ قبول</button>
                                     <button class="btn-reject" onclick="deletePending('${email}')">❌ رفض</button>
@@ -474,7 +470,7 @@
                         <div>
                             <span class="text-2xl mb-1 block">📚</span>
                             <h3 class="text-base font-bold text-slate-800">${cls}</h3>
-                            <p class="text-xs text-slate-600 mt-0.5 font-semibold">${count} طلاب مخصصين</p>
+                            <p class="text-xs text-slate-500 mt-0.5">${count} طلاب مخصصين</p>
                         </div>
                         <span class="bg-slate-100 text-slate-700 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shadow-2xs">➔</span>
                     </div>
@@ -490,7 +486,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-bold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم القائمة المنسدلة بالأعلى للإضافة.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم القائمة المنسدلة بالأعلى للإضافة.</p>`;
                 return;
             }
 
@@ -514,10 +510,10 @@
                     <div class="p-3.5 rounded-2xl shadow-2xs flex items-center justify-between border transition ${cardBgClass}">
                         <div>
                             <div class="flex items-center gap-2">
-                                <h3 class="font-bold text-sm text-slate-900">${student.name}</h3>
+                                <h3 class="font-bold text-sm text-slate-800">${student.name}</h3>
                                 <span class="text-[11px] font-black px-2 py-0.5 rounded-lg border ${scoreBadgeBg}" title="مجموع التقييمات">⭐ ${formattedScore}</span>
                             </div>
-                            <p class="text-[11px] text-slate-500 font-semibold mt-0.5">${student.email || 'بدون إيميل'}</p>
+                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">${student.email || 'بدون إيميل'}</p>
                         </div>
                         <div class="flex gap-1.5 items-center">
                             <button onclick="openActionModal('${student.id}')" class="${btnPrimaryClass} text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
@@ -563,7 +559,7 @@
             }
         };
 
-        window.saveClassItem = async function() {
+        window.saveClassItem = function() {
             const classNameInput = document.getElementById('new-class-name');
             const name = classNameInput.value.trim();
             if(!name) return alert('الرجاء إدخال اسم الفصل');
@@ -571,14 +567,12 @@
             if(editingClassIndex !== null) {
                 const oldName = classList[editingClassIndex];
                 classList[editingClassIndex] = name;
-                
-                // تحديث قاعدة البيانات محلياً وسحابياً لجميع الطلاب الذين ينتمون لهذا الفصل القديم
-                for(let stu of allStudents) {
+                allStudents.forEach(async stu => {
                     if(stu.className === oldName) {
                         stu.className = name;
                         await db.collection("allowed_students").doc(stu.id).update({ className: name });
                     }
-                }
+                });
                 editingClassIndex = null;
                 document.getElementById('save-class-btn').innerText = "إضافة ➕";
             } else {
@@ -589,7 +583,6 @@
             classNameInput.value = '';
             renderClassesListUI();
             renderView();
-            fetchStudents(); // إعادة تحديث القائمة بالأسماء لتنعكس التغييرات فوراً في القوائم المنسدلة للجدول
         };
 
         window.editClassItem = function(index) {
@@ -598,20 +591,18 @@
             document.getElementById('save-class-btn').innerText = "تعديل ✏️";
         };
 
-        window.deleteClassItem = async function(index) {
+        window.deleteClassItem = function(index) {
             if(confirm('هل أنت متأكد من حذف هذا الفصل؟')) {
                 const removedName = classList[index];
                 classList.splice(index, 1);
-                
-                for(let stu of allStudents) {
+                allStudents.forEach(async stu => {
                     if(stu.className === removedName) {
                         stu.className = 'غير موزع';
                         await db.collection("allowed_students").doc(stu.id).update({ className: 'غير موزع' });
                     }
-                }
+                });
                 renderClassesListUI();
                 renderView();
-                fetchStudents();
             }
         };
 
@@ -628,10 +619,10 @@
             classList.forEach((cls, index) => {
                 container.innerHTML += `
                     <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center text-xs shadow-xs">
-                        <span class="font-bold text-slate-800">${cls}</span>
+                        <span class="font-bold text-slate-700">${cls}</span>
                         <div class="flex gap-1.5">
-                            <button onclick="editClassItem(${index})" class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg font-semibold cursor-pointer">✏️ تعديل</button>
-                            <button onclick="deleteClassItem(${index})" class="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-semibold cursor-pointer">🗑️ حذف</button>
+                            <button onclick="editClassItem(${index})" class="bg-amber-50 text-amber-700 px-2 py-1 rounded-lg font-semibold cursor-pointer">✏️ تعديل</button>
+                            <button onclick="deleteClassItem(${index})" class="bg-rose-50 text-rose-600 px-2 py-1 rounded-lg font-semibold cursor-pointer">🗑️ حذف</button>
                         </div>
                     </div>
                 `;
@@ -724,12 +715,12 @@
                 container.innerHTML += `
                     <div class="bg-white p-2.5 rounded-xl border border-slate-100 flex items-center justify-between shadow-xs hover:shadow transition">
                         <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-2.5 flex-grow text-right cursor-pointer">
-                            <span class="w-9 h-9 rounded-xl flex items-center justify-center text-base border" style="background-color: ${actColor}15; border-color: ${actColor}40;">
+                            <span class="w-9 h-9 rounded-lg flex items-center justify-center text-base border" style="background-color: ${actColor}15; border-color: ${actColor}40;">
                                 ${act.icon || '⭐'}
                             </span>
-                            <span class="font-bold text-xs text-slate-800">${act.name}</span>
+                            <span class="font-bold text-xs text-slate-700">${act.name}</span>
                         </button>
-                        <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700">${act.score > 0 ? '+' + act.score : act.score}</span>
+                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">${act.score > 0 ? '+' + act.score : act.score}</span>
                     </div>
                 `;
             });
@@ -826,53 +817,53 @@
 
             const modalContent = document.getElementById('modal-content');
             modalContent.innerHTML = `
-                <div class="text-center mb-5">
-                    <div class="w-20 h-20 ${btnPrimaryClass} text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-md">👤</div>
-                    <h2 class="text-2xl font-black text-slate-900">${student.name}</h2>
-                    <p class="text-sm font-bold text-slate-600 mt-1">${student.className}</p>
+                <div class="text-center mb-6">
+                    <div class="w-20 h-20 ${btnPrimaryClass} text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-lg">👤</div>
+                    <h2 class="text-2xl font-black text-slate-800">${student.name}</h2>
+                    <p class="text-sm font-bold text-slate-500 mt-1">${student.className}</p>
                 </div>
 
-                <div class="bg-slate-50 p-4 rounded-2xl mb-5 border border-slate-200">
-                    <h4 class="font-bold text-slate-900 text-sm mb-3">👤 الحضور والغياب (تعديل فوري بالضغط)</h4>
+                <div class="bg-slate-50 p-5 rounded-2xl mb-6 border border-slate-200 shadow-2xs">
+                    <h4 class="font-bold text-slate-800 text-sm mb-3">👤 الحضور والغياب (تعديل فوري بالضغط)</h4>
                     <div class="grid grid-cols-3 gap-3 text-center">
-                        <div class="bg-rose-50 p-3 rounded-xl flex flex-col justify-between border border-rose-100">
+                        <div class="bg-rose-50 p-3.5 rounded-xl flex flex-col justify-between border border-rose-100 shadow-2xs">
                             <span class="block text-xs font-bold text-rose-700">غائب (${att.absents || 0})</span>
                             <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('absents', 1)" class="bg-rose-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer hover:bg-rose-700">+</button>
-                                <button onclick="adjustAttendance('absents', -1)" class="bg-rose-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer hover:bg-rose-900">-</button>
+                                <button onclick="adjustAttendance('absents', 1)" class="bg-rose-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-rose-700">+</button>
+                                <button onclick="adjustAttendance('absents', -1)" class="bg-rose-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-rose-900">-</button>
                             </div>
                         </div>
-                        <div class="bg-amber-50 p-3 rounded-xl flex flex-col justify-between border border-amber-100">
+                        <div class="bg-amber-50 p-3.5 rounded-xl flex flex-col justify-between border border-amber-100 shadow-2xs">
                             <span class="block text-xs font-bold text-amber-700">متأخر (${att.lates || 0})</span>
                             <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('lates', 1)" class="bg-amber-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer hover:bg-amber-700">+</button>
-                                <button onclick="adjustAttendance('lates', -1)" class="bg-amber-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer hover:bg-amber-900">-</button>
+                                <button onclick="adjustAttendance('lates', 1)" class="bg-amber-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-amber-700">+</button>
+                                <button onclick="adjustAttendance('lates', -1)" class="bg-amber-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-amber-900">-</button>
                             </div>
                         </div>
-                        <div class="bg-sky-50 p-3 rounded-xl flex flex-col justify-between border border-sky-100">
+                        <div class="bg-sky-50 p-3.5 rounded-xl flex flex-col justify-between border border-sky-100 shadow-2xs">
                             <span class="block text-xs font-bold text-sky-700">مستأذن (${att.excuses || 0})</span>
                             <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('excuses', 1)" class="bg-sky-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer hover:bg-sky-700">+</button>
-                                <button onclick="adjustAttendance('excuses', -1)" class="bg-sky-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer hover:bg-sky-900">-</button>
+                                <button onclick="adjustAttendance('excuses', 1)" class="bg-sky-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-sky-700">+</button>
+                                <button onclick="adjustAttendance('excuses', -1)" class="bg-sky-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-sky-900">-</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mb-5">
-                    <h4 class="font-bold text-slate-900 text-sm mb-3 flex items-center justify-between">
+                <div class="mb-6">
+                    <h4 class="font-bold text-slate-800 text-sm mb-3 flex items-center justify-between">
                         <span>📅 النشاطات والسلوكيات المسجلة</span>
                         <span class="text-xs text-slate-500 font-normal">موثق بالتاريخ والوقت</span>
                     </h4>
-                    <div class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                    <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
                         ${actions.length === 0 ? '<p class="text-sm text-slate-400 text-center py-6">لا توجد نشاطات مسجلة حالياً</p>' : 
                             actions.map((act, index) => `
-                                <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center text-sm shadow-xs">
-                                    <div class="flex items-center gap-2.5">
+                                <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center text-sm shadow-2xs">
+                                    <div class="flex items-center gap-3">
                                         <span class="w-3 h-3 rounded-full ${act.score > 0 ? 'bg-emerald-500' : (act.score < 0 ? 'bg-rose-500' : 'bg-sky-500')}"></span>
                                         <div>
-                                            <span class="font-bold text-slate-900 block text-xs">${act.title} (${act.score > 0 ? '+' + act.score : act.score})</span>
-                                            <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">${act.timestamp}</span>
+                                            <span class="font-bold text-slate-800 block text-sm">${act.title} (${act.score > 0 ? '+' + act.score : act.score})</span>
+                                            <span class="text-xs text-slate-400 font-mono mt-0.5 block">${act.timestamp}</span>
                                         </div>
                                     </div>
                                     <button onclick="deleteStudentAction(${index})" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ حذف</button>
@@ -883,8 +874,8 @@
                 </div>
 
                 <div class="flex gap-3 pt-2">
-                    <button onclick="window.print()" class="flex-1 ${btnPrimaryClass} text-white py-3 rounded-xl font-bold text-xs cursor-pointer shadow-md">🖨️ طباعة التقرير</button>
-                    <button onclick="closeModal()" class="flex-1 bg-slate-200 text-slate-800 py-3 rounded-xl font-bold text-xs hover:bg-slate-300 cursor-pointer shadow-md">إغلاق</button>
+                    <button onclick="window.print()" class="flex-1 ${btnPrimaryClass} text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">🖨️ طباعة التقرير</button>
+                    <button onclick="closeModal()" class="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm hover:bg-slate-300 cursor-pointer shadow-md">إغلاق</button>
                 </div>
             `;
 
@@ -902,17 +893,17 @@
         };
     </script>
 </head>
-<body class="text-slate-900 min-h-screen flex flex-col justify-between text-sm">
+<body class="text-slate-800 min-h-screen flex flex-col justify-between text-sm">
 
     <header id="main-header" class="p-4 shadow-md border-b">
         <div class="container mx-auto max-w-5xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
                 <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
-                <p class="text-xs opacity-90 mt-0.5 font-bold">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
+                <p class="text-xs opacity-90 mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="openSettingsModal('classes')" class="bg-white/20 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-white/30 transition">🏫 الفصول</button>
-                <button onclick="openSettingsModal('actions')" class="bg-white/20 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-white/30 transition">⚙️ التقييمات</button>
+                <button onclick="openSettingsModal('classes')" class="bg-white/20 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer">🏫 الفصول</button>
+                <button onclick="openSettingsModal('actions')" class="bg-white/20 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer">⚙️ التقييمات</button>
             </div>
         </div>
     </header>
@@ -920,7 +911,7 @@
     <main class="container mx-auto p-3 max-w-5xl flex-grow my-3">
 
         <div id="main-dashboard" class="py-1 space-y-4">
-            <h2 class="text-lg font-black text-slate-900 text-center">الفصول الدراسية</h2>
+            <h2 class="text-lg font-bold text-slate-800 text-center">الفصول الدراسية</h2>
             <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
 
             <div class="admin-card">
@@ -977,25 +968,25 @@
         </div>
 
         <div id="class-view" class="hidden py-1">
-            <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-sm border">
-                <button onclick="backToHome()" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">⬅ الرئيسية</button>
-                <h2 class="text-base font-black text-slate-800" id="class-title-header">الفصل</h2>
+            <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl border">
+                <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer">⬅ الرئيسية</button>
+                <h2 class="text-base font-bold text-slate-700" id="class-title-header">الفصل</h2>
                 <div class="w-12"></div>
             </div>
 
             <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 border border-slate-200 relative bg-white/95">
                 <div class="relative">
-                    <div onclick="toggleCustomSelect()" class="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-bold bg-white flex justify-between items-center cursor-pointer shadow-xs hover:border-slate-400">
+                    <div onclick="toggleCustomSelect()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white flex justify-between items-center cursor-pointer shadow-2xs">
                         <span id="custom-select-display-text" class="text-slate-700">🔍 اضغط هنا لاختيار الطالب أو ابحث بالاسم...</span>
-                        <span class="text-slate-500 font-bold">▼</span>
+                        <span class="text-slate-400">▼</span>
                     </div>
 
-                    <div id="custom-dropdown-box" class="absolute right-0 left-0 top-12 bg-white border border-slate-300 rounded-xl shadow-xl z-30 hidden p-2 space-y-2">
-                        <div class="relative flex items-center border border-slate-300 rounded-lg bg-slate-50 px-2.5 py-1.5">
+                    <div id="custom-dropdown-box" class="absolute right-0 left-0 top-12 bg-white border border-slate-200 rounded-xl shadow-xl z-30 hidden p-2 space-y-2">
+                        <div class="relative flex items-center border border-slate-200 rounded-lg bg-slate-50 px-2.5 py-1.5">
                             <span class="text-sm ml-2">🔍</span>
-                            <input type="text" id="custom-select-search" oninput="filterCustomDropdown(this.value)" placeholder="اكتب اسم الطالب للبحث..." class="w-full bg-transparent text-xs font-bold text-slate-900 focus:outline-none">
+                            <input type="text" id="custom-select-search" oninput="filterCustomDropdown(this.value)" placeholder="اكتب اسم الطالب للبحث..." class="w-full bg-transparent text-xs font-bold text-slate-800 focus:outline-none">
                         </div>
-                        <div id="custom-dropdown-list" class="max-h-52 overflow-y-auto space-y-1"></div>
+                        <div id="custom-dropdown-list" class="max-h-52 overflow-y-auto space-y-0.5"></div>
                     </div>
                 </div>
             </div>
@@ -1005,18 +996,72 @@
 
     </main>
 
-    <footer class="bg-slate-900 text-slate-300 py-4 text-center text-xs font-bold border-t border-slate-800">
+    <footer class="bg-slate-900 text-slate-400 py-4 text-center text-[11px] font-semibold border-t">
         <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
     </footer>
 
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
-            <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-700 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200">✕</button>
-            <h3 class="text-lg font-black text-center mb-3 text-slate-900">⚙️ لوحة الإعدادات</h3>
+            <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer">✕</button>
+            <h3 class="text-lg font-bold text-center mb-3">⚙️ لوحة الإعدادات</h3>
             <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-xl">
-                <button id="btn-tab-classes" onclick="switchSettingsTab('classes')" class="flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-800 text-white shadow">🏫 الفصول</button>
-                <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-700">⭐ التقييمات</button>
+                <button id="btn-tab-classes" onclick="switchSettingsTab('classes')" class="flex-1 py-2 rounded-xl font-bold text-xs bg-slate-800 text-white">🏫 الفصول</button>
+                <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-600">⭐ التقييمات</button>
             </div>
             <div id="classes-tab-content" class="space-y-3">
                 <div class="flex gap-2">
-                    <input type="text" id="new-class-name" placeholder="اسم الفصل..." class="flex-1 border
+                    <input type="text" id="new-class-name" placeholder="اسم الفصل..." class="flex-1 border p-2 rounded-xl text-xs">
+                    <button id="save-class-btn" onclick="saveClassItem()" class="bg-slate-700 text-white px-3 py-2 rounded-xl text-xs font-bold">إضافة ➕</button>
+                </div>
+                <div id="settings-classes-list" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
+            </div>
+            <div id="actions-tab-content" class="space-y-3 hidden">
+                <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border p-2 rounded-xl text-xs"></select>
+                <div class="grid grid-cols-3 gap-2">
+                    <select id="new-action-icon" class="border p-2 rounded-xl text-sm font-bold">
+                        <option value="⭐">⭐ نجمة</option>
+                        <option value="✅">✅ صح</option>
+                        <option value="❌">❌ خطأ</option>
+                        <option value="💡">💡 مشاركة</option>
+                        <option value="📘">📘 واجب</option>
+                        <option value="🎁">🎁 هدية</option>
+                    </select>
+                    <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border p-2 rounded-xl text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة" class="border p-2 rounded-xl text-xs">
+                    <select id="new-action-color" class="border p-2 rounded-xl text-xs">
+                        <option value="#28a745">🟢 أخضر</option>
+                        <option value="#007bff">🔵 أزرق</option>
+                        <option value="#dc3545">🔴 أحمر</option>
+                    </select>
+                </div>
+                <button id="save-action-btn" onclick="saveCustomActionFromDropdown()" class="w-full bg-slate-700 text-white py-2 rounded-xl text-xs font-bold">حفظ التقييم 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="student-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
+        <div class="bg-white rounded-3xl w-[95%] md:max-w-xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer">✕</button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <div id="action-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 relative shadow-xl">
+            <button onclick="closeActionModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer">✕</button>
+            <h3 class="text-base font-bold text-center mb-3" id="action-student-name">رصد الطالب</h3>
+            <div class="grid grid-cols-4 gap-1.5 mb-3">
+                <button onclick="recordAction('حاضر', 0, null)" class="p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer">🟢 حاضر</button>
+                <button onclick="recordAction('غائب', 0, 'غائب')" class="p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer">🔴 غائب</button>
+                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer">🔵 مستأذن</button>
+                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer">🟠 متأخر</button>
+            </div>
+            <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-3 max-h-48 overflow-y-auto"></div>
+            <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2 rounded-xl font-bold text-xs cursor-pointer">إغلاق</button>
+        </div>
+    </div>
+
+</body>
+</html>
