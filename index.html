@@ -116,10 +116,12 @@
             renderView();
         };
 
-        window.openSettingsModal = function() {
+        window.openSettingsModal = function(tabName = 'classes') {
             document.getElementById('settings-modal').classList.remove('hidden');
             document.getElementById('settings-modal').classList.add('flex');
+            switchSettingsTab(tabName);
         };
+
         window.closeSettingsModal = function() {
             document.getElementById('settings-modal').classList.add('hidden');
             document.getElementById('settings-modal').classList.remove('flex');
@@ -127,7 +129,26 @@
             resetClassForm();
         };
 
-        // إدارة الفصول (إضافة وتعديل وحذف)
+        window.switchSettingsTab = function(tab) {
+            const classesTabContent = document.getElementById('classes-tab-content');
+            const actionsTabContent = document.getElementById('actions-tab-content');
+            const btnClasses = document.getElementById('btn-tab-classes');
+            const btnActions = document.getElementById('btn-tab-actions');
+
+            if(tab === 'classes') {
+                classesTabContent.classList.remove('hidden');
+                actionsTabContent.classList.add('hidden');
+                btnClasses.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-indigo-600 text-white shadow transition-all cursor-pointer";
+                btnActions.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-gray-200 text-gray-700 transition-all cursor-pointer";
+            } else {
+                classesTabContent.classList.add('hidden');
+                actionsTabContent.classList.remove('hidden');
+                btnActions.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-indigo-600 text-white shadow transition-all cursor-pointer";
+                btnClasses.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-gray-200 text-gray-700 transition-all cursor-pointer";
+            }
+        };
+
+        // إدارة الفصول
         window.saveClassItem = function() {
             const classNameInput = document.getElementById('new-class-name');
             const name = classNameInput.value.trim();
@@ -136,12 +157,11 @@
             if(editingClassIndex !== null) {
                 const oldName = classList[editingClassIndex];
                 classList[editingClassIndex] = name;
-                // تحديث الطلاب التابعين لهذا الفصل
                 allStudents.forEach(stu => {
                     if(stu.className === oldName) stu.className = name;
                 });
                 editingClassIndex = null;
-                document.getElementById('save-class-btn').innerText = "إضافة فصل جديد ➕";
+                document.getElementById('save-class-btn').innerText = "إضافة فصل ➕";
             } else {
                 if(classList.includes(name)) return alert('هذا الفصل موجود مسبقاً');
                 classList.push(name);
@@ -156,14 +176,13 @@
         window.editClassItem = function(index) {
             document.getElementById('new-class-name').value = classList[index];
             editingClassIndex = index;
-            document.getElementById('save-class-btn').innerText = "تعديل اسم الفصل ✏️";
+            document.getElementById('save-class-btn').innerText = "تعديل ✏️";
         };
 
         window.deleteClassItem = function(index) {
             if(confirm('هل أنت متأكد من حذف هذا الفصل؟')) {
                 const removedName = classList[index];
                 classList.splice(index, 1);
-                // تحويل الطلاب التابعين له إلى غير موزع
                 allStudents.forEach(stu => {
                     if(stu.className === removedName) stu.className = 'غير موزع';
                 });
@@ -176,7 +195,7 @@
         window.resetClassForm = function() {
             editingClassIndex = null;
             document.getElementById('new-class-name').value = '';
-            document.getElementById('save-class-btn').innerText = "إضافة فصل جديد ➕";
+            document.getElementById('save-class-btn').innerText = "إضافة فصل ➕";
         };
 
         function renderClassesListUI() {
@@ -236,7 +255,7 @@
             document.getElementById('new-action-name').value = '';
             document.getElementById('new-action-score').value = '';
             document.getElementById('new-action-icon').value = '⭐';
-            document.getElementById('save-action-btn').innerText = "حفظ وإضافة التقييم الجديد 🚀";
+            document.getElementById('save-action-btn').innerText = "حفظ وإضافة التقييم 🚀";
             document.getElementById('cancel-edit-btn').classList.add('hidden');
         };
 
@@ -272,17 +291,24 @@
             });
         }
 
+        // عرض شبكة التقييمات مثل الصورة 2 داخل نافذة الرصد مع زر التعديل السريع للإعدادات
         function renderCustomActionsUI() {
             const container = document.getElementById('custom-actions-container');
             if(!container) return;
             container.innerHTML = '';
+            
             customActions.forEach(act => {
                 const fullName = `${act.icon || ''} ${act.name}`.trim();
                 container.innerHTML += `
-                    <button onclick="recordAction('${fullName}', ${act.score}, null)" class="click-effect p-4 rounded-2xl border-2 text-white font-black text-sm flex justify-between items-center shadow-md transition-all cursor-pointer" style="background-color: ${act.color}; border-color: rgba(0,0,0,0.1);">
-                        <span>${fullName}</span> 
-                        <span class="bg-white/30 text-white px-2.5 py-1 rounded-lg text-xs font-black">${act.score}</span>
-                    </button>
+                    <div class="bg-white p-3.5 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm hover:shadow transition">
+                        <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-2.5 flex-grow text-right cursor-pointer">
+                            <span class="w-8 h-8 rounded-xl flex items-center justify-center text-white text-base font-bold shadow-sm" style="background-color: ${act.color};">${act.icon || '⭐'}</span>
+                            <span class="font-bold text-sm text-gray-800">${act.name}</span>
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black px-2.5 py-1 rounded-xl bg-gray-100 text-gray-700">${act.score > 0 ? '+' + act.score : act.score}</span>
+                        </div>
+                    </div>
                 `;
             });
         }
@@ -612,23 +638,25 @@
                 <h1 class="text-3xl font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
                 <p class="text-sm font-semibold opacity-90 mt-1">المعلم: أ/ عبدالعزيز الفيفي | المادة: الكفايات اللغوية | المدرسة: ثانوية الأمير عبدالمجيد (الرياض)</p>
             </div>
-            <button onclick="openSettingsModal()" class="bg-white/10 hover:bg-white/25 border border-white/30 text-white px-5 py-3 rounded-2xl font-black text-sm flex items-center gap-2 cursor-pointer shadow-xl backdrop-blur transition-all">
-                ⚙️ إعدادات الفصول والرصد
-            </button>
+            <div class="flex gap-2">
+                <button onclick="openSettingsModal('classes')" class="bg-white/10 hover:bg-white/25 border border-white/30 text-white px-4 py-2.5 rounded-2xl font-black text-xs flex items-center gap-1.5 cursor-pointer shadow backdrop-blur transition-all">
+                    🏫 إعدادات الفصول
+                </button>
+                <button onclick="openSettingsModal('actions')" class="bg-white/20 hover:bg-white/30 border border-white/30 text-white px-4 py-2.5 rounded-2xl font-black text-xs flex items-center gap-1.5 cursor-pointer shadow backdrop-blur transition-all">
+                    ⚙️ إعدادات التقييمات
+                </button>
+            </div>
         </div>
     </header>
 
     <main class="container mx-auto p-4 max-w-4xl flex-grow my-6">
 
-        <!-- لوحة التحكم الرئيسية (الفصول الديناميكية) -->
+        <!-- لوحة التحكم الرئيسية -->
         <div id="main-dashboard" class="py-2">
             <h2 class="text-2xl font-black text-indigo-950 mb-6 text-center">الفصول الدراسية</h2>
             
-            <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
-                <!-- يتم تعبئتها تلقائياً من الإعدادات أو قاعدة البيانات -->
-            </div>
+            <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10"></div>
 
-            <!-- صندوق حفظ القائمة العامة -->
             <div class="glass-card p-8 rounded-3xl shadow-xl border border-green-200 mb-8">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-3 gap-2">
                     <h3 class="font-black text-lg text-green-800 flex items-center gap-2">📥 حفظ القائمة العامة للطلاب في السحابة</h3>
@@ -639,7 +667,6 @@
                 <button onclick="superSmartBulkAdd()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black hover:bg-green-700 transition text-base cursor-pointer shadow-lg shadow-green-600/20">حفظ القائمة العامة في السحابة 🚀</button>
             </div>
 
-            <!-- قائمة الطلاب العامة المحفوظة -->
             <div class="glass-card p-8 rounded-3xl shadow-xl border">
                 <h3 class="font-black text-lg text-indigo-950 mb-4">📋 القائمة العامة للطلاب المحفوظين بالسحابة</h3>
                 <div id="general-students-list-container" class="space-y-3 max-h-72 overflow-y-auto pr-2"></div>
@@ -672,84 +699,97 @@
         <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
     </footer>
 
-    <!-- نافذة الإعدادات الشاملة (فصول + أدوات رصد) -->
+    <!-- نافذة الإعدادات الشاملة (مفصولة بتبويبات: فصول أو تقييمات) -->
     <div id="settings-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
         <div class="bg-white rounded-3xl max-w-xl w-full p-8 relative shadow-2xl max-h-[92vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-6 left-6 bg-gray-100 text-gray-700 w-10 h-10 rounded-full font-black flex items-center justify-center hover:bg-gray-200 cursor-pointer shadow">✕</button>
-            <h3 class="text-2xl font-black text-center mb-1 text-indigo-950">⚙️ لوحة الإعدادات الشاملة</h3>
-            <p class="text-xs text-center text-gray-500 mb-6 font-semibold">تحكم كامل بإدارة الفصول الدراسية وأدوات الرصد والتقييم</p>
+            <h3 class="text-2xl font-black text-center mb-1 text-indigo-950">⚙️ لوحة الإعدادات</h3>
+            <p class="text-xs text-center text-gray-500 mb-5 font-semibold">تحكم بالفصول الدراسية أو خصص أدوات الرصد والتقييم</p>
 
-            <!-- قسم إدارة الفصول -->
-            <div class="bg-indigo-50/60 p-5 rounded-3xl border border-indigo-100 mb-6 space-y-3">
-                <h4 class="font-black text-sm text-indigo-900">🏫 إدارة الفصول الدراسية</h4>
-                <div class="flex gap-2">
-                    <input type="text" id="new-class-name" placeholder="اسم الفصل (مثال: أول ثانوي / 5)..." class="flex-1 border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
-                    <button id="save-class-btn" onclick="saveClassItem()" class="bg-indigo-600 text-white px-5 py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 cursor-pointer shadow">إضافة فصل ➕</button>
-                </div>
-                <div id="settings-classes-list" class="max-h-36 overflow-y-auto space-y-2 pr-1 mt-2"></div>
+            <!-- تبويبات التنقل العلوية داخل الإعدادات -->
+            <div class="flex gap-2 mb-6 bg-gray-100 p-1.5 rounded-2xl">
+                <button id="btn-tab-classes" onclick="switchSettingsTab('classes')" class="flex-1 py-2.5 rounded-2xl font-black text-xs transition-all cursor-pointer">🏫 إعدادات الفصول</button>
+                <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2.5 rounded-2xl font-black text-xs transition-all cursor-pointer">⭐ إعدادات التقييمات</button>
             </div>
 
-            <!-- قسم إدارة أدوات الرصد -->
-            <div class="bg-gray-50 p-5 rounded-3xl border mb-6 space-y-3">
-                <h4 class="font-black text-sm text-gray-800" id="form-title">➕ إضافة أو تعديل أداة رصد</h4>
-                
-                <div class="grid grid-cols-3 gap-2">
-                    <select id="new-action-icon" class="border p-3 rounded-2xl text-xl font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
-                        <option value="⭐">⭐ نجمة</option>
-                        <option value="✅">✅ صح</option>
-                        <option value="❌">❌ خطأ</option>
-                        <option value="💡">💡 مشاركة</option>
-                        <option value="📘">📘 واجب</option>
-                        <option value="📕">📕 عدم حل</option>
-                        <option value="🎁">🎁 هدية</option>
-                        <option value="🏆">🏆 كأس</option>
-                        <option value="💤">💤 نوم</option>
-                        <option value="🗣️">🗣️ تحدث</option>
-                        <option value="📱">📱 جوال</option>
-                        <option value="😑">😑 غير مهتم</option>
-                        <option value="🏃‍♂️">🏃‍♂️ هروب</option>
-                        <option value="📁">📁 نسيان ملف</option>
-                        <option value="⚡">⚡ نشاط</option>
-                        <option value="🔥">🔥 تميز</option>
-                    </select>
-
-                    <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border p-3 rounded-2xl text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+            <!-- محتوى تبويب الفصول -->
+            <div id="classes-tab-content" class="space-y-4">
+                <div class="bg-indigo-50/60 p-5 rounded-3xl border border-indigo-100 space-y-3">
+                    <h4 class="font-black text-sm text-indigo-900">إضافة أو تعديل فصل دراسي</h4>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-class-name" placeholder="اسم الفصل (مثال: أول ثانوي / 5)..." class="flex-1 border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        <button id="save-class-btn" onclick="saveClassItem()" class="bg-indigo-600 text-white px-5 py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 cursor-pointer shadow">إضافة ➕</button>
+                    </div>
                 </div>
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (1 أو -1)" class="border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                <div class="space-y-2">
+                    <h4 class="font-black text-sm text-gray-800">قائمة الفصول الحالية</h4>
+                    <div id="settings-classes-list" class="max-h-56 overflow-y-auto space-y-2 pr-1 border p-3 rounded-3xl bg-gray-50 shadow-inner"></div>
+                </div>
+            </div>
+
+            <!-- محتوى تبويب التقييمات -->
+            <div id="actions-tab-content" class="space-y-4 hidden">
+                <div class="bg-gray-50 p-5 rounded-3xl border space-y-3">
+                    <h4 class="font-black text-sm text-gray-800" id="form-title">➕ إضافة أو تعديل أداة رصد</h4>
                     
-                    <select id="new-action-color" class="border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
-                        <option value="#28a745">🟢 أخضر عشبي</option>
-                        <option value="#20c997">🔹 أخضر فيروزي</option>
-                        <option value="#007bff">🔵 أزرق غامق</option>
-                        <option value="#17a2b8">🟦 سماوي فاتح</option>
-                        <option value="#6610f2">🟣 بنفسجي ملكي</option>
-                        <option value="#6f42c1">🔮 أرجواني</option>
-                        <option value="#e83e8c">🩷 وردي زاهي</option>
-                        <option value="#dc3545">🔴 أحمر قاني</option>
-                        <option value="#fd7e14">🟠 برتقالي ساطع</option>
-                        <option value="#ffc107">🟡 أصفر ذهبي</option>
-                        <option value="#fd79a8">🌸 زهري فاتح</option>
-                        <option value="#6c757d">⚪ رمادي رسمي</option>
-                        <option value="#343a40">⚫ أسود فحمي</option>
-                        <option value="#00cec9">🪩 تركواز لامع</option>
-                        <option value="#e17055">🧱 قرميدي</option>
-                    </select>
+                    <div class="grid grid-cols-3 gap-2">
+                        <select id="new-action-icon" class="border p-3 rounded-2xl text-xl font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                            <option value="⭐">⭐ نجمة</option>
+                            <option value="✅">✅ صح</option>
+                            <option value="❌">❌ خطأ</option>
+                            <option value="💡">💡 مشاركة</option>
+                            <option value="📘">📘 واجب</option>
+                            <option value="📕">📕 عدم حل</option>
+                            <option value="🎁">🎁 هدية</option>
+                            <option value="🏆">🏆 كأس</option>
+                            <option value="💤">💤 نوم</option>
+                            <option value="🗣️">🗣️ تحدث</option>
+                            <option value="📱">📱 جوال</option>
+                            <option value="😑">😑 غير مهتم</option>
+                            <option value="🏃‍♂️">🏃‍♂️ هروب</option>
+                            <option value="📁">📁 نسيان ملف</option>
+                            <option value="⚡">⚡ نشاط</option>
+                            <option value="🔥">🔥 تميز</option>
+                        </select>
+
+                        <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border p-3 rounded-2xl text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (1 أو -1)" class="border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        
+                        <select id="new-action-color" class="border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                            <option value="#28a745">🟢 أخضر عشبي</option>
+                            <option value="#20c997">🔹 أخضر فيروزي</option>
+                            <option value="#007bff">🔵 أزرق غامق</option>
+                            <option value="#17a2b8">🟦 سماوي فاتح</option>
+                            <option value="#6610f2">🟣 بنفسجي ملكي</option>
+                            <option value="#6f42c1">🔮 أرجواني</option>
+                            <option value="#e83e8c">🩷 وردي زاهي</option>
+                            <option value="#dc3545">🔴 أحمر قاني</option>
+                            <option value="#fd7e14">🟠 برتقالي ساطع</option>
+                            <option value="#ffc107">🟡 أصفر ذهبي</option>
+                            <option value="#fd79a8">🌸 زهري فاتح</option>
+                            <option value="#6c757d">⚪ رمادي رسمي</option>
+                            <option value="#343a40">⚫ أسود فحمي</option>
+                            <option value="#00cec9">🪩 تركواز لامع</option>
+                            <option value="#e17055">🧱 قرميدي</option>
+                        </select>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button id="save-action-btn" onclick="saveCustomAction()" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 transition cursor-pointer shadow">حفظ التقييم 🚀</button>
+                        <button id="cancel-edit-btn" onclick="resetActionForm()" class="hidden bg-gray-300 text-gray-700 px-4 py-3 rounded-2xl font-black text-sm hover:bg-gray-400 cursor-pointer shadow">إلغاء</button>
+                    </div>
                 </div>
 
-                <div class="flex gap-2">
-                    <button id="save-action-btn" onclick="saveCustomAction()" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 transition cursor-pointer shadow">حفظ الأداة 🚀</button>
-                    <button id="cancel-edit-btn" onclick="resetActionForm()" class="hidden bg-gray-300 text-gray-700 px-4 py-3 rounded-2xl font-black text-sm hover:bg-gray-400 cursor-pointer shadow">إلغاء</button>
+                <div class="space-y-2">
+                    <h4 class="font-black text-sm text-gray-800">قائمة التقييمات الحالية (تعديل أو حذف)</h4>
+                    <div id="settings-actions-list" class="max-h-48 overflow-y-auto space-y-2 pr-1 border p-3 rounded-3xl bg-gray-50 shadow-inner"></div>
                 </div>
             </div>
 
-            <div class="space-y-2 mb-6">
-                <h4 class="font-black text-sm text-gray-800">📋 أدوات الرصد الحالية (تعديل وحذف)</h4>
-                <div id="settings-actions-list" class="max-h-48 overflow-y-auto space-y-2 pr-1 border p-3 rounded-3xl bg-gray-50 shadow-inner"></div>
-            </div>
-
-            <button onclick="closeSettingsModal()" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-base cursor-pointer hover:bg-black shadow-xl">إغلاق لوحة الإعدادات</button>
+            <button onclick="closeSettingsModal()" class="w-full bg-gray-900 text-white py-3.5 rounded-2xl font-black text-base cursor-pointer hover:bg-black shadow-xl mt-6">إغلاق</button>
         </div>
     </div>
 
@@ -761,23 +801,28 @@
         </div>
     </div>
 
-    <!-- نافذة رصد التقييمات الشاملة -->
+    <!-- نافذة رصد التقييمات (منسقة كصورة 2 تماماً) -->
     <div id="action-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl max-w-2xl w-full p-8 relative shadow-2xl max-h-[95vh] overflow-y-auto">
-            <button onclick="closeActionModal()" class="absolute top-6 left-6 bg-gray-100 text-gray-700 w-10 h-10 rounded-full font-black flex items-center justify-center hover:bg-gray-200 cursor-pointer shadow">✕</button>
-            <h3 class="text-2xl font-black text-center mb-1 text-indigo-950" id="action-student-name">رصد الطالب</h3>
-            <p class="text-xs text-center text-gray-500 mb-6 font-semibold">اختر التقييم أو الحالة أدناه ليتم حفظها وتحديثها لحظياً</p>
-
-            <div class="grid grid-cols-4 gap-3 mb-6">
-                <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-4 rounded-2xl bg-emerald-500 text-white font-black text-sm cursor-pointer shadow-lg hover:bg-emerald-600 transition-all">🟢 حاضر</button>
-                <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-4 rounded-2xl bg-rose-500 text-white font-black text-sm cursor-pointer shadow-lg hover:bg-rose-600 transition-all">🔴 غائب</button>
-                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-4 rounded-2xl bg-blue-500 text-white font-black text-sm cursor-pointer shadow-lg hover:bg-blue-600 transition-all">🔵 مستأذن</button>
-                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-4 rounded-2xl bg-amber-500 text-white font-black text-sm cursor-pointer shadow-lg hover:bg-amber-600 transition-all">🟠 متأخر</button>
+        <div class="bg-white rounded-3xl max-w-xl w-full p-6 relative shadow-2xl max-h-[92vh] overflow-y-auto">
+            <button onclick="closeActionModal()" class="absolute top-5 left-5 bg-gray-100 text-gray-700 w-9 h-9 rounded-full font-black flex items-center justify-center hover:bg-gray-200 cursor-pointer shadow">✕</button>
+            <div class="text-center mb-5">
+                <h3 class="text-xl font-black text-indigo-950" id="action-student-name">رصد الطالب</h3>
+                <p class="text-xs text-gray-400 mt-0.5">أ/ عبدالعزيز موسى الفيفي</p>
+                <p class="text-[11px] text-indigo-600 font-bold mt-1">اختر التقييم أو الحالة أدناه ليتم حفظها وتحديثها لحظياً</p>
             </div>
 
-            <div id="custom-actions-container" class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold"></div>
+            <!-- أزرار الحضور والغياب الأربعة العلوية -->
+            <div class="grid grid-cols-4 gap-2 mb-4">
+                <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-2.5 rounded-2xl bg-emerald-500 text-white font-black text-xs cursor-pointer shadow hover:bg-emerald-600 transition flex flex-col items-center justify-center">🟢 حاضر</button>
+                <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-2.5 rounded-2xl bg-rose-500 text-white font-black text-xs cursor-pointer shadow hover:bg-rose-600 transition flex flex-col items-center justify-center">🔴 غائب</button>
+                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-2.5 rounded-2xl bg-blue-500 text-white font-black text-xs cursor-pointer shadow hover:bg-blue-600 transition flex flex-col items-center justify-center">🔵 مستأذن</button>
+                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-2.5 rounded-2xl bg-amber-500 text-white font-black text-xs cursor-pointer shadow hover:bg-amber-600 transition flex flex-col items-center justify-center">🟠 متأخر</button>
+            </div>
+
+            <!-- شبكة التقييمات والسلوكيات كاملة ومنسقة بعمودين مثل الصورة 2 -->
+            <div id="custom-actions-container" class="grid grid-cols-2 gap-2.5 mb-5 max-h-72 overflow-y-auto pr-1"></div>
             
-            <button onclick="closeActionModal()" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-base cursor-pointer hover:bg-black shadow-xl">إغلاق</button>
+            <button onclick="closeActionModal()" class="w-full bg-gray-900 text-white py-3 rounded-2xl font-black text-sm cursor-pointer hover:bg-black shadow-lg">إغلاق</button>
         </div>
     </div>
 
