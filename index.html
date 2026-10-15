@@ -56,7 +56,6 @@
                 header.className = `p-4 shadow-md border-b transition-all duration-500 ${selectedTheme.headerBg}`;
             }
             window.currentTheme = selectedTheme;
-            renderClassStudents();
         }
 
         const defaultActions = [
@@ -71,7 +70,6 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل جميع الأسماء مرة واحدة وثابتة عند فتح الصفحة
         async function initFastLoad() {
             applyRandomTheme();
             customActions = defaultActions;
@@ -91,10 +89,16 @@
                         attendanceStats: item.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
                     });
                 });
+                
+                // تحديث عداد الطلاب المعتمدين في الأعلى
+                const countEl = document.getElementById('total-students-count');
+                if(countEl) countEl.innerText = allStudents.length;
+
                 renderView();
                 renderCustomActionsUI();
                 renderSettingsActionsDropdown();
                 renderClassesListUI();
+                renderAllStudentsTable(allStudents);
                 
                 const statusEl = document.getElementById('loading-status-text');
                 if(statusEl) statusEl.innerText = `✅ تم تحميل جميع الأسماء بنجاح (${allStudents.length} طالب).`;
@@ -111,7 +115,6 @@
             document.getElementById('class-view').classList.remove('hidden');
             document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
             renderClassStudents();
-            closeCustomSelect();
         };
 
         window.backToHome = function() {
@@ -119,62 +122,69 @@
             document.getElementById('class-view').classList.add('hidden');
             document.getElementById('main-dashboard').classList.remove('hidden');
             renderView();
+            renderAllStudentsTable(allStudents);
         };
 
-        // دوال التحكم بالقائمة المنسدلة المخصصة مع خانة البحث بداخلها
-        window.toggleCustomSelect = function() {
-            const dropdown = document.getElementById('custom-dropdown-box');
-            if(dropdown.classList.contains('hidden')) {
-                dropdown.classList.remove('hidden');
-                document.getElementById('custom-select-search').value = '';
-                renderCustomDropdownOptions('');
-                setTimeout(() => document.getElementById('custom-select-search').focus(), 100);
-            } else {
-                closeCustomSelect();
-            }
-        };
-
-        window.closeCustomSelect = function() {
-            const dropdown = document.getElementById('custom-dropdown-box');
-            if(dropdown) dropdown.classList.add('hidden');
-        };
-
-        window.filterCustomDropdown = function(keyword) {
-            renderCustomDropdownOptions(keyword);
-        };
-
-        window.renderCustomDropdownOptions = function(keyword) {
-            const listContainer = document.getElementById('custom-dropdown-list');
-            if(!listContainer) return;
-
+        // تصفية جدول الطلاب الشامل فوراً أثناء الكتابة في خانة البحث العلوية
+        window.filterAllStudentsTable = function(keyword) {
             const trimmed = keyword.trim().toLowerCase();
-            const filtered = allStudents.filter(student => student.name.toLowerCase().includes(trimmed));
+            if(trimmed === '') {
+                renderAllStudentsTable(allStudents);
+                return;
+            }
+            const filtered = allStudents.filter(s => s.name.toLowerCase().includes(trimmed) || s.email.toLowerCase().includes(trimmed));
+            renderAllStudentsTable(filtered);
+        };
 
-            if(filtered.length === 0) {
-                listContainer.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">لا توجد نتائج مطابقة</div>`;
+        // رسم جدول الطلاب الشامل تماماً مثل الكود الثاني المطلوب
+        function renderAllStudentsTable(studentsList) {
+            const tbody = document.getElementById('all-students-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            if(studentsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-6 text-slate-400 font-semibold text-xs">لا توجد نتائج مطابقة للبحث</td></tr>`;
                 return;
             }
 
-            listContainer.innerHTML = '';
-            filtered.forEach(student => {
-                const statusText = student.className && student.className !== 'غير موزع' ? ` (مضاف في: ${student.className})` : ' (غير موزع)';
-                listContainer.innerHTML += `
-                    <div onclick="selectStudentFromCustomDropdown('${student.id}', '${student.name}')" class="p-2.5 hover:bg-slate-100 cursor-pointer border-b border-slate-100 last:border-b-0 text-xs font-bold text-slate-700 flex justify-between items-center transition">
-                        <span>👤 ${student.name}</span>
-                        <span class="text-[10px] text-slate-400 font-normal">${statusText}</span>
-                    </div>
+            studentsList.forEach(student => {
+                // توليد خيارات الفصول للقائمة المنسدلة الخاصة بالطالب
+                let classOptionsHtml = `<option value="">📁 تعيين الفصل...</option>`;
+                classList.forEach(cls => {
+                    const selected = student.className === cls ? 'selected' : '';
+                    classOptionsHtml += `<option value="${cls}" ${selected}>${cls}</option>`;
+                });
+                classOptionsHtml += `<option value="غير موزع">❌ إزالة من الفصل</option>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-100 hover:bg-amber-50/30 transition">
+                        <td class="p-3 text-right font-bold text-slate-800 text-xs sm:text-sm">
+                            ${student.name}
+                            <span class="block text-[10px] text-amber-700 font-medium mt-0.5">الفصل الحالي: ${student.className || 'غير موزع'}</span>
+                        </td>
+                        <td class="p-3 text-center text-slate-600 font-mono text-xs">${student.email || 'بدون إيميل'}</td>
+                        <td class="p-3 text-center">
+                            <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                <select onchange="assignStudentClassFromTable('${student.id}', this.value)" class="border border-slate-200 bg-white px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer shadow-2xs">
+                                    ${classOptionsHtml}
+                                </select>
+                                <button onclick="openActionModal('${student.id}')" class="bg-slate-800 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-black cursor-pointer shadow-2xs">📝 رصد</button>
+                                <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-emerald-700 cursor-pointer shadow-2xs">📊 التقرير</button>
+                            </div>
+                        </td>
+                    </tr>
                 `;
             });
-        };
+        }
 
-        window.selectStudentFromCustomDropdown = async function(id, name) {
-            closeCustomSelect();
-            const student = allStudents.find(s => s.id === id);
+        // تحديث فصل الطالب مباشرة من الجدول الشامل
+        window.assignStudentClassFromTable = async function(studentId, newClass) {
+            if(!newClass) return;
+            const student = allStudents.find(s => s.id === studentId);
             if(student) {
-                student.className = activeClass;
-                renderClassStudents();
-                document.getElementById('custom-select-display-text').innerText = `تم اختيار: ${name}`;
-                await db.collection("allowed_students").doc(id).update({ className: activeClass });
+                student.className = newClass;
+                renderView();
+                await db.collection("allowed_students").doc(studentId).update({ className: newClass });
             }
         };
 
@@ -236,6 +246,7 @@
             classNameInput.value = '';
             renderClassesListUI();
             renderView();
+            renderAllStudentsTable(allStudents);
         };
 
         window.editClassItem = function(index) {
@@ -256,6 +267,7 @@
                 });
                 renderClassesListUI();
                 renderView();
+                renderAllStudentsTable(allStudents);
             }
         };
 
@@ -379,17 +391,6 @@
             });
         }
 
-        window.removeStudentFromClass = async function(id) {
-            const student = allStudents.find(s => s.id === id);
-            if(!student) return;
-            if(confirm(`هل أنت متأكد من إزالة الطالب (${student.name}) من هذا الفصل؟`)) {
-                student.className = 'غير موزع';
-                renderClassStudents();
-                renderView();
-                await db.collection("allowed_students").doc(id).update({ className: 'غير موزع' });
-            }
-        };
-
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -412,7 +413,7 @@
                 const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
                 student.actions = [newRecord, ...(student.actions || [])];
 
-                renderClassStudents();
+                if(activeClass) renderClassStudents();
 
                 await db.collection("allowed_students").doc(currentStudentId).update({
                     actions: student.actions,
@@ -427,7 +428,7 @@
             if(student && student.actions) {
                 student.actions.splice(actionIndex, 1);
                 openModal(currentStudentId);
-                renderClassStudents();
+                if(activeClass) renderClassStudents();
                 await db.collection("allowed_students").doc(currentStudentId).update({ actions: student.actions });
             }
         };
@@ -475,7 +476,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم القائمة المنسدلة بالأعلى للإضافة.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. يمكنك تعيين الطلاب من الواجهة الرئيسية للجدول الشامل.</p>`;
                 return;
             }
 
@@ -507,7 +508,7 @@
                         <div class="flex gap-1.5 items-center">
                             <button onclick="openActionModal('${student.id}')" class="${btnPrimaryClass} text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
                             <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
-                            <button onclick="removeStudentFromClass('${student.id}')" title="إزالة الطالب من الفصل" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
+                            <button onclick="assignStudentClassFromTable('${student.id}', 'غير موزع')" title="إزالة من الفصل" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -617,7 +618,7 @@
 <body class="text-slate-800 min-h-screen flex flex-col justify-between text-sm">
 
     <header id="main-header" class="p-4 shadow-md border-b">
-        <div class="container mx-auto max-w-3xl flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="container mx-auto max-w-4xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
                 <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
                 <p class="text-xs opacity-90 mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
@@ -633,14 +634,39 @@
         </div>
     </header>
 
-    <main class="container mx-auto p-3 max-w-3xl flex-grow my-3">
+    <main class="container mx-auto p-3 max-w-4xl flex-grow my-3">
 
-        <div id="main-dashboard" class="py-1">
-            <h2 class="text-lg font-bold text-slate-800 mb-4 text-center">الفصول الدراسية</h2>
+        <div id="main-dashboard" class="py-1 space-y-4">
+            <h2 class="text-lg font-bold text-slate-800 text-center">الفصول الدراسية</h2>
             
-            <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
+            <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4"></div>
 
-            <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 text-center" style="background: rgba(255, 255, 255, 0.95);">
+            <!-- قسم جدول الطلاب الشامل (مثل الصورة الثانية) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mb-4 border-b border-slate-100 pb-3">
+                    <h3 class="font-black text-slate-800 text-sm">🎓 قائمة الطلاب المعتمدين (<span id="total-students-count">0</span> طالب)</h3>
+                    <div class="w-full sm:w-72">
+                        <input type="text" oninput="filterAllStudentsTable(this.value)" placeholder="🔍 ابحث عن اسم الطالب أو إيميله..." class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-400">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800 text-amber-100 text-xs">
+                                <th class="p-3 font-bold rounded-r-xl">الاسم</th>
+                                <th class="p-3 font-bold text-center">البريد الإلكتروني</th>
+                                <th class="p-3 font-bold text-center rounded-l-xl">الإجراءات وتوزيع الفصل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="all-students-table-body">
+                            <!-- يتم تعبئتها برمجياً بالسرعة الكاملة -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="glass-card p-3 rounded-2xl shadow-sm border border-slate-200 text-center" style="background: rgba(255, 255, 255, 0.95);">
                 <p class="text-xs text-slate-700 font-bold" id="loading-status-text">⏳ جاري تحميل جميع أسماء الطلاب مرة واحدة...</p>
             </div>
         </div>
@@ -652,29 +678,6 @@
                 <div class="w-12"></div>
             </div>
 
-            <!-- القائمة المنسدلة المخصصة مع خانة البحث في جزئها العُلوي -->
-            <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 border border-slate-200 relative" style="background: rgba(255, 255, 255, 0.95);">
-                <div class="relative">
-                    <!-- الزر الرئيسي الذي يبدو كقائمة منسدلة -->
-                    <div onclick="toggleCustomSelect()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white flex justify-between items-center cursor-pointer shadow-2xs">
-                        <span id="custom-select-display-text" class="text-slate-700">🔍 اضغط هنا لاختيار الطالب أو ابحث بالاسم...</span>
-                        <span class="text-slate-400">▼</span>
-                    </div>
-
-                    <!-- صندوق القائمة المنسدلة المنسدل الذي يحتوي في أعلاه على أيقونة وخانة بحث -->
-                    <div id="custom-dropdown-box" class="absolute right-0 left-0 top-12 bg-white border border-slate-200 rounded-xl shadow-xl z-30 hidden p-2 space-y-2">
-                        <!-- خانة البحث المضمنة في جزئها العلوي بالأيقونة -->
-                        <div class="relative flex items-center border border-slate-200 rounded-lg bg-slate-50 px-2.5 py-1.5">
-                            <span class="text-sm ml-2">🔍</span>
-                            <input type="text" id="custom-select-search" oninput="filterCustomDropdown(this.value)" placeholder="اكتب اسم الطالب للبحث..." class="w-full bg-transparent text-xs font-bold text-slate-800 focus:outline-none">
-                        </div>
-
-                        <!-- قائمة أسماء الطلاب المتاحة للتصفية والاختيار -->
-                        <div id="custom-dropdown-list" class="max-h-52 overflow-y-auto space-y-0.5"></div>
-                    </div>
-                </div>
-            </div>
-
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
         </div>
 
@@ -684,6 +687,7 @@
         <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
     </footer>
 
+    <!-- بقية النوافذ المنبثقة للإعدادات والرصد والتقارير -->
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
