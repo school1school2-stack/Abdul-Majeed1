@@ -13,7 +13,6 @@
     <style>
         :root { --maroon: #800000; --gold: #d4af37; --bg: #fdfaf1; --danger: #c62828; --success: #28a745; --info: #17a2b8; }
         
-        /* تعديل العرض ليأخذ كامل مساحة الشاشة بمرونة في جميع الوضعيات والأيباد */
         html, body { 
             font-family: 'Tajawal', sans-serif; 
             min-height: 100vh; 
@@ -30,20 +29,17 @@
 
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         
-        /* تطبيق خط النسخ الجميل لأسماء الطلاب */
         .student-name-font {
             font-family: 'Amiri', serif;
             font-size: 1.15rem;
             font-weight: 700;
         }
 
-        /* خط عصري ومميز جداً لعناوين بطاقات الفصول */
         .class-title-font {
             font-family: 'Readex Pro', sans-serif;
             font-weight: 700;
         }
 
-        /* تصميم بطاقات الفصول الاحترافية الأكبر حجماً والأنيقة */
         .class-3d-card {
             border: 1.5px solid rgba(212, 175, 55, 0.3);
             box-shadow: 0 6px 20px -4px rgba(128, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.02);
@@ -55,7 +51,6 @@
             border-color: var(--maroon);
         }
 
-        /* تصميم بطاقة الطالب المربعة الأكبر والأفخم */
         .student-square-card {
             background: linear-gradient(135deg, #ffffff 0%, #fafaf9 100%);
             border: 1.5px solid #e2e8f0;
@@ -576,7 +571,7 @@
                             displayIcon = '🟠';
                         }
 
-                        let key = displayIcon + "_" + act.title;
+                        let key = act.title;
                         if (!actionCounts[key]) {
                             actionCounts[key] = {
                                 icon: displayIcon,
@@ -589,21 +584,23 @@
                         actionCounts[key].totalScore += act.score;
                     });
 
-                    Object.values(actionCounts).slice(0, 4).forEach(item => {
+                    // عرض النشاطات مع اسمها النصي الصريح لتمييزها بسهولة تامة دون الاعتماد على اللون
+                    Object.values(actionCounts).slice(0, 3).forEach(item => {
                         let badgeBg = "bg-emerald-500 text-white";
                         if(item.totalScore < 0) badgeBg = "bg-rose-500 text-white";
                         if(item.totalScore === 0) badgeBg = "bg-sky-500 text-white";
 
                         actionsListHtml += `
-                            <div onclick="openActionModal('${student.id}')" class="relative cursor-pointer transition hover:scale-110 flex items-center justify-center p-1" title="${item.title} (التكرار: ${item.count})">
-                                <span class="text-2xl">${item.icon}</span>
-                                <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full ${badgeBg} text-[9px] font-black flex items-center justify-center shadow-xs">${item.count > 1 ? item.count : item.totalScore}</span>
+                            <div onclick="openActionModal('${student.id}')" class="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl cursor-pointer transition hover:bg-slate-50 shrink-0 shadow-2xs" title="${item.title}">
+                                <span class="text-base">${item.icon}</span>
+                                <span class="text-xs font-bold text-slate-800">${item.title}</span>
+                                <span class="w-4 h-4 rounded-full ${badgeBg} text-[9px] font-black flex items-center justify-center shadow-xs ml-0.5">${item.count > 1 ? item.count : item.totalScore}</span>
                             </div>
                         `;
                     });
                 } else {
                     actionsListHtml = `
-                        <span class="text-xs text-slate-300 font-semibold px-1">لا توجد تقييمات</span>
+                        <span class="text-xs text-slate-400 font-semibold px-1">لا توجد تقييمات مسجلة</span>
                     `;
                 }
 
@@ -626,7 +623,7 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 overflow-x-auto py-1.5 bg-slate-50/70 px-3 rounded-xl min-h-[46px]">
+                        <div class="flex items-center gap-2 overflow-x-auto py-1.5 bg-slate-50/70 px-2 rounded-xl min-h-[46px] scrollbar-thin">
                             ${actionsListHtml}
                         </div>
 
@@ -1190,7 +1187,6 @@
                 <p class="text-sm font-bold text-slate-600 mt-1" id="action-student-subtitle"></p>
             </div>
             
-            <!-- شريط تمرير أفقي احترافي لأزرار الحضور والغياب مع الاسم الواضح والأيقونة والإطار -->
             <div class="mb-5">
                 <h4 class="font-bold text-slate-900 text-sm mb-3">📌 الحضور والغياب:</h4>
                 <div class="flex gap-3 overflow-x-auto pb-2 pt-1 px-1 scrollbar-thin">
