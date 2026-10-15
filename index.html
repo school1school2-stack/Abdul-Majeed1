@@ -56,6 +56,7 @@
                 header.className = `p-4 shadow-md border-b transition-all duration-500 ${selectedTheme.headerBg}`;
             }
             window.currentTheme = selectedTheme;
+            renderView();
             renderClassStudents();
         }
 
@@ -71,7 +72,6 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل جميع الأسماء مرة واحدة وثابتة عند فتح الصفحة
         async function initFastLoad() {
             applyRandomTheme();
             customActions = defaultActions;
@@ -121,7 +121,6 @@
             renderView();
         };
 
-        // دوال التحكم بالقائمة المنسدلة المخصصة مع خانة البحث بداخلها
         window.toggleCustomSelect = function() {
             const dropdown = document.getElementById('custom-dropdown-box');
             if(dropdown.classList.contains('hidden')) {
@@ -362,13 +361,13 @@
             container.innerHTML = '';
             
             customActions.forEach(act => {
-                const fullName = `${act.icon || ''} ${act.name}`.trim();
+                const fullName = `${act.icon \vert{}\vert{} ''}${act.name}`.trim();
                 const actColor = act.color || '#64748b';
                 
                 container.innerHTML += `
                     <div class="bg-white p-2.5 rounded-xl border border-slate-100 flex items-center justify-between shadow-xs hover:shadow transition">
-                        <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-2.5 flex-grow text-right cursor-pointer">
-                            <span class="w-9 h-9 rounded-lg flex items-center justify-center text-base border" style="background-color: ${actColor}15; border-color: ${actColor}40;">
+                        <button onclick="recordAction('${fullName}',${act.score}, null)" class="flex items-center gap-2.5 flex-grow text-right cursor-pointer">
+                            <span class="w-9 h-9 rounded-lg flex items-center justify-center text-base border" style="background-color: ${actColor}15; border-color:${actColor}40;">
                                 ${act.icon || '⭐'}
                             </span>
                             <span class="font-bold text-xs text-slate-700">${act.name}</span>
@@ -400,7 +399,7 @@
                 const dayName = now.toLocaleDateString('ar-SA', { weekday: 'long' });
                 const dateFormatted = now.toLocaleDateString('ar-SA', { year: 'numeric', month: '2-digit', day: '2-digit' });
                 const timeFormatted = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-                const formattedTime = `${dayName} | ${dateFormatted} - ${timeFormatted}`;
+                const formattedTime = `${dayName} | ${dateFormatted} -${timeFormatted}`;
 
                 let attendanceStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
                 if(attendanceType) {
@@ -549,248 +548,4 @@
                     <div class="grid grid-cols-3 gap-3 text-center">
                         <div class="bg-rose-50 p-3.5 rounded-xl flex flex-col justify-between border border-rose-100 shadow-2xs">
                             <span class="block text-xs font-bold text-rose-700">غائب (${att.absents || 0})</span>
-                            <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('absents', 1)" class="bg-rose-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-rose-700">+</button>
-                                <button onclick="adjustAttendance('absents', -1)" class="bg-rose-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-rose-900">-</button>
-                            </div>
-                        </div>
-                        <div class="bg-amber-50 p-3.5 rounded-xl flex flex-col justify-between border border-amber-100 shadow-2xs">
-                            <span class="block text-xs font-bold text-amber-700">متأخر (${att.lates || 0})</span>
-                            <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('lates', 1)" class="bg-amber-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-amber-700">+</button>
-                                <button onclick="adjustAttendance('lates', -1)" class="bg-amber-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-amber-900">-</button>
-                            </div>
-                        </div>
-                        <div class="bg-sky-50 p-3.5 rounded-xl flex flex-col justify-between border border-sky-100 shadow-2xs">
-                            <span class="block text-xs font-bold text-sky-700">مستأذن (${att.excuses || 0})</span>
-                            <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('excuses', 1)" class="bg-sky-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-sky-700">+</button>
-                                <button onclick="adjustAttendance('excuses', -1)" class="bg-sky-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-sky-900">-</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <h4 class="font-bold text-slate-800 text-sm mb-3 flex items-center justify-between">
-                        <span>📅 النشاطات والسلوكيات المسجلة</span>
-                        <span class="text-xs text-slate-500 font-normal">موثق بالتاريخ والوقت</span>
-                    </h4>
-                    <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-                        ${actions.length === 0 ? '<p class="text-sm text-slate-400 text-center py-6">لا توجد نشاطات مسجلة حالياً</p>' : 
-                            actions.map((act, index) => `
-                                <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center text-sm shadow-2xs">
-                                    <div class="flex items-center gap-3">
-                                        <span class="w-3 h-3 rounded-full ${act.score > 0 ? 'bg-emerald-500' : (act.score < 0 ? 'bg-rose-500' : 'bg-sky-500')}"></span>
-                                        <div>
-                                            <span class="font-bold text-slate-800 block text-sm">${act.title} (${act.score > 0 ? '+' + act.score : act.score})</span>
-                                            <span class="text-xs text-slate-400 font-mono mt-0.5 block">${act.timestamp}</span>
-                                        </div>
-                                    </div>
-                                    <button onclick="deleteStudentAction(${index})" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ حذف</button>
-                                </div>
-                            `).join('')
-                        }
-                    </div>
-                </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button onclick="window.print()" class="flex-1 ${btnPrimaryClass} text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">🖨️ طباعة التقرير</button>
-                    <button onclick="closeModal()" class="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm hover:bg-slate-300 cursor-pointer shadow-md">إغلاق</button>
-                </div>
-            `;
-
-            document.getElementById('student-modal').classList.remove('hidden');
-            document.getElementById('student-modal').classList.add('flex');
-        };
-
-        window.closeModal = function() {
-            document.getElementById('student-modal').classList.add('hidden');
-            document.getElementById('student-modal').classList.remove('flex');
-        };
-
-        window.onload = function() {
-            initFastLoad();
-        };
-    </script>
-</head>
-<body class="text-slate-800 min-h-screen flex flex-col justify-between text-sm">
-
-    <header id="main-header" class="p-4 shadow-md border-b">
-        <div class="container mx-auto max-w-3xl flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div class="text-center sm:text-right">
-                <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
-                <p class="text-xs opacity-90 mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="openSettingsModal('classes')" class="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition backdrop-blur-xs">
-                    🏫 الفصول
-                </button>
-                <button onclick="openSettingsModal('actions')" class="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition backdrop-blur-xs">
-                    ⚙️ التقييمات
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="container mx-auto p-3 max-w-3xl flex-grow my-3">
-
-        <div id="main-dashboard" class="py-1">
-            <h2 class="text-lg font-bold text-slate-800 mb-4 text-center">الفصول الدراسية</h2>
-            
-            <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
-
-            <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 text-center" style="background: rgba(255, 255, 255, 0.95);">
-                <p class="text-xs text-slate-700 font-bold" id="loading-status-text">⏳ جاري تحميل جميع أسماء الطلاب مرة واحدة...</p>
-            </div>
-        </div>
-
-        <div id="class-view" class="hidden py-1">
-            <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-2xs border border-slate-200">
-                <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 transition cursor-pointer">⬅ الرئيسية</button>
-                <h2 class="text-base font-bold text-slate-700" id="class-title-header">الفصل</h2>
-                <div class="w-12"></div>
-            </div>
-
-            <!-- القائمة المنسدلة المخصصة مع خانة البحث في جزئها العُلوي -->
-            <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 border border-slate-200 relative" style="background: rgba(255, 255, 255, 0.95);">
-                <div class="relative">
-                    <!-- الزر الرئيسي الذي يبدو كقائمة منسدلة -->
-                    <div onclick="toggleCustomSelect()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white flex justify-between items-center cursor-pointer shadow-2xs">
-                        <span id="custom-select-display-text" class="text-slate-700">🔍 اضغط هنا لاختيار الطالب أو ابحث بالاسم...</span>
-                        <span class="text-slate-400">▼</span>
-                    </div>
-
-                    <!-- صندوق القائمة المنسدلة المنسدل الذي يحتوي في أعلاه على أيقونة وخانة بحث -->
-                    <div id="custom-dropdown-box" class="absolute right-0 left-0 top-12 bg-white border border-slate-200 rounded-xl shadow-xl z-30 hidden p-2 space-y-2">
-                        <!-- خانة البحث المضمنة في جزئها العلوي بالأيقونة -->
-                        <div class="relative flex items-center border border-slate-200 rounded-lg bg-slate-50 px-2.5 py-1.5">
-                            <span class="text-sm ml-2">🔍</span>
-                            <input type="text" id="custom-select-search" oninput="filterCustomDropdown(this.value)" placeholder="اكتب اسم الطالب للبحث..." class="w-full bg-transparent text-xs font-bold text-slate-800 focus:outline-none">
-                        </div>
-
-                        <!-- قائمة أسماء الطلاب المتاحة للتصفية والاختيار -->
-                        <div id="custom-dropdown-list" class="max-h-52 overflow-y-auto space-y-0.5"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
-        </div>
-
-    </main>
-
-    <footer class="bg-slate-900 text-slate-400 py-4 text-center text-[11px] font-semibold border-t border-slate-800">
-        <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
-    </footer>
-
-    <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
-            <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
-            <h3 class="text-lg font-bold text-center mb-1 text-slate-800">⚙️ لوحة الإعدادات</h3>
-            <p class="text-[11px] text-center text-slate-500 mb-4 font-medium">تحكم بالفصول الدراسية أو خصص التقييمات عبر القائمة المنسدلة</p>
-
-            <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-xl">
-                <button id="btn-tab-classes" onclick="switchSettingsTab('classes')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">🏫 إعدادات الفصول</button>
-                <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">⭐ إعدادات التقييمات</button>
-            </div>
-
-            <div id="classes-tab-content" class="space-y-3">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
-                    <h4 class="font-bold text-xs text-slate-700">إضافة أو تعديل فصل دراسي</h4>
-                    <div class="flex gap-2">
-                        <input type="text" id="new-class-name" placeholder="اسم الفصل (مثال: أول ثانوي / 5)..." class="flex-1 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400">
-                        <button id="save-class-btn" onclick="saveClassItem()" class="bg-slate-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 cursor-pointer">إضافة ➕</button>
-                    </div>
-                </div>
-                <div class="space-y-1.5">
-                    <h4 class="font-bold text-xs text-slate-700">قائمة الفصول الحالية</h4>
-                    <div id="settings-classes-list" class="max-h-44 overflow-y-auto space-y-1.5 pr-1 border border-slate-200 p-2.5 rounded-2xl bg-slate-50"></div>
-                </div>
-            </div>
-
-            <div id="actions-tab-content" class="space-y-3 hidden">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
-                    <h4 class="font-bold text-xs text-slate-700">📌 اختر تقييماً للتعديل أو أضف جديداً</h4>
-                    
-                    <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer">
-                        <option value="">-- اختر تقييماً للتعديل أو أضف جديداً --</option>
-                    </select>
-
-                    <div class="grid grid-cols-3 gap-2">
-                        <select id="new-action-icon" class="border border-slate-200 p-2.5 rounded-xl text-base font-bold bg-white">
-                            <option value="⭐">⭐ نجمة</option>
-                            <option value="✅">✅ صح</option>
-                            <option value="❌">❌ خطأ</option>
-                            <option value="💡">💡 مشاركة</option>
-                            <option value="📘">📘 واجب</option>
-                            <option value="📕">📕 عدم حل</option>
-                            <option value="🎁">🎁 هدية</option>
-                            <option value="🏆">🏆 كأس</option>
-                            <option value="💤">💤 نوم</option>
-                            <option value="🗣️">🗣️ تحدث</option>
-                            <option value="⚡">⚡ نشاط</option>
-                            <option value="🔥">🔥 تميز</option>
-                        </select>
-
-                        <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white focus:outline-none">
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (1 أو -1)" class="border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white">
-                        
-                        <select id="new-action-color" class="border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white">
-                            <option value="#28a745">🟢 أخضر عشبي</option>
-                            <option value="#20c997">🔹 أخضر فيروزي</option>
-                            <option value="#007bff">🔵 أزرق غامق</option>
-                            <option value="#17a2b8">🟦 سماوي فاتح</option>
-                            <option value="#6610f2">🟣 بنفسجي ملكي</option>
-                            <option value="#e83e8c">🩷 وردي زاهي</option>
-                            <option value="#dc3545">🔴 أحمر قاني</option>
-                            <option value="#ffc107">🟡 أصفر ذهبي</option>
-                        </select>
-                    </div>
-
-                    <div class="flex gap-2 pt-1">
-                        <button id="save-action-btn" onclick="saveCustomActionFromDropdown()" class="flex-1 bg-slate-700 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 transition cursor-pointer">حفظ التقييم 🚀</button>
-                        <button id="delete-action-btn" onclick="deleteSelectedAction()" class="hidden bg-rose-600 text-white px-3 py-2.5 rounded-xl font-bold text-xs hover:bg-rose-700 transition cursor-pointer">حذف 🗑️</button>
-                        <button onclick="resetActionForm()" class="bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-300 cursor-pointer">إلغاء</button>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="closeSettingsModal()" class="w-full bg-slate-900 text-slate-100 py-3 rounded-xl font-bold text-xs cursor-pointer hover:bg-black shadow-md mt-4">إغلاق</button>
-        </div>
-    </div>
-
-    <div id="student-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 md:p-6 z-50 backdrop-blur-xs">
-        <div class="bg-white rounded-3xl w-[95%] md:w-full md:max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl">
-            <button onclick="closeModal()" class="absolute top-5 left-5 bg-slate-100 text-slate-600 w-10 h-10 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer shadow-xs">✕</button>
-            <div id="modal-content"></div>
-        </div>
-    </div>
-
-    <div id="action-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 relative shadow-xl max-h-[90vh] overflow-y-auto">
-            <button onclick="closeActionModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
-            <div class="text-center mb-4">
-                <h3 class="text-base font-bold text-slate-800" id="action-student-name">رصد الطالب</h3>
-                <p class="text-[11px] text-slate-400 mt-0.5">أ/ عبدالعزيز موسى الفيفي</p>
-                <p class="text-[10px] text-slate-600 font-semibold mt-0.5">اختر التقييم أو الحالة أدناه ليتم حفظها وتحديثها لحظياً</p>
-            </div>
-
-            <div class="grid grid-cols-4 gap-1.5 mb-3">
-                <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-emerald-700 transition flex flex-col items-center justify-center">🟢 حاضر</button>
-                <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-rose-700 transition flex flex-col items-center justify-center">🔴 غائب</button>
-                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-sky-700 transition flex flex-col items-center justify-center">🔵 مستأذن</button>
-                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-amber-700 transition flex flex-col items-center justify-center">🟠 متأخر</button>
-            </div>
-
-            <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto pr-1"></div>
-            
-            <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-black shadow-xs">إغلاق</button>
-        </div>
-    </div>
-
-</body>
-</html>
+                            <div class
