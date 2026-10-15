@@ -18,7 +18,7 @@
         /* تطبيق خط النسخ الجميل لأسماء الطلاب */
         .student-name-font {
             font-family: 'Amiri', serif;
-            font-size: 1.50rem;
+            font-size: 1.15rem;
             font-weight: 700;
         }
 
@@ -30,7 +30,7 @@
 
         /* تصميم بطاقات الفصول الاحترافية الأكبر حجماً والأنيقة */
         .class-3d-card {
-            border: 1.75px solid rgba(212, 175, 55, 0.3);
+            border: 1.5px solid rgba(212, 175, 55, 0.3);
             box-shadow: 0 6px 20px -4px rgba(128, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.02);
             transition: all 0.3s ease;
         }
@@ -496,7 +496,6 @@
             renderView();
         };
 
-        // تشكيلة ألوان خلفيات البطاقات (خفيفة وعصرية)
         const classSoftThemes = [
             { bg: "bg-gradient-to-br from-amber-50/90 via-white to-orange-50/40", text: "text-stone-900" },
             { bg: "bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/40", text: "text-stone-900" },
@@ -521,7 +520,6 @@
                             <span class="text-4xl p-4 rounded-2xl bg-white/95 shadow-xs border border-amber-100 flex items-center justify-center">📚</span>
                             <div>
                                 <h3 class="class-title-font text-xl tracking-wide ${theme.text}">${cls}</h3>
-                                <!-- عداد الطلاب بالأحمر العودي الممزوج بالبيج الفاخر -->
                                 <p class="text-xs mt-1.5 font-bold px-3 py-1 rounded-lg inline-block bg-[#800000]/10 text-[#800000] border border-[#800000]/20">${count} طلاب مخصصين</p>
                             </div>
                         </div>
@@ -597,12 +595,14 @@
                 container.innerHTML += `
                     <div class="student-square-card p-5 rounded-2xl flex flex-col justify-between transition gap-3.5">
                         
-                        <!-- رأس البطاقة: الأيقونة، الاسم بخط النسخ، والبريد -->
+                        <!-- رأس البطاقة: الأيقونة، الاسم في مستطيل بيج بإطار أحمر خفيف، والبريد -->
                         <div class="flex items-center gap-3.5 cursor-pointer" onclick="openModal('${student.id}')" title="اضغط لعرض التقرير المفصل">
                             <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-xl font-black shadow-md shrink-0">👤</div>
-                            <div class="overflow-hidden">
-                                <h3 class="student-name-font text-slate-900 tracking-wide truncate hover:text-blue-600 transition">${student.name}</h3>
-                                <p class="text-[11px] text-slate-400 font-semibold truncate mt-0.5">${student.email || 'بدون إيميل'}</p>
+                            <div class="overflow-hidden flex-grow">
+                                <div class="bg-[#fdf8f0] border border-[#800000]/15 px-3 py-1.5 rounded-xl shadow-2xs">
+                                    <h3 class="student-name-font text-slate-900 tracking-wide truncate hover:text-[#800000] transition">${student.name}</h3>
+                                </div>
+                                <p class="text-[11px] text-slate-400 font-semibold truncate mt-1 px-1">${student.email || 'بدون إيميل'}</p>
                             </div>
                         </div>
 
