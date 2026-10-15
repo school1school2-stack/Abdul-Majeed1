@@ -57,7 +57,6 @@
         window.initFastLoad = async function() {
             const dbRef = ref(db);
             try {
-                // جلب البيانات بشكل متزامن وفائق السرعة
                 const [studentsSnap, settingsSnap, classesSnap] = await Promise.all([
                     get(child(dbRef, 'fifi_students_tracker')),
                     get(child(dbRef, 'fifi_custom_actions')),
@@ -81,8 +80,16 @@
                     });
                 }
 
-                if (settingsSnap.exists() && Array.isArray(settingsSnap.val()) && settingsSnap.val().length > 0) {
-                    customActions = settingsSnap.val();
+                // التحقق من صحة وقوة جلب التقييمات ومعالجة أي شكل سحابي سابق
+                if (settingsSnap.exists()) {
+                    const rawData = settingsSnap.val();
+                    if (Array.isArray(rawData)) {
+                        customActions = rawData;
+                    } else if (typeof rawData === 'object' && rawData !== null) {
+                        customActions = Object.values(rawData);
+                    } else {
+                        customActions = defaultActions;
+                    }
                 } else {
                     customActions = defaultActions;
                     set(ref(db, 'fifi_custom_actions'), defaultActions);
@@ -98,6 +105,9 @@
                 renderClassesListUI();
             } catch (error) {
                 console.error("خطأ في التحميل: ", error);
+                customActions = defaultActions;
+                renderCustomActionsUI();
+                renderSettingsActionsDropdown();
             }
         };
 
@@ -120,9 +130,6 @@
             document.getElementById('settings-modal').classList.remove('hidden');
             document.getElementById('settings-modal').classList.add('flex');
             switchSettingsTab(tabName);
-            if(tabName === 'actions') {
-                renderSettingsActionsDropdown();
-            }
         };
 
         window.closeSettingsModal = function() {
@@ -148,7 +155,7 @@
                 actionsTabContent.classList.remove('hidden');
                 btnActions.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-indigo-600 text-white shadow transition-all cursor-pointer";
                 btnClasses.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-gray-200 text-gray-700 transition-all cursor-pointer";
-                renderSettingsActionsDropdown(); // تحديث القائمة فور فتح تبويب التقييمات
+                renderSettingsActionsDropdown(); // ضمان تعبئة القائمة بالكامل عند فتح التبويب
             }
         };
 
@@ -218,14 +225,15 @@
             });
         }
 
-        // تعبئة القائمة المنسدلة للتقييمات مع الفيسات والدرجات والألوان
+        // دالة تعبئة القائمة المنسدلة للتقييمات بدقة تامة لضمان ظهور العناصر والأيقونات
         window.renderSettingsActionsDropdown = function() {
             const selectEl = document.getElementById('actions-dropdown-select');
             if(!selectEl) return;
             selectEl.innerHTML = `<option value="">-- اختر تقييماً للتعديل أو أضف جديداً --</option>`;
             if (customActions && customActions.length > 0) {
                 customActions.forEach((act, index) => {
-                    selectEl.innerHTML += `<option value="${index}">${act.icon || '⭐'} ${act.name} (${act.score > 0 ? '+' + act.score : act.score})</option>`;
+                    const scoreText = act.score > 0 ? '+' + act.score : act.score;
+                    selectEl.innerHTML += `<option value="${index}">${act.icon || '⭐'} ${act.name} (${scoreText})</option>`;
                 });
             }
         };
