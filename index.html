@@ -171,12 +171,10 @@
             { icon: '💡', name: 'مشاركة', score: 1.0, color: '#17a2b8' },
             { icon: '📘', name: 'حل الواجب', score: 3.0, color: '#20c997' },
             { icon: '📕', name: 'لم يحل الواجب', score: -3.0, color: '#e83e8c' },
-            { icon: '💤', name: 'النوم في الحصة', score: -1.0, color: '#6610f2' },
-            { icon: '🗣️', name: 'التحدث أثناء الدرس', score: -1.0, color: '#6f42c1' },
-            { icon: '🏃‍♂️', name: 'خرج ولم يعد', score: -1.0, color: '#007bff' },
-            { icon: '😑', name: 'غير مهتم', score: -1.0, color: '#fd7e14' },
             { icon: '📁', name: 'نسيان ملف', score: -5.0, color: '#dc3545' },
             { icon: '📂', name: 'إنجاز ملف', score: 5.0, color: '#ffc107' },
+            { icon: '💤', name: 'النوم في الحصة', score: -1.0, color: '#6610f2' },
+            { icon: '🗣️', name: 'التحدث أثناء الدرس', score: -1.0, color: '#6f42c1' },
             { icon: '📱', name: 'استخدام الهاتف', score: -1.0, color: '#d9534f' },
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
@@ -876,7 +874,7 @@
 
                 let attendanceStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
                 if(attendanceType) {
-                    if(attendanceType === 'غائب') attendanceStats.absents++;
+                    if(attendanceType.includes('غائب') || attendanceType === 'غائب' || attendanceType === 'غائب بعذر') attendanceStats.absents++;
                     if(attendanceType === 'متأخر') attendanceStats.lates++;
                     if(attendanceType === 'مستأذن') attendanceStats.excuses++;
                 }
@@ -1191,12 +1189,42 @@
                 <h3 class="text-2xl font-black text-slate-900" id="action-student-name">رصد الطالب</h3>
                 <p class="text-sm font-bold text-slate-600 mt-1" id="action-student-subtitle"></p>
             </div>
-            <div class="grid grid-cols-4 gap-2 mb-4">
-                <button onclick="recordAction('حاضر', 0, null)" class="p-3 rounded-xl bg-emerald-600 text-white font-bold text-xs cursor-pointer hover:bg-emerald-700 shadow-xs">🟢 حاضر</button>
-                <button onclick="recordAction('غائب', 0, 'غائب')" class="p-3 rounded-xl bg-rose-600 text-white font-bold text-xs cursor-pointer hover:bg-rose-700 shadow-xs">🔴 غائب</button>
-                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="p-3 rounded-xl bg-sky-600 text-white font-bold text-xs cursor-pointer hover:bg-sky-700 shadow-xs">🔵 مستأذن</button>
-                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="p-3 rounded-xl bg-amber-600 text-white font-bold text-xs cursor-pointer hover:bg-amber-700 shadow-xs">🟠 متأخر</button>
+            
+            <!-- شريط تمرير أفقي احترافي لأزرار الحضور والغياب مع الألوان والإطارات والأسماء والأيقونات -->
+            <div class="mb-5">
+                <h4 class="font-bold text-slate-900 text-sm mb-3">📌 الحضور والغياب:</h4>
+                <div class="flex gap-3 overflow-x-auto pb-2 pt-1 px-1 scrollbar-thin">
+                    <button onclick="recordAction('حاضر', 0, 'حاضر')" class="flex items-center gap-3 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                        <span class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-base shadow-2xs">🟢</span>
+                        <span class="font-bold text-sm text-emerald-900">حاضر</span>
+                    </button>
+                    <button onclick="recordAction('غائب', 0, 'غائب')" class="flex items-center gap-3 bg-rose-50 border border-rose-300 hover:bg-rose-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                        <span class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center text-base shadow-2xs">🔴</span>
+                        <span class="font-bold text-sm text-rose-900">غائب</span>
+                    </button>
+                    <button onclick="recordAction('غائب بعذر', 0, 'غائب بعذر')" class="flex items-center gap-3 bg-indigo-50 border border-indigo-300 hover:bg-indigo-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                        <span class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-base shadow-2xs">👤</span>
+                        <span class="font-bold text-sm text-indigo-900">غائب بعذر</span>
+                    </button>
+                    <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="flex items-center gap-3 bg-sky-50 border border-sky-300 hover:bg-sky-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                        <span class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center text-base shadow-2xs">🔵</span>
+                        <span class="font-bold text-sm text-sky-900">مستأذن</span>
+                    </button>
+                    <button onclick="recordAction('متأخر', 0, 'متأخر')" class="flex items-center gap-3 bg-amber-50 border border-amber-300 hover:bg-amber-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                        <span class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shadow-2xs">⏰</span>
+                        <span class="font-bold text-sm text-amber-900">متأخر</span>
+                    </button>
+                    <button onclick="recordAction('عن بعد', 0, 'عن بعد')" class="flex items-center gap-3 bg-purple-50 border border-purple-300 hover:bg-purple-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                        <span class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base shadow-2xs">💻</span>
+                        <span class="font-bold text-sm text-purple-900">عن بعد</span>
+                    </button>
+                    <button onclick="recordAction('هارب', -2, 'هارب')" class="flex items-center gap-3 bg-stone-100 border border-stone-300 hover:bg-stone-200 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                        <span class="w-9 h-9 rounded-xl bg-stone-900 text-white flex items-center justify-center text-base shadow-2xs">🚶‍♂️</span>
+                        <span class="font-bold text-sm text-stone-900">هارب</span>
+                    </button>
+                </div>
             </div>
+
             <div class="mb-4">
                 <h4 class="font-bold text-slate-900 text-sm mb-3">⭐ اختر التقييم السريع:</h4>
                 <div id="custom-actions-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto pr-1"></div>
