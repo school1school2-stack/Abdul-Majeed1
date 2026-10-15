@@ -606,7 +606,6 @@
                         actionCounts[key].totalScore += act.score;
                     });
 
-                    // تم إزالة قيد .slice لعرض جميع الأنشطة والسلوكيات مع تفعيل التمرير الأفقي السليم
                     Object.values(actionCounts).forEach(item => {
                         let badgeBg = "bg-sky-500 text-white";
                         if(item.totalScore > 0) badgeBg = "bg-emerald-500 text-white";
@@ -646,7 +645,6 @@
                             </div>
                         </div>
 
-                        <!-- الحاوية مع تعديل خصائص التمرير الأفقي ومنع انكماش العناصر -->
                         <div class="flex items-center gap-2 overflow-x-auto py-1.5 bg-slate-50/70 px-2 rounded-xl min-h-[46px] w-full" style="scrollbar-width: thin; -webkit-overflow-scrolling: touch;">
                             ${actionsListHtml}
                         </div>
@@ -1164,7 +1162,7 @@
             <div id="classes-tab-content" class="space-y-3">
                 <div class="flex gap-2">
                     <input type="text" id="new-class-name" placeholder="اسم الفصل..." class="flex-1 border p-2.5 rounded-xl text-xs font-bold">
-                    <button id="save-class-btn" onclick="saveClassItem()" class="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:black">إضافة ➕</button>
+                    <button id="save-class-btn" onclick="saveClassItem()" class="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-black">إضافة ➕</button>
                 </div>
                 <div id="settings-classes-list" class="space-y-1.5 max-h-44 overflow-y-auto"></div>
             </div>
@@ -1172,23 +1170,33 @@
                 <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border p-2.5 rounded-xl text-xs font-bold"></select>
                 <div class="grid grid-cols-3 gap-2">
                     <select id="new-action-icon" class="border border-slate-200 p-2.5 rounded-xl text-base font-bold bg-white">
-                        <option value="⭐">⭐ نجمة</option>
-                        <option value="✅">✅ صح</option>
-                        <option value="❌">❌ خطأ</option>
-                        <option value="💡">💡 مشاركة</option>
-                        <option value="📘">📘 واجب</option>
-                        <option value="📕">📕 عدم حل</option>
-                        <option value="📁">📁 ملف أحمر (نسيان)</option>
-                        <option value="📂">📂 ملف أصفر (إنجاز)</option>
-                        <option value="🎁">🎁 هدية</option>
-                        <option value="🏆">🏆 كأس</option>
-                        <option value="💤">💤 نوم</option>
-                        <option value="🗣️">🗣️ تحدث</option>
-                        <option value="📱">📱 جوال</option>
-                        <option value="😑">😑 غير مهتم</option>
-                        <option value="🏃‍♂️">🏃‍♂️ هروب</option>
-                        <option value="⚡">⚡ نشاط</option>
-                        <option value="🔥">🔥 تميز</option>
+                        <!-- رموز السلبيات والتنبيهات المضافة -->
+                        <option value="⚠️">⚠️ تنبيه هامة</option>
+                        <option value="🛑">🛑 إيقاف / منع</option>
+                        <option value="❌">❌ خطأ / سلبي</option>
+                        <option value="⏳">⏳ تأخير / انتظار</option>
+                        <option value="👎">👎 استهجان / تقصير</option>
+                        <option value="🚫">🚫 محظور / مخالفة</option>
+                        <option value="📉">📉 انخفاض مستوى</option>
+                        <option value="🔴">🔴 نقطة سلبية حمراء</option>
+                        
+                        <!-- رموز الإيجابيات والتميز المضافة -->
+                        <option value="✍️">✍️ كتابة / تدوين</option>
+                        <option value="📝">📝 اختبار / تحضير</option>
+                        <option value="✅">✅ صح / إنجاز</option>
+                        <option value="💯">💯 درجة كاملة / مثالي</option>
+                        <option value="⭐">⭐ نجمة تفوق</option>
+                        <option value="🌟">🌟 تميز ساطع</option>
+                        <option value="👍">👍 تأييد / أحسنت</option>
+                        
+                        <!-- رموز إضافية ذات دلالة عالية -->
+                        <option value="🏆">🏆 كأس تفوق</option>
+                        <option value="💡">💡 فكرة إبداعية / مشاركة</option>
+                        <option value="📘">📘 حل الواجب</option>
+                        <option value="🔥">🔥 حماس ونشاط</option>
+                        <option value="⚡">⚡ استجابة سريعة</option>
+                        <option value="🎯">🎯 تركيز وإصابة الهدف</option>
+                        <option value="🤝">🤝 تعاون وعمل جماعي</option>
                     </select>
                     <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white focus:outline-none">
                 </div>
@@ -1244,7 +1252,7 @@
                         <span class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-base shadow-2xs">👤</span>
                         <span class="font-bold text-sm text-indigo-900">غائب بعذر</span>
                     </button>
-                    <button onclick="recordBoxAction('مستأذن', 0, 'مستأذن')" class="flex items-center gap-3 bg-sky-50 border border-sky-300 hover:bg-sky-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                    <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="flex items-center gap-3 bg-sky-50 border border-sky-300 hover:bg-sky-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
                         <span class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center text-base shadow-2xs">🔵</span>
                         <span class="font-bold text-sm text-sky-900">مستأذن</span>
                     </button>
