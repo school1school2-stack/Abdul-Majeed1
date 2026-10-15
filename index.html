@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام متابعة الطلاب - الأستاذ عبدالعزيز الفيفي</title>
+    <title>نظام متابعة الطلاب الاحترافي - أ/ عبدالعزيز الفيفي</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; }
-        .click-effect:active {
-            transform: scale(0.95);
-            opacity: 0.7;
-        }
+        body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); min-height: 100vh; }
+        .click-effect:active { transform: scale(0.96); opacity: 0.8; }
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     </style>
     <!-- استيراد مكتبات Firebase (Realtime Database) -->
     <script type="module">
@@ -36,9 +34,9 @@
         let currentStudentId = null;
         let allStudents = [];
         let customActions = [];
+        let classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
         let editingActionId = null;
-
-        const classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
+        let editingClassIndex = null;
 
         const defaultActions = [
             { id: 'def_1', icon: '✅', name: 'إجابة صحيحة', score: 1.0, color: '#28a745' },
@@ -89,9 +87,15 @@
                     set(ref(db, 'fifi_custom_actions'), defaultActions);
                 }
 
+                const classesSnap = await get(child(dbRef, 'fifi_classes_list'));
+                if (classesSnap.exists()) {
+                    classList = classesSnap.val();
+                }
+
                 renderView();
                 renderCustomActionsUI();
                 renderSettingsActionsList();
+                renderClassesListUI();
             } catch (error) {
                 console.error("خطأ في التحميل: ", error);
             }
@@ -120,36 +124,98 @@
             document.getElementById('settings-modal').classList.add('hidden');
             document.getElementById('settings-modal').classList.remove('flex');
             resetActionForm();
+            resetClassForm();
         };
 
+        // إدارة الفصول (إضافة وتعديل وحذف)
+        window.saveClassItem = function() {
+            const classNameInput = document.getElementById('new-class-name');
+            const name = classNameInput.value.trim();
+            if(!name) return alert('الرجاء إدخال اسم الفصل');
+
+            if(editingClassIndex !== null) {
+                const oldName = classList[editingClassIndex];
+                classList[editingClassIndex] = name;
+                // تحديث الطلاب التابعين لهذا الفصل
+                allStudents.forEach(stu => {
+                    if(stu.className === oldName) stu.className = name;
+                });
+                editingClassIndex = null;
+                document.getElementById('save-class-btn').innerText = "إضافة فصل جديد ➕";
+            } else {
+                if(classList.includes(name)) return alert('هذا الفصل موجود مسبقاً');
+                classList.push(name);
+            }
+
+            classNameInput.value = '';
+            renderClassesListUI();
+            renderView();
+            set(ref(db, 'fifi_classes_list'), classList);
+        };
+
+        window.editClassItem = function(index) {
+            document.getElementById('new-class-name').value = classList[index];
+            editingClassIndex = index;
+            document.getElementById('save-class-btn').innerText = "تعديل اسم الفصل ✏️";
+        };
+
+        window.deleteClassItem = function(index) {
+            if(confirm('هل أنت متأكد من حذف هذا الفصل؟')) {
+                const removedName = classList[index];
+                classList.splice(index, 1);
+                // تحويل الطلاب التابعين له إلى غير موزع
+                allStudents.forEach(stu => {
+                    if(stu.className === removedName) stu.className = 'غير موزع';
+                });
+                renderClassesListUI();
+                renderView();
+                set(ref(db, 'fifi_classes_list'), classList);
+            }
+        };
+
+        window.resetClassForm = function() {
+            editingClassIndex = null;
+            document.getElementById('new-class-name').value = '';
+            document.getElementById('save-class-btn').innerText = "إضافة فصل جديد ➕";
+        };
+
+        function renderClassesListUI() {
+            const container = document.getElementById('settings-classes-list');
+            if(!container) return;
+            container.innerHTML = '';
+            classList.forEach((cls, index) => {
+                container.innerHTML += `
+                    <div class="bg-white p-3 rounded-xl border flex justify-between items-center text-sm shadow-sm">
+                        <span class="font-bold text-gray-800">${cls}</span>
+                        <div class="flex gap-1.5">
+                            <button onclick="editClassItem(${index})" class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">✏️ تعديل</button>
+                            <button onclick="deleteClassItem(${index})" class="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">🗑️ حذف</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // إدارة أدوات الرصد
         window.saveCustomAction = async function() {
             const icon = document.getElementById('new-action-icon').value;
             const name = document.getElementById('new-action-name').value.trim();
             const score = parseFloat(document.getElementById('new-action-score').value);
             const color = document.getElementById('new-action-color').value;
 
-            if(!name || isNaN(score)) {
-                alert('الرجاء إدخال اسم التقييم والدرجة بشكل صحيح.');
-                return;
-            }
+            if(!name || isNaN(score)) return alert('الرجاء إدخال اسم التقييم والدرجة بشكل صحيح.');
 
             if(editingActionId) {
                 const act = customActions.find(a => a.id === editingActionId);
                 if(act) { act.icon = icon; act.name = name; act.score = score; act.color = color; }
-                renderCustomActionsUI();
-                renderSettingsActionsList();
-                closeSettingsModal();
                 update(ref(db, `fifi_custom_actions/${editingActionId}`), { icon, name, score, color });
             } else {
-                const settingsRef = ref(db, 'fifi_custom_actions');
-                const newRef = push(settingsRef);
-                const newObj = { id: newRef.key, icon, name, score, color };
-                customActions.push(newObj);
-                renderCustomActionsUI();
-                renderSettingsActionsList();
-                closeSettingsModal();
+                const newRef = push(ref(db, 'fifi_custom_actions'));
+                customActions.push({ id: newRef.key, icon, name, score, color });
                 set(newRef, { icon, name, score, color });
             }
+            renderCustomActionsUI();
+            renderSettingsActionsList();
             resetActionForm();
         };
 
@@ -187,10 +253,6 @@
             const listContainer = document.getElementById('settings-actions-list');
             if(!listContainer) return;
             listContainer.innerHTML = '';
-            if(customActions.length === 0) {
-                listContainer.innerHTML = `<p class="text-xs text-gray-400 text-center py-2">لا توجد أدوات رصد مخصصة حالياً.</p>`;
-                return;
-            }
             customActions.forEach(act => {
                 listContainer.innerHTML += `
                     <div class="bg-white p-3 rounded-xl border flex justify-between items-center text-sm shadow-sm">
@@ -214,14 +276,10 @@
             const container = document.getElementById('custom-actions-container');
             if(!container) return;
             container.innerHTML = '';
-            if(customActions.length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-400 col-span-2 text-center py-2">لا توجد تقييمات. أضفها من إعدادات الرصد ⚙️.</p>`;
-                return;
-            }
             customActions.forEach(act => {
                 const fullName = `${act.icon || ''} ${act.name}`.trim();
                 container.innerHTML += `
-                    <button onclick="recordAction('${fullName}', ${act.score}, null)" class="click-effect p-4 rounded-2xl border-2 text-white font-black text-sm flex justify-between items-center shadow-sm transition-all cursor-pointer" style="background-color: ${act.color}; border-color: rgba(0,0,0,0.1);">
+                    <button onclick="recordAction('${fullName}', ${act.score}, null)" class="click-effect p-4 rounded-2xl border-2 text-white font-black text-sm flex justify-between items-center shadow-md transition-all cursor-pointer" style="background-color: ${act.color}; border-color: rgba(0,0,0,0.1);">
                         <span>${fullName}</span> 
                         <span class="bg-white/30 text-white px-2.5 py-1 rounded-lg text-xs font-black">${act.score}</span>
                     </button>
@@ -307,6 +365,7 @@
             student.name = newName.trim();
             student.email = newEmail.trim();
             renderView();
+            if(activeClass) renderClassStudents();
             update(ref(db, `fifi_students_tracker/${id}`), { name: student.name, email: student.email });
         };
 
@@ -319,7 +378,6 @@
             }
         };
 
-        // دالة رصد الحضور والغياب والسلوكيات وتحديث التقرير فوراً
         window.recordAction = function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -338,7 +396,6 @@
                     if(attendanceType === 'مستأذن') student.attendanceStats.excuses = (student.attendanceStats.excuses || 0) + 1;
                 }
                 
-                // تسجيل الإجراء في السجل دائماً ليعكس في التقرير
                 const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
                 student.actions = [newRecord, ...(student.actions || [])];
 
@@ -375,12 +432,22 @@
         };
 
         function renderView() {
+            const classesContainer = document.getElementById('dynamic-classes-grid');
+            if(!classesContainer) return;
+            classesContainer.innerHTML = '';
+
             classList.forEach(cls => {
-                const countBadge = document.getElementById(`count-${cls.replace(/\s+/g, '-')}`);
-                if(countBadge) {
-                    const count = allStudents.filter(s => s.className === cls).length;
-                    countBadge.innerText = `${count} طلاب مخصصين`;
-                }
+                const count = allStudents.filter(s => s.className === cls).length;
+                classesContainer.innerHTML += `
+                    <div onclick="openClass('${cls}')" class="glass-card p-6 rounded-3xl shadow-lg border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition transform hover:-translate-y-1 flex items-center justify-between">
+                        <div>
+                            <span class="text-3xl mb-1 block">📚</span>
+                            <h3 class="text-xl font-black text-indigo-900">${cls}</h3>
+                            <p class="text-sm font-bold text-gray-500 mt-1">${count} طلاب مخصصين</p>
+                        </div>
+                        <span class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shadow-md">➔</span>
+                    </div>
+                `;
             });
 
             const totalCountBadge = document.getElementById('total-cloud-count');
@@ -393,14 +460,14 @@
                 globalContainer.innerHTML = '';
                 allStudents.forEach(student => {
                     globalContainer.innerHTML += `
-                        <div class="bg-white p-3 rounded-xl border flex justify-between items-center shadow-sm text-sm">
+                        <div class="bg-white p-3.5 rounded-2xl border flex justify-between items-center shadow-sm text-sm">
                             <div>
                                 <span class="font-bold text-gray-800">${student.name}</span>
                                 <span class="text-xs text-indigo-600 block">${student.email || 'بدون إيميل'} | الفصل: <strong class="text-gray-700">${student.className}</strong></span>
                             </div>
-                            <div class="flex gap-1">
-                                <button onclick="editStudent('${student.id}')" class="bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-xs font-bold">✏️ تعديل</button>
-                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2 py-1 rounded-lg text-xs font-bold">🗑️ حذف</button>
+                            <div class="flex gap-1.5">
+                                <button onclick="editStudent('${student.id}')" class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer hover:bg-amber-100">✏️ تعديل</button>
+                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer hover:bg-rose-100">🗑️ حذف</button>
                             </div>
                         </div>
                     `;
@@ -416,21 +483,21 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12">لا توجد طلاب مخصصين في هذا الفصل حالياً.</p>`;
+                container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12 font-bold bg-white rounded-3xl shadow">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث بالأعلى.</p>`;
                 return;
             }
 
             students.forEach(student => {
                 container.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl shadow flex items-center justify-between border border-gray-100">
+                    <div class="bg-white p-5 rounded-3xl shadow-md flex items-center justify-between border border-indigo-50 hover:shadow-lg transition">
                         <div>
-                            <h3 class="font-bold text-lg text-gray-800">${student.name}</h3>
-                            <p class="text-xs text-indigo-600 font-semibold"><span class="text-gray-500">${student.email || 'بدون إيميل'}</span></p>
+                            <h3 class="font-black text-xl text-gray-800">${student.name}</h3>
+                            <p class="text-xs text-indigo-600 font-semibold mt-0.5"><span class="text-gray-500">${student.email || 'بدون إيميل'}</span></p>
                         </div>
-                        <div class="flex gap-1.5 items-center">
-                            <button onclick="openActionModal('${student.id}')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-indigo-100 cursor-pointer">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-emerald-50 text-emerald-600 px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-100 cursor-pointer">📊 التقرير</button>
-                            <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ إزالة</button>
+                        <div class="flex gap-2 items-center">
+                            <button onclick="openActionModal('${student.id}')" class="bg-indigo-600 text-white px-4 py-2.5 rounded-2xl text-xs font-black shadow hover:bg-indigo-700 cursor-pointer transition">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-4 py-2.5 rounded-2xl text-xs font-black shadow hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
+                            <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-3 py-2.5 rounded-2xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -461,35 +528,33 @@
             const modalContent = document.getElementById('modal-content');
             modalContent.innerHTML = `
                 <div class="text-center mb-6">
-                    <div class="w-24 h-24 bg-blue-500 text-white rounded-full flex items-center justify-center text-5xl font-bold mx-auto mb-3 shadow-lg">👤</div>
+                    <div class="w-24 h-24 bg-gradient-to-tr from-indigo-600 to-violet-500 text-white rounded-full flex items-center justify-center text-5xl font-bold mx-auto mb-3 shadow-xl">👤</div>
                     <h2 class="text-3xl font-black text-gray-800">${student.name}</h2>
-                    <p class="text-base font-semibold text-gray-500 mt-1">${student.className}</p>
+                    <p class="text-base font-semibold text-indigo-600 mt-1">${student.className}</p>
                 </div>
 
-                <div class="bg-gray-50 p-5 rounded-2xl mb-6 border">
-                    <h4 class="font-bold text-gray-800 text-base mb-3 flex items-center justify-between">
-                        <span>👤 الحضور والغياب (مع إمكانية التعديل أو الحذف)</span>
-                    </h4>
+                <div class="bg-indigo-50/60 p-5 rounded-3xl mb-6 border border-indigo-100">
+                    <h4 class="font-bold text-gray-800 text-base mb-3">👤 الحضور والغياب (تعديل فوري بالضغط)</h4>
                     <div class="grid grid-cols-3 gap-3 text-center">
-                        <div class="bg-rose-100 p-3 rounded-xl flex flex-col justify-between">
+                        <div class="bg-rose-100 p-3 rounded-2xl flex flex-col justify-between shadow-sm">
                             <span class="block text-xs font-bold text-rose-700">غائب (${att.absents || 0})</span>
                             <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('absents', 1)" class="bg-rose-500 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">+</button>
-                                <button onclick="adjustAttendance('absents', -1)" class="bg-rose-700 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">-</button>
+                                <button onclick="adjustAttendance('absents', 1)" class="bg-rose-600 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-rose-700">+</button>
+                                <button onclick="adjustAttendance('absents', -1)" class="bg-rose-800 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-rose-900">-</button>
                             </div>
                         </div>
-                        <div class="bg-amber-100 p-3 rounded-xl flex flex-col justify-between">
+                        <div class="bg-amber-100 p-3 rounded-2xl flex flex-col justify-between shadow-sm">
                             <span class="block text-xs font-bold text-amber-700">متأخر (${att.lates || 0})</span>
                             <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('lates', 1)" class="bg-amber-500 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">+</button>
-                                <button onclick="adjustAttendance('lates', -1)" class="bg-amber-700 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">-</button>
+                                <button onclick="adjustAttendance('lates', 1)" class="bg-amber-600 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-amber-700">+</button>
+                                <button onclick="adjustAttendance('lates', -1)" class="bg-amber-800 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-amber-900">-</button>
                             </div>
                         </div>
-                        <div class="bg-blue-100 p-3 rounded-xl flex flex-col justify-between">
+                        <div class="bg-blue-100 p-3 rounded-2xl flex flex-col justify-between shadow-sm">
                             <span class="block text-xs font-bold text-blue-700">مستأذن (${att.excuses || 0})</span>
                             <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('excuses', 1)" class="bg-blue-500 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">+</button>
-                                <button onclick="adjustAttendance('excuses', -1)" class="bg-blue-700 text-white w-7 h-7 rounded-lg font-bold text-sm cursor-pointer shadow">-</button>
+                                <button onclick="adjustAttendance('excuses', 1)" class="bg-blue-600 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-blue-700">+</button>
+                                <button onclick="adjustAttendance('excuses', -1)" class="bg-blue-800 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-blue-900">-</button>
                             </div>
                         </div>
                     </div>
@@ -497,13 +562,13 @@
 
                 <div class="mb-6">
                     <h4 class="font-bold text-gray-800 text-base mb-3 flex items-center justify-between">
-                        <span>📅 النشاطات والسلوكيات المسجلة (مع خيار الحذف)</span>
-                        <span class="text-xs text-indigo-600 font-normal">موثق باليوم والتاريخ والوقت</span>
+                        <span>📅 النشاطات والسلوكيات المسجلة</span>
+                        <span class="text-xs text-indigo-600 font-normal">موثق بالتاريخ والوقت</span>
                     </h4>
                     <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
                         ${actions.length === 0 ? '<p class="text-sm text-gray-400 text-center py-6">لا توجد نشاطات مسجلة حالياً</p>' : 
                             actions.map((act, index) => `
-                                <div class="bg-white p-3.5 rounded-xl border flex justify-between items-center shadow-sm">
+                                <div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
                                     <div class="flex items-center gap-3">
                                         <span class="w-3.5 h-3.5 rounded-full ${act.score > 0 ? 'bg-emerald-500' : (act.score < 0 ? 'bg-rose-500' : 'bg-blue-500')}"></span>
                                         <div>
@@ -511,7 +576,7 @@
                                             <span class="text-[11px] text-gray-400 font-mono">${act.timestamp}</span>
                                         </div>
                                     </div>
-                                    <button onclick="deleteStudentAction(${index})" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ حذف</button>
+                                    <button onclick="deleteStudentAction(${index})" class="bg-rose-50 text-rose-600 px-3.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ حذف</button>
                                 </div>
                             `).join('')
                         }
@@ -519,8 +584,8 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button onclick="window.print()" class="flex-1 bg-gray-800 text-white py-3 rounded-2xl font-bold text-base hover:bg-gray-900 cursor-pointer">🖨️ طباعة التقرير</button>
-                    <button onclick="closeModal()" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-bold text-base hover:bg-indigo-700 cursor-pointer">إغلاق</button>
+                    <button onclick="window.print()" class="flex-1 bg-gray-900 text-white py-3.5 rounded-2xl font-black text-sm hover:bg-black cursor-pointer shadow-lg">🖨️ طباعة التقرير</button>
+                    <button onclick="closeModal()" class="flex-1 bg-indigo-600 text-white py-3.5 rounded-2xl font-black text-sm hover:bg-indigo-700 cursor-pointer shadow-lg">إغلاق</button>
                 </div>
             `;
 
@@ -538,130 +603,123 @@
         };
     </script>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen">
+<body class="text-gray-800 min-h-screen flex flex-col justify-between">
 
-    <header class="bg-indigo-600 text-white p-5 shadow-md flex justify-between items-center px-8">
-        <div>
-            <h1 class="text-2xl font-bold">نظام المتابعة السحابي للطلاب</h1>
-            <p class="text-xs opacity-90">المعلم: عبدالعزيز الفيفي | الكفايات اللغوية</p>
+    <!-- الترويسة الاحترافية -->
+    <header class="bg-gradient-to-r from-indigo-900 via-indigo-700 to-violet-800 text-white p-6 shadow-2xl border-b-4 border-indigo-500">
+        <div class="container mx-auto max-w-4xl flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-right">
+                <h1 class="text-3xl font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
+                <p class="text-sm font-semibold opacity-90 mt-1">المعلم: أ/ عبدالعزيز الفيفي | المادة: الكفايات اللغوية | المدرسة: ثانوية الأمير عبدالمجيد (الرياض)</p>
+            </div>
+            <button onclick="openSettingsModal()" class="bg-white/10 hover:bg-white/25 border border-white/30 text-white px-5 py-3 rounded-2xl font-black text-sm flex items-center gap-2 cursor-pointer shadow-xl backdrop-blur transition-all">
+                ⚙️ إعدادات الفصول والرصد
+            </button>
         </div>
-        <button onclick="openSettingsModal()" class="bg-indigo-700 hover:bg-indigo-800 text-white px-4 py-2.5 rounded-2xl font-bold text-sm flex items-center gap-2 cursor-pointer shadow-md transition-all">
-            ⚙️ إعدادات الرصد
-        </button>
     </header>
 
-    <main class="container mx-auto p-4 max-w-4xl">
+    <main class="container mx-auto p-4 max-w-4xl flex-grow my-6">
 
-        <div id="main-dashboard" class="py-4">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">الفصول الدراسية</h2>
+        <!-- لوحة التحكم الرئيسية (الفصول الديناميكية) -->
+        <div id="main-dashboard" class="py-2">
+            <h2 class="text-2xl font-black text-indigo-950 mb-6 text-center">الفصول الدراسية</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div onclick="openClass('الفصل الأول')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
-                    <div>
-                        <span class="text-3xl mb-1 block">👨‍🎓</span>
-                        <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 1</h3>
-                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل-الأول">0 طلاب</p>
-                    </div>
-                    <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
-                </div>
-                <div onclick="openClass('الفصل الثاني')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
-                    <div>
-                        <span class="text-3xl mb-1 block">👨‍🎓</span>
-                        <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 2</h3>
-                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل-الثاني">0 طلاب</p>
-                    </div>
-                    <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
-                </div>
-                <div onclick="openClass('الفصل الثالث')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
-                    <div>
-                        <span class="text-3xl mb-1 block">👨‍🎓</span>
-                        <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 3</h3>
-                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل-الثالث">0 طلاب</p>
-                    </div>
-                    <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
-                </div>
-                <div onclick="openClass('الفصل الرابع')" class="bg-white p-6 rounded-3xl shadow border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition flex items-center justify-between">
-                    <div>
-                        <span class="text-3xl mb-1 block">👨‍🎓</span>
-                        <h3 class="text-xl font-bold text-indigo-900">أول ثانوي / 4</h3>
-                        <p class="text-sm text-gray-500 mt-1" id="count-الفصل-الرابع">0 طلاب</p>
-                    </div>
-                    <span class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-2xl flex items-center justify-center font-bold">➔</span>
-                </div>
+            <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10">
+                <!-- يتم تعبئتها تلقائياً من الإعدادات أو قاعدة البيانات -->
             </div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-lg border border-green-200 mb-6">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="font-bold text-lg text-green-700 flex items-center gap-2">📥 حفظ القائمة العامة للطلاب في السحابة</h3>
-                    <span class="text-xs bg-green-100 text-green-800 font-bold px-3 py-1 rounded-full" id="total-cloud-count">إجمالي القائمة العامة بالسحابة: 0 طالب</span>
+            <!-- صندوق حفظ القائمة العامة -->
+            <div class="glass-card p-8 rounded-3xl shadow-xl border border-green-200 mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-3 gap-2">
+                    <h3 class="font-black text-lg text-green-800 flex items-center gap-2">📥 حفظ القائمة العامة للطلاب في السحابة</h3>
+                    <span class="text-xs bg-green-100 text-green-900 font-black px-4 py-1.5 rounded-full shadow-sm" id="total-cloud-count">إجمالي القائمة العامة بالسحابة: 0 طالب</span>
                 </div>
-                <p class="text-xs text-gray-500 mb-4">الصق القائمة الكاملة هنا (الاسم والإيميل سطر بسطر):</p>
-                <textarea id="bulk-students-input" rows="6" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa" class="w-full border p-3 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 mb-3 font-sans"></textarea>
-                <button onclick="superSmartBulkAdd()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition text-sm cursor-pointer">حفظ القائمة العامة في السحابة 🚀</button>
+                <p class="text-xs text-gray-500 mb-4 font-semibold">الصق القائمة الكاملة هنا (اسم الطالب والإيميل سطر بسطر):</p>
+                <textarea id="bulk-students-input" rows="5" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa" class="w-full border-2 border-green-100 p-4 rounded-2xl text-sm focus:outline-none focus:border-green-500 mb-4 font-sans bg-white shadow-inner"></textarea>
+                <button onclick="superSmartBulkAdd()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black hover:bg-green-700 transition text-base cursor-pointer shadow-lg shadow-green-600/20">حفظ القائمة العامة في السحابة 🚀</button>
             </div>
 
-            <div class="bg-white p-6 rounded-3xl shadow-lg border">
-                <h3 class="font-bold text-base text-gray-800 mb-3">📋 القائمة العامة للطلاب المحفوظين بالسحابة</h3>
-                <div id="general-students-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+            <!-- قائمة الطلاب العامة المحفوظة -->
+            <div class="glass-card p-8 rounded-3xl shadow-xl border">
+                <h3 class="font-black text-lg text-indigo-950 mb-4">📋 القائمة العامة للطلاب المحفوظين بالسحابة</h3>
+                <div id="general-students-list-container" class="space-y-3 max-h-72 overflow-y-auto pr-2"></div>
             </div>
         </div>
 
-        <div id="class-view" class="hidden py-4">
-            <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl shadow">
-                <button onclick="backToHome()" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition cursor-pointer">⬅ العودة للرئيسية</button>
-                <h2 class="text-xl font-bold text-indigo-700" id="class-title-header">الفصل</h2>
+        <!-- واجهة الفصل المستقلة -->
+        <div id="class-view" class="hidden py-2">
+            <div class="flex items-center justify-between mb-6 bg-white p-5 rounded-3xl shadow-lg border border-indigo-50">
+                <button onclick="backToHome()" class="bg-gray-100 text-gray-800 px-5 py-2.5 rounded-2xl font-black text-sm hover:bg-gray-200 transition cursor-pointer shadow-sm">⬅ العودة للرئيسية</button>
+                <h2 class="text-2xl font-black text-indigo-700" id="class-title-header">الفصل</h2>
                 <div class="w-16"></div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl shadow mb-6 relative border border-indigo-100">
-                <div class="flex items-center gap-3">
+            <div class="glass-card p-4 rounded-3xl shadow-lg mb-6 relative border border-indigo-100">
+                <div class="flex items-center gap-3 px-2">
                     <span class="text-xl">🔍</span>
-                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب من القائمة العامة لإضافته لهذا الفصل..." class="w-full border-none focus:outline-none text-sm">
+                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب من القائمة العامة لإضافته لهذا الفصل..." class="w-full border-none focus:outline-none text-sm font-semibold bg-transparent">
                 </div>
-                <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl rounded-2xl mt-2 border max-h-60 overflow-y-auto z-30"></div>
+                <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-2xl rounded-3xl mt-2 border max-h-60 overflow-y-auto z-30 p-2"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="class-students-container"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="class-students-container"></div>
         </div>
 
     </main>
 
-    <!-- نافذة إعدادات أدوات الرصد -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
-            <button onclick="closeSettingsModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
-            <h3 class="text-2xl font-black text-center mb-1 text-indigo-900">⚙️ إعدادات أدوات الرصد</h3>
-            <p class="text-xs text-center text-gray-500 mb-6">أنشئ أو عدل أدوات الرصد مع اختيار الأيقونة والدرجة واللون المناسب</p>
+    <!-- تذييل الصفحة الرسمي -->
+    <footer class="bg-indigo-950 text-indigo-200 py-6 text-center text-xs font-bold border-t border-indigo-900 shadow-inner">
+        <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
+    </footer>
 
-            <div class="bg-gray-50 p-4 rounded-2xl border mb-6 space-y-3">
-                <h4 class="font-bold text-sm text-gray-800" id="form-title">➕ إضافة تقييم أو سلوك جديد</h4>
+    <!-- نافذة الإعدادات الشاملة (فصول + أدوات رصد) -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl max-w-xl w-full p-8 relative shadow-2xl max-h-[92vh] overflow-y-auto">
+            <button onclick="closeSettingsModal()" class="absolute top-6 left-6 bg-gray-100 text-gray-700 w-10 h-10 rounded-full font-black flex items-center justify-center hover:bg-gray-200 cursor-pointer shadow">✕</button>
+            <h3 class="text-2xl font-black text-center mb-1 text-indigo-950">⚙️ لوحة الإعدادات الشاملة</h3>
+            <p class="text-xs text-center text-gray-500 mb-6 font-semibold">تحكم كامل بإدارة الفصول الدراسية وأدوات الرصد والتقييم</p>
+
+            <!-- قسم إدارة الفصول -->
+            <div class="bg-indigo-50/60 p-5 rounded-3xl border border-indigo-100 mb-6 space-y-3">
+                <h4 class="font-black text-sm text-indigo-900">🏫 إدارة الفصول الدراسية</h4>
+                <div class="flex gap-2">
+                    <input type="text" id="new-class-name" placeholder="اسم الفصل (مثال: أول ثانوي / 5)..." class="flex-1 border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                    <button id="save-class-btn" onclick="saveClassItem()" class="bg-indigo-600 text-white px-5 py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 cursor-pointer shadow">إضافة فصل ➕</button>
+                </div>
+                <div id="settings-classes-list" class="max-h-36 overflow-y-auto space-y-2 pr-1 mt-2"></div>
+            </div>
+
+            <!-- قسم إدارة أدوات الرصد -->
+            <div class="bg-gray-50 p-5 rounded-3xl border mb-6 space-y-3">
+                <h4 class="font-black text-sm text-gray-800" id="form-title">➕ إضافة أو تعديل أداة رصد</h4>
                 
                 <div class="grid grid-cols-3 gap-2">
-                    <select id="new-action-icon" class="border p-2.5 rounded-xl text-lg font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select id="new-action-icon" class="border p-3 rounded-2xl text-xl font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                         <option value="⭐">⭐ نجمة</option>
                         <option value="✅">✅ صح</option>
                         <option value="❌">❌ خطأ</option>
-                        <option value="💡">💡 مشاركة/فكرة</option>
-                        <option value="📘">📘 كتاب/واجب</option>
+                        <option value="💡">💡 مشاركة</option>
+                        <option value="📘">📘 واجب</option>
+                        <option value="📕">📕 عدم حل</option>
                         <option value="🎁">🎁 هدية</option>
                         <option value="🏆">🏆 كأس</option>
-                        <option value="🎯">🎯 هدف</option>
                         <option value="💤">💤 نوم</option>
                         <option value="🗣️">🗣️ تحدث</option>
                         <option value="📱">📱 جوال</option>
                         <option value="😑">😑 غير مهتم</option>
                         <option value="🏃‍♂️">🏃‍♂️ هروب</option>
+                        <option value="📁">📁 نسيان ملف</option>
                         <option value="⚡">⚡ نشاط</option>
                         <option value="🔥">🔥 تميز</option>
                     </select>
 
-                    <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border p-3 rounded-2xl text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3">
-                    <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (مثال: 1 أو -1)" class="border p-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (1 أو -1)" class="border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                     
-                    <select id="new-action-color" class="border p-2.5 rounded-xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select id="new-action-color" class="border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
                         <option value="#28a745">🟢 أخضر عشبي</option>
                         <option value="#20c997">🔹 أخضر فيروزي</option>
                         <option value="#007bff">🔵 أزرق غامق</option>
@@ -681,45 +739,45 @@
                 </div>
 
                 <div class="flex gap-2">
-                    <button id="save-action-btn" onclick="saveCustomAction()" class="flex-1 bg-indigo-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-indigo-700 transition cursor-pointer">حفظ وإضافة التقييم الجديد 🚀</button>
-                    <button id="cancel-edit-btn" onclick="resetActionForm()" class="hidden bg-gray-300 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-400 cursor-pointer">إلغاء</button>
+                    <button id="save-action-btn" onclick="saveCustomAction()" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 transition cursor-pointer shadow">حفظ الأداة 🚀</button>
+                    <button id="cancel-edit-btn" onclick="resetActionForm()" class="hidden bg-gray-300 text-gray-700 px-4 py-3 rounded-2xl font-black text-sm hover:bg-gray-400 cursor-pointer shadow">إلغاء</button>
                 </div>
             </div>
 
             <div class="space-y-2 mb-6">
-                <h4 class="font-bold text-sm text-gray-800">📋 أدوات الرصد الحالية (للتعديل أو الحذف)</h4>
-                <div id="settings-actions-list" class="max-h-48 overflow-y-auto space-y-2 pr-1 border p-2 rounded-2xl bg-gray-50"></div>
+                <h4 class="font-black text-sm text-gray-800">📋 أدوات الرصد الحالية (تعديل وحذف)</h4>
+                <div id="settings-actions-list" class="max-h-48 overflow-y-auto space-y-2 pr-1 border p-3 rounded-3xl bg-gray-50 shadow-inner"></div>
             </div>
 
-            <button onclick="closeSettingsModal()" class="w-full bg-gray-800 text-white py-3 rounded-2xl font-black text-base cursor-pointer hover:bg-gray-900">إغلاق الإعدادات</button>
+            <button onclick="closeSettingsModal()" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-base cursor-pointer hover:bg-black shadow-xl">إغلاق لوحة الإعدادات</button>
         </div>
     </div>
 
-    <!-- نافذة تقرير ملف الطالب الكبرى -->
-    <div id="student-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+    <!-- نافذة تقرير ملف الطالب -->
+    <div id="student-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
         <div class="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-8 relative shadow-2xl">
-            <button onclick="closeModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
+            <button onclick="closeModal()" class="absolute top-6 left-6 bg-gray-100 text-gray-700 w-10 h-10 rounded-full font-black flex items-center justify-center hover:bg-gray-200 cursor-pointer shadow">✕</button>
             <div id="modal-content"></div>
         </div>
     </div>
 
-    <!-- نافذة رصد التقييمات الشاملة الكبرى -->
-    <div id="action-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+    <!-- نافذة رصد التقييمات الشاملة -->
+    <div id="action-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
         <div class="bg-white rounded-3xl max-w-2xl w-full p-8 relative shadow-2xl max-h-[95vh] overflow-y-auto">
-            <button onclick="closeActionModal()" class="absolute top-5 left-5 bg-gray-200 text-gray-700 w-9 h-9 rounded-full font-bold flex items-center justify-center hover:bg-gray-300 cursor-pointer">✕</button>
-            <h3 class="text-2xl font-black text-center mb-1 text-indigo-900" id="action-student-name">رصد الطالب</h3>
-            <p class="text-xs text-center text-gray-500 mb-6">اختر التقييم أو السلوك أدناه وسيتم حفظه فوراً باليوم والتاريخ والوقت</p>
+            <button onclick="closeActionModal()" class="absolute top-6 left-6 bg-gray-100 text-gray-700 w-10 h-10 rounded-full font-black flex items-center justify-center hover:bg-gray-200 cursor-pointer shadow">✕</button>
+            <h3 class="text-2xl font-black text-center mb-1 text-indigo-950" id="action-student-name">رصد الطالب</h3>
+            <p class="text-xs text-center text-gray-500 mb-6 font-semibold">اختر التقييم أو الحالة أدناه ليتم حفظها وتحديثها لحظياً</p>
 
             <div class="grid grid-cols-4 gap-3 mb-6">
-                <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-4 rounded-2xl bg-emerald-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟢 حاضر</button>
-                <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-4 rounded-2xl bg-rose-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔴 غائب</button>
-                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-4 rounded-2xl bg-blue-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🔵 مستأذن</button>
-                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-4 rounded-2xl bg-amber-500 text-white font-black text-sm cursor-pointer shadow-md transition-all">🟠 متأخر</button>
+                <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-4 rounded-2xl bg-emerald-500 text-white font-black text-sm cursor-pointer shadow-lg hover:bg-emerald-600 transition-all">🟢 حاضر</button>
+                <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-4 rounded-2xl bg-rose-500 text-white font-black text-sm cursor-pointer shadow-lg hover:bg-rose-600 transition-all">🔴 غائب</button>
+                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-4 rounded-2xl bg-blue-500 text-white font-black text-sm cursor-pointer shadow-lg hover:bg-blue-600 transition-all">🔵 مستأذن</button>
+                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-4 rounded-2xl bg-amber-500 text-white font-black text-sm cursor-pointer shadow-lg hover:bg-amber-600 transition-all">🟠 متأخر</button>
             </div>
 
             <div id="custom-actions-container" class="grid grid-cols-2 gap-3 mb-6 text-sm font-bold"></div>
             
-            <button onclick="closeActionModal()" class="w-full bg-gray-800 text-white py-3 rounded-2xl font-black text-base cursor-pointer hover:bg-gray-900 shadow-lg">إغلاق</button>
+            <button onclick="closeActionModal()" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-base cursor-pointer hover:bg-black shadow-xl">إغلاق</button>
         </div>
     </div>
 
