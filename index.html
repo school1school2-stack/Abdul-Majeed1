@@ -12,7 +12,7 @@
 
     <style>
         :root { --maroon: #800000; --gold: #d4af37; --bg: #fdfaf1; --danger: #c62828; --success: #28a745; --info: #17a2b8; }
-        html, body { font-family: 'Tajawal', sans-serif; height: 100vh; overflow: hidden; background: var(--bg); margin: 0; padding: 0; font-size: 1rem; transition: background 0.5s ease; display: flex; flex-direction: column; }
+        html, body { font-family: 'Tajawal', sans-serif; height: 100vh; overflow: hidden; background: var(--bg); margin: 0; padding: 0; font-size: 1rem; transition: background 0.5s ease; display: flex; flex-direction: column; overscroll-behavior-y: contain; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         
         /* تطبيق خط النسخ الجميل لأسماء الطلاب */
@@ -167,6 +167,24 @@
             fetchClassesAndStudents();
             renderCustomActionsUI();
             renderSettingsActionsDropdown();
+            initPullToRefresh();
+        }
+
+        // تفعيل ميزة السحب لتحديث الصفحة في الجوال والأيباد
+        function initPullToRefresh() {
+            let touchstartY = 0;
+            const mainContainer = document.getElementById('main-scroll-container');
+
+            window.addEventListener('touchstart', e => {
+                touchstartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            window.addEventListener('touchend', e => {
+                let touchendY = e.changedTouches[0].clientY;
+                if (mainContainer && mainContainer.scrollTop === 0 && touchendY - touchstartY > 120) {
+                    location.reload();
+                }
+            }, { passive: true });
         }
 
         async function fetchClassesAndStudents() {
@@ -991,8 +1009,8 @@
         </div>
     </header>
 
-    <!-- الإطار الداخلي القابل للتمرير (المحتوى يتغير ويتحرك داخله فقط) -->
-    <main class="container mx-auto p-3 max-w-5xl flex-grow overflow-y-auto my-2">
+    <!-- الإطار الداخلي القابل للتمرير (مع ميزة السحب والتحديث) -->
+    <main id="main-scroll-container" class="container mx-auto p-3 max-w-5xl flex-grow overflow-y-auto my-2">
 
         <div id="main-dashboard" class="py-1 space-y-4">
             <h2 class="text-xl font-black text-slate-900 text-center tracking-wider mb-3">الفصول الدراسية</h2>
