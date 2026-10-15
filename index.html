@@ -37,7 +37,6 @@
         let classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
         let editingActionIndex = null;
         let editingClassIndex = null;
-        let isDataLoaded = false;
 
         const themes = [
             { name: "الذهب الأبيض", bg: "linear-gradient(135deg, #fdfbf7 0%, #eef2f3 100%)", headerBg: "bg-stone-800 text-amber-100 border-stone-700", btnPrimary: "bg-stone-800 hover:bg-stone-900 text-amber-100" },
@@ -71,7 +70,7 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل جميع الأسماء مرة واحدة وثابتة عند فتح الصفحة (تماماً مثل كود الأسماء)
+        // تحميل جميع الأسماء مرة واحدة وثابتة عند فتح الصفحة
         async function initFastLoad() {
             applyRandomTheme();
             customActions = defaultActions;
@@ -91,15 +90,13 @@
                         attendanceStats: item.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
                     });
                 });
-                isDataLoaded = true;
                 renderView();
                 renderCustomActionsUI();
                 renderSettingsActionsDropdown();
                 renderClassesListUI();
                 
-                // إظهار تنبيه بصري خفيف بأن البيانات تم تحميلها بالكامل
                 const statusEl = document.getElementById('loading-status-text');
-                if(statusEl) statusEl.innerText = `✅ تم تحميل جميع الأسماء بنجاح (${allStudents.length} طالب) وجاهزة للبحث الفوري.`;
+                if(statusEl) statusEl.innerText = `✅ تم تحميل جميع الأسماء بنجاح (${allStudents.length} طالب).`;
             } catch (e) {
                 console.error("خطأ بالتحميل:", e);
                 const statusEl = document.getElementById('loading-status-text');
@@ -113,6 +110,7 @@
             document.getElementById('class-view').classList.remove('hidden');
             document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
             renderClassStudents();
+            populateClassDropdown();
         };
 
         window.backToHome = function() {
@@ -120,6 +118,33 @@
             document.getElementById('class-view').classList.add('hidden');
             document.getElementById('main-dashboard').classList.remove('hidden');
             renderView();
+        };
+
+        // تعبئة قائمة اختيار الطلاب المنسدلة الدائمة للفصل الحالي
+        function populateClassDropdown() {
+            const selectEl = document.getElementById('class-student-select');
+            if(!selectEl) return;
+            selectEl.innerHTML = `<option value="">-- اختر طالباً لإضافته إلى ${activeClass} --</option>`;
+            
+            allStudents.forEach(student => {
+                const statusText = student.className && student.className !== 'غير موزع' ? ` (مضاف في: ${student.className})` : '';
+                selectEl.innerHTML += `<option value="${student.id}">${student.name}${statusText}</option>`;
+            });
+        }
+
+        // إضافة الطالب مباشرة عند اختياره من القائمة المنسدلة الدائمة
+        window.onSelectStudentToAdd = async function() {
+            const selectEl = document.getElementById('class-student-select');
+            const id = selectEl.value;
+            if(!id) return;
+
+            const student = allStudents.find(s => s.id === id);
+            if(student) {
+                student.className = activeClass;
+                renderClassStudents();
+                populateClassDropdown(); // تحديث القائمة
+                await db.collection("allowed_students").doc(id).update({ className: activeClass });
+            }
         };
 
         window.openSettingsModal = function(tabName = 'classes') {
@@ -323,60 +348,13 @@
             });
         }
 
-        // البحث الفوري المحلي (في لمح البصر من الذاكرة المخزنة مسبقاً)
-        window.searchGlobalStudents = function() {
-            const query = document.getElementById('global-search-input').value.trim().toLowerCase();
-            const resultsBox = document.getElementById('global-search-results');
-            
-            if(!query) { 
-                resultsBox.innerHTML = ''; 
-                resultsBox.classList.add('hidden'); 
-                return; 
-            }
-
-            const matches = allStudents.filter(s => s.name.toLowerCase().includes(query) || (s.email && s.email.toLowerCase().includes(query)));
-            
-            if(matches.length === 0) {
-                resultsBox.innerHTML = `<div class="p-3 text-xs text-slate-500 text-center font-semibold">لا توجد نتائج مطابقة</div>`;
-                resultsBox.classList.remove('hidden');
-                return;
-            }
-
-            resultsBox.innerHTML = '';
-            matches.forEach(student => {
-                const isAlreadyInClass = student.className === activeClass;
-                resultsBox.innerHTML += `
-                    <div onclick="transferStudentToCurrentClass('${student.id}')" class="p-3 hover:bg-slate-100 flex justify-between items-center border-b border-slate-100 text-xs cursor-pointer transition">
-                        <div>
-                            <span class="font-bold text-slate-800 block">${student.name}</span>
-                            <span class="text-[11px] text-slate-500">${student.email || ''} | الفصل الحالي: <strong class="text-slate-700">${student.className}</strong></span>
-                        </div>
-                        <span class="${isAlreadyInClass ? 'bg-slate-200 text-slate-600' : 'bg-emerald-600 text-white'} px-3 py-1.5 rounded-lg font-bold text-[11px]">
-                            ${isAlreadyInClass ? 'مضاف بالأساس ✅' : '➕ إضافة للفصل'}
-                        </span>
-                    </div>
-                `;
-            });
-            resultsBox.classList.remove('hidden');
-        };
-
-        window.transferStudentToCurrentClass = async function(id) {
-            const student = allStudents.find(s => s.id === id);
-            if(student) {
-                student.className = activeClass;
-                renderClassStudents();
-                document.getElementById('global-search-input').value = '';
-                document.getElementById('global-search-results').classList.add('hidden');
-                await db.collection("allowed_students").doc(id).update({ className: activeClass });
-            }
-        };
-
         window.removeStudentFromClass = async function(id) {
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
             if(confirm(`هل أنت متأكد من إزالة الطالب (${student.name}) من هذا الفصل؟`)) {
                 student.className = 'غير موزع';
                 renderClassStudents();
+                populateClassDropdown();
                 renderView();
                 await db.collection("allowed_students").doc(id).update({ className: 'غير موزع' });
             }
@@ -466,7 +444,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث بالأعلى لإضافة الطلاب فوراً.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. اختر طالباً من القائمة المنسدلة بالأعلى للإضافة.</p>`;
                 return;
             }
 
@@ -642,14 +620,14 @@
                 <div class="w-12"></div>
             </div>
 
-            <!-- مربع البحث والمنسدلة الفورية في لمح البصر -->
-            <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 relative border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
-                <div class="flex items-center gap-2 px-1">
+            <!-- قائمة منسدلة دائمة وثابتة لجميع أسماء الطلاب -->
+            <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
+                <div class="flex items-center gap-2">
                     <span class="text-sm">🔍</span>
-                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب (تظهر القائمة فوراً)..." class="w-full border-none focus:outline-none text-xs font-semibold bg-transparent">
+                    <select id="class-student-select" onchange="onSelectStudentToAdd()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer">
+                        <option value="">-- جاري تحميل قائمة الطلاب... --</option>
+                    </select>
                 </div>
-                <!-- قائمة منسدلة فورية -->
-                <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl rounded-2xl mt-1 border border-slate-200 max-h-60 overflow-y-auto z-50 divide-y divide-slate-100"></div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
