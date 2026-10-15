@@ -3,18 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام متابعة الطلاب الاحترافي - أ/ عبدالعزيز الفيفي</title>
+    <title>نظام متابعة الطلاب الشامل - أ/ عبدالعزيز الفيفي</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
     
-    <!-- استخدام سحابة الأسماء الموحدة (allowed_students) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <style>
-        body { font-family: 'Tajawal', sans-serif; min-height: 100vh; transition: background 0.5s ease; }
+        :root { --maroon: #800000; --gold: #d4af37; --bg: #fdfaf1; --danger: #c62828; --success: #28a745; --info: #17a2b8; }
+        body { font-family: 'Tajawal', sans-serif; min-height: 100vh; background: var(--bg); padding: 10px; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         .glass-card { backdrop-filter: blur(10px); transition: all 0.5s ease; }
+        
+        /* تنسيق جدول الكود الثاني تماماً */
+        .admin-box { background: white; max-width: 1000px; margin: 20px auto; border-radius: 15px; padding: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border-top: 8px solid var(--maroon); }
+        .bulk-section { background: #f4f4f4; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed var(--maroon); }
+        textarea { width: 100%; height: 100px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: sans-serif; resize: vertical; box-sizing: border-box; }
+        .controls { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .btn { padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: 0.3s; }
+        .btn-upload { background: var(--maroon); color: var(--gold); }
+        .btn-copy { background: var(--info); color: white; }
+        .btn-delete-all { background: var(--danger); color: white; }
+        
+        .pending-section { background: #fff8e1; border: 2px solid #ffc107; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th { background: var(--maroon); color: var(--gold); padding: 12px; font-size: 0.9rem; text-align: center; }
+        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; vertical-align: middle; font-size: 0.85rem; }
+        
+        .action-select {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid #b0bec5;
+            background-color: #f8f9fa;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--maroon);
+            cursor: pointer;
+            outline: none;
+            transition: 0.2s;
+        }
+        .action-select:hover { border-color: var(--maroon); background-color: #fff; }
+        .stats-bar { display: flex; justify-content: space-between; background: #e9ecef; padding: 12px; border-radius: 8px; font-weight: bold; color: var(--maroon); font-size: 1rem; margin-bottom: 15px; }
+        .search-container { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; flex-wrap: wrap; gap: 10px; }
+        .search-box { padding: 8px 12px; width: 100%; max-width: 300px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.9rem; outline: none; }
+        .search-box:focus { border-color: var(--maroon); box-shadow: 0 0 5px rgba(128,0,0,0.2); }
     </style>
 
     <script>
@@ -39,12 +74,9 @@
         let editingClassIndex = null;
 
         const themes = [
-            { name: "الذهب الأبيض", bg: "linear-gradient(135deg, #fdfbf7 0%, #eef2f3 100%)", headerBg: "bg-stone-800 text-amber-100 border-stone-700", btnPrimary: "bg-stone-800 hover:bg-stone-900 text-amber-100" },
-            { name: "اللؤلؤ الطبيعي", bg: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", headerBg: "bg-slate-700 text-slate-100 border-slate-600", btnPrimary: "bg-slate-700 hover:bg-slate-800 text-white" },
-            { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50" },
-            { name: "الفانيلا اللاتيه", bg: "linear-gradient(135deg, #faf7f2 0%, #f0eae1 100%)", headerBg: "bg-amber-950 text-orange-100 border-amber-900", btnPrimary: "bg-amber-950 hover:bg-black text-orange-100" },
-            { name: "السحاب الفرنسي", bg: "linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%)", headerBg: "bg-sky-900 text-sky-50 border-sky-800", btnPrimary: "bg-sky-900 hover:bg-sky-950 text-white" },
-            { name: "الزمرد الخفيف", bg: "linear-gradient(135deg, #f4fcf7 0%, #e6f4ed 100%)", headerBg: "bg-emerald-900 text-emerald-50 border-emerald-800", btnPrimary: "bg-emerald-800 hover:bg-emerald-900 text-white" }
+            { name: "الذهب الأبيض", bg: "linear-gradient(135deg, #fdfbf7 0%, #eef2f3 100%)", headerBg: "bg-stone-800 text-amber-100 border-stone-700", btnPrimary: "bg-stone-800 hover:bg-stone-900 text-amber-100", cardBg: "bg-stone-50/90 border-stone-200" },
+            { name: "اللؤلؤ الطبيعي", bg: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", headerBg: "bg-slate-700 text-slate-100 border-slate-600", btnPrimary: "bg-slate-700 hover:bg-slate-800 text-white", cardBg: "bg-slate-50/90 border-slate-200" },
+            { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50", cardBg: "bg-amber-50/60 border-amber-200" }
         ];
 
         function applyRandomTheme() {
@@ -52,9 +84,7 @@
             const selectedTheme = themes[randomIndex];
             document.body.style.background = selectedTheme.bg;
             const header = document.getElementById('main-header');
-            if(header) {
-                header.className = `p-4 shadow-md border-b transition-all duration-500 ${selectedTheme.headerBg}`;
-            }
+            if(header) header.className = `p-4 shadow-md border-b transition-all duration-500 ${selectedTheme.headerBg}`;
             window.currentTheme = selectedTheme;
         }
 
@@ -70,13 +100,22 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل جميع الأسماء مرة واحدة وثابتة عند فتح الصفحة
-        async function initFastLoad() {
+        function initSystem() {
             applyRandomTheme();
             customActions = defaultActions;
-            
-            try {
-                const snapshot = await db.collection("allowed_students").get();
+            fetchStudentsData();
+            renderCustomActionsUI();
+            renderSettingsActionsDropdown();
+            renderClassesListUI();
+        }
+
+        // جلب البيانات ومراقبتها سحابياً
+        function fetchStudentsData() {
+            const approvedTbody = document.querySelector("#studentsTable tbody");
+            const pendingTbody = document.querySelector("#pendingTable tbody");
+            const pendingSection = document.getElementById("pendingSection");
+
+            db.collection("allowed_students").orderBy("name").onSnapshot((snapshot) => {
                 allStudents = [];
                 snapshot.forEach(doc => {
                     const item = doc.data();
@@ -90,18 +129,32 @@
                         attendanceStats: item.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
                     });
                 });
+
+                document.getElementById('approvedCount').innerText = `الطلاب المعتمدين: ${allStudents.length}`;
                 renderView();
-                renderCustomActionsUI();
-                renderSettingsActionsDropdown();
-                renderClassesListUI();
-                
-                const statusEl = document.getElementById('loading-status-text');
-                if(statusEl) statusEl.innerText = `✅ تم تحميل جميع الأسماء بنجاح (${allStudents.length} طالب).`;
-            } catch (e) {
-                console.error("خطأ بالتحميل:", e);
-                const statusEl = document.getElementById('loading-status-text');
-                if(statusEl) statusEl.innerText = `❌ حدث خطأ أثناء تحميل الأسماء.`;
-            }
+                searchStudents();
+            });
+
+            db.collection("pending_students").orderBy("name").onSnapshot((snapshot) => {
+                let pendingCount = snapshot.size;
+                pendingTbody.innerHTML = "";
+                document.getElementById("pendingCountBadge").innerText = `الطلبات المعلقة: ${pendingCount}`;
+                pendingSection.style.display = pendingCount > 0 ? "block" : "none";
+
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const email = doc.id;
+                    pendingTbody.innerHTML += `
+                        <tr>
+                            <td>${data.name}</td>
+                            <td>${email}</td>
+                            <td>
+                                <button style="background:var(--success); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold;" onclick="approveStudent('${email}', '${data.name}')">✅ قبول</button>
+                                <button style="background:var(--danger); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold;" onclick="deletePending('${email}')">❌ رفض</button>
+                            </td>
+                        </tr>`;
+                });
+            });
         }
 
         window.openClass = function(className) {
@@ -110,7 +163,6 @@
             document.getElementById('class-view').classList.remove('hidden');
             document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
             renderClassStudents();
-            populateClassDropdown();
         };
 
         window.backToHome = function() {
@@ -118,34 +170,252 @@
             document.getElementById('class-view').classList.add('hidden');
             document.getElementById('main-dashboard').classList.remove('hidden');
             renderView();
+            searchStudents();
         };
 
-        // تعبئة قائمة اختيار الطلاب المنسدلة الدائمة للفصل الحالي
-        function populateClassDropdown() {
-            const selectEl = document.getElementById('class-student-select');
-            if(!selectEl) return;
-            selectEl.innerHTML = `<option value="">-- اختر طالباً لإضافته إلى ${activeClass} --</option>`;
-            
-            allStudents.forEach(student => {
-                const statusText = student.className && student.className !== 'غير موزع' ? ` (مضاف في: ${student.className})` : '';
-                selectEl.innerHTML += `<option value="${student.id}">${student.name}${statusText}</option>`;
+        // بحث الكود الثاني السريع
+        window.searchStudents = function() {
+            let input = document.getElementById("searchInput");
+            let filter = input.value.toUpperCase();
+            let table = document.getElementById("studentsTable");
+            let tr = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                let tdName = tr[i].getElementsByTagName("td")[0];
+                let tdEmail = tr[i].getElementsByTagName("td")[1];
+                if (tdName || tdEmail) {
+                    let txtValueName = tdName.textContent || tdName.innerText;
+                    let txtValueEmail = tdEmail.textContent || tdEmail.innerText;
+                    if (txtValueName.toUpperCase().indexOf(filter) > -1 || txtValueEmail.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }       
+            }
+        };
+
+        // رسم جدول المعتمدين بنفس تنسيق الكود الثاني مع خيارات الإجراءات المتقدمة
+        function renderAllStudentsTable(studentsList) {
+            const tbody = document.querySelector("#studentsTable tbody");
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            if(studentsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-gray-500">لا توجد نتائج مطابقة</td></tr>`;
+                return;
+            }
+
+            studentsList.forEach(student => {
+                let classOptionsHtml = `<option value="" disabled>📁 تعيين لفصل دراسي</option>`;
+                classList.forEach(cls => {
+                    const prefix = student.className === cls ? '✔️ ' : '';
+                    classOptionsHtml += `<option value="class_${cls}">${prefix}${cls}</option>`;
+                });
+                classOptionsHtml += `<option value="class_غير موزع">❌ إزالة من الفصل</option>`;
+
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-name', student.name);
+                tr.setAttribute('data-email', student.email);
+
+                tr.innerHTML = `
+                    <td style="text-align: right; font-weight: bold;">
+                        ${student.name}
+                        <div style="font-size: 0.75rem; color: #800000; margin-top: 2px;">الفصل: ${student.className || 'غير موزع'}</div>
+                    </td>
+                    <td>${student.email || 'بدون إيميل'}</td>
+                    <td>
+                        <div style="display: flex; gap: 5px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                            <select class="action-select" onchange="handleAction(this, '${student.email}', '${student.name.replace(/'/g, "\\'")}', '${student.id}')">
+                                <option value="" disabled selected>⚙️ خيارات الإجراء</option>
+                                <optgroup label="الفصول الدراسية">
+                                    ${classOptionsHtml}
+                                </optgroup>
+                                <optgroup label="العمليات الإدارية">
+                                    <option value="copy_email">📧 نسخ الإيميل</option>
+                                    <option value="edit_email">✏️ تعديل الإيميل</option>
+                                    <option value="copy_name">📋 نسخ الاسم</option>
+                                    <option value="edit_name">✏️ تعديل الاسم</option>
+                                    <option value="copy_both">📑 نسخ الاسم والإيميل</option>
+                                    <option value="delete">🗑️ حذف الطالب</option>
+                                </optgroup>
+                            </select>
+                            <button onclick="openActionModal('${student.id}')" style="background:#1e293b; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" style="background:var(--success); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📊 التقرير</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
-        // إضافة الطالب مباشرة عند اختياره من القائمة المنسدلة الدائمة
-        window.onSelectStudentToAdd = async function() {
-            const selectEl = document.getElementById('class-student-select');
-            const id = selectEl.value;
-            if(!id) return;
+        // معالجة القائمة المنسدلة للإجراءات وتوزيع الفصول
+        window.handleAction = async function(selectElement, email, currentName, studentId) {
+            const action = selectElement.value;
+            selectElement.value = "";
 
-            const student = allStudents.find(s => s.id === id);
-            if(student) {
-                student.className = activeClass;
-                renderClassStudents();
-                populateClassDropdown(); // تحديث القائمة
-                await db.collection("allowed_students").doc(id).update({ className: activeClass });
+            if (action.startsWith('class_')) {
+                const targetClass = action.replace('class_', '');
+                await assignStudentClass(studentId, targetClass);
+                return;
             }
+
+            if (action === 'copy_email') copyText(email);
+            else if (action === 'copy_name') copyText(currentName);
+            else if (action === 'copy_both') copyText(`${currentName}\n${email}`);
+            else if (action === 'edit_name') editStudentName(email, currentName);
+            else if (action === 'edit_email') editStudentEmail(email, currentName);
+            else if (action === 'delete') deleteAllowed(email);
         };
+
+        async function copyText(text) {
+            try { await navigator.clipboard.writeText(text); alert("تم النسخ بنجاح!"); } 
+            catch (err) { alert("فشل النسخ."); }
+        }
+
+        async function assignStudentClass(studentId, newClass) {
+            const student = allStudents.find(s => s.id === studentId);
+            if(student) {
+                student.className = newClass;
+                renderView();
+                searchStudents();
+                await db.collection("allowed_students").doc(studentId).update({ className: newClass });
+            }
+        }
+
+        async function editStudentName(email, currentName) {
+            const newName = prompt("أدخل الاسم الجديد للطالب:", currentName);
+            if (newName === null) return;
+            const trimmedName = newName.trim();
+            if (!trimmedName) return alert("لا يمكن ترك الاسم فارغاً.");
+            try { await db.collection("allowed_students").doc(email).update({ name: trimmedName }); } 
+            catch (error) { alert("حدث خطأ أثناء تحديث الاسم."); }
+        }
+
+        async function editStudentEmail(currentEmail, currentName) {
+            const newEmailInput = prompt("أدخل البريد الإلكتروني الجديد للطالب:", currentEmail);
+            if (newEmailInput === null) return;
+            const newEmail = newEmailInput.trim().toLowerCase();
+            if (!newEmail || !newEmail.includes('@')) return alert("يرجى إدخال بريد صحيح.");
+            if (newEmail === currentEmail) return;
+            try {
+                const docCheck = await db.collection("allowed_students").doc(newEmail).get();
+                if (docCheck.exists) return alert("البريد موجود مسبقاً!");
+                await db.collection("allowed_students").doc(newEmail).set({ name: currentName, added_at: firebase.firestore.FieldValue.serverTimestamp() });
+                await db.collection("allowed_students").doc(currentEmail).delete();
+                alert("تم تعديل الإيميل بنجاح!");
+            } catch (error) { alert("حدث خطأ."); }
+        }
+
+        async function deleteAllowed(email) {
+            if(confirm(`حذف ${email} من الطلاب المعتمدين؟`)) await db.collection("allowed_students").doc(email).delete();
+        }
+
+        async function approveStudent(email, name) {
+            await db.collection("allowed_students").doc(email).set({ name: name, className: 'غير موزع', added_at: firebase.firestore.FieldValue.serverTimestamp() });
+            await db.collection("pending_students").doc(email).delete();
+        }
+
+        async function deletePending(email) {
+            if(confirm(`رفض وحذف ${email}؟`)) await db.collection("pending_students").doc(email).delete();
+        }
+
+        async function superSmartBulkAdd() {
+            const input = document.getElementById("bulkInput").value.trim();
+            if(!input) return alert("يرجى لصق البيانات");
+            const lines = input.split('\n').map(l => l.trim()).filter(l => l !== "");
+            const batch = db.batch();
+            let count = 0;
+            for(let i = 0; i < lines.length; i++) {
+                let line1 = lines[i], line2 = lines[i+1];
+                if(!line2) break;
+                let name = "", email = "";
+                if(!line1.includes('@') && line2.includes('@')) { name = line1; email = line2.toLowerCase(); i++; } 
+                else if(line1.includes('@') && !line2.includes('@')) { email = line1.toLowerCase(); name = line2; i++; }
+                if(name && email) {
+                    const ref = db.collection("allowed_students").doc(email);
+                    batch.set(ref, { name: name, className: 'غير موزع', added_at: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+                    count++;
+                }
+            }
+            if(count > 0) { await batch.commit(); alert(`تم رفع واعتماد ${count} طالب بنجاح!`); document.getElementById("bulkInput").value = ""; } 
+            else { alert("تنسيق غير معروف."); }
+        }
+
+        async function copyAllStudents() {
+            let textToCopy = "";
+            allStudents.forEach(s => { textToCopy += `${s.name}\n${s.email}\n`; });
+            if(!textToCopy) return alert("لا توجد بيانات للنسخ.");
+            await navigator.clipboard.writeText(textToCopy.trim());
+            alert("تم نسخ جميع الطلاب بنجاح!");
+        }
+
+        async function deleteAllStudents() {
+            if(!confirm("تحذير: هل أنت متأكد من مسح جميع الطلاب المعتمدين؟")) return;
+            const snapshot = await db.collection("allowed_students").get();
+            const batch = db.batch();
+            snapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            alert("تمت تصفية قائمة المعتمدين.");
+        }
+
+        function renderView() {
+            const classesContainer = document.getElementById('dynamic-classes-grid');
+            if(!classesContainer) return;
+            classesContainer.innerHTML = '';
+            classList.forEach(cls => {
+                const count = allStudents.filter(s => s.className === cls).length;
+                classesContainer.innerHTML += `
+                    <div onclick="openClass('${cls}')" class="glass-card p-4 rounded-2xl shadow-sm border hover:border-slate-400 cursor-pointer transition flex items-center justify-between bg-white/95">
+                        <div>
+                            <span class="text-2xl mb-1 block">📚</span>
+                            <h3 class="text-base font-bold text-slate-800">${cls}</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">${count} طلاب مخصصين</p>
+                        </div>
+                        <span class="bg-slate-100 text-slate-700 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm">➔</span>
+                    </div>
+                `;
+            });
+        }
+
+        // واجهة الفصل (بدون أي بحث، للفصول فقط)
+        function renderClassStudents() {
+            if(!activeClass) return;
+            const container = document.getElementById('class-students-container');
+            if(!container) return;
+            container.innerHTML = '';
+            const students = allStudents.filter(s => s.className === activeClass);
+
+            if(students.length === 0) {
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. قم بتوزيعهم من الجدول الرئيسي بالأعلى.</p>`;
+                return;
+            }
+
+            students.forEach(student => {
+                let totalScore = 0;
+                if(student.actions && Array.isArray(student.actions)) {
+                    student.actions.forEach(act => { totalScore += (parseFloat(act.score) || 0); });
+                }
+                let scoreBadgeBg = totalScore > 0 ? "bg-emerald-50 text-emerald-700" : (totalScore < 0 ? "bg-rose-50 text-rose-700" : "bg-slate-100 text-slate-700");
+
+                container.innerHTML += `
+                    <div class="p-3.5 rounded-2xl shadow-2xs flex items-center justify-between border bg-white">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-sm text-slate-800">${student.name}</h3>
+                                <span class="text-[11px] font-black px-2 py-0.5 rounded-lg border ${scoreBadgeBg}">⭐ ${totalScore > 0 ? '+' + totalScore : totalScore}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 mt-0.5">${student.email || 'بدون إيميل'}</p>
+                        </div>
+                        <div class="flex gap-1.5 items-center">
+                            <button onclick="openActionModal('${student.id}')" class="bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">📊 التقرير</button>
+                            <button onclick="assignStudentClass('${student.id}', 'غير موزع')" title="إزالة من الفصل" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
 
         window.openSettingsModal = function(tabName = 'classes') {
             document.getElementById('settings-modal').classList.remove('hidden');
@@ -156,8 +426,6 @@
         window.closeSettingsModal = function() {
             document.getElementById('settings-modal').classList.add('hidden');
             document.getElementById('settings-modal').classList.remove('flex');
-            resetActionForm();
-            resetClassForm();
         };
 
         window.switchSettingsTab = function(tab) {
@@ -165,73 +433,29 @@
             const actionsTabContent = document.getElementById('actions-tab-content');
             const btnClasses = document.getElementById('btn-tab-classes');
             const btnActions = document.getElementById('btn-tab-actions');
-            const activeColorClass = window.currentTheme ? window.currentTheme.btnPrimary.split(' ')[0] : 'bg-slate-700';
-
             if(tab === 'classes') {
                 classesTabContent.classList.remove('hidden');
                 actionsTabContent.classList.add('hidden');
-                btnClasses.className = `flex-1 py-2.5 rounded-xl font-bold text-xs ${activeColorClass} text-white shadow transition-all cursor-pointer`;
-                btnActions.className = "flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 transition-all cursor-pointer";
+                btnClasses.className = "flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-800 text-white shadow";
+                btnActions.className = "flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600";
             } else {
                 classesTabContent.classList.add('hidden');
                 actionsTabContent.classList.remove('hidden');
-                btnActions.className = `flex-1 py-2.5 rounded-xl font-bold text-xs ${activeColorClass} text-white shadow transition-all cursor-pointer`;
-                btnClasses.className = "flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 transition-all cursor-pointer";
+                btnActions.className = "flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-800 text-white shadow";
+                btnClasses.className = "flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600";
                 renderSettingsActionsDropdown();
             }
         };
 
         window.saveClassItem = function() {
-            const classNameInput = document.getElementById('new-class-name');
-            const name = classNameInput.value.trim();
+            const name = document.getElementById('new-class-name').value.trim();
             if(!name) return alert('الرجاء إدخال اسم الفصل');
-
-            if(editingClassIndex !== null) {
-                const oldName = classList[editingClassIndex];
-                classList[editingClassIndex] = name;
-                allStudents.forEach(async stu => {
-                    if(stu.className === oldName) {
-                        stu.className = name;
-                        await db.collection("allowed_students").doc(stu.id).update({ className: name });
-                    }
-                });
-                editingClassIndex = null;
-                document.getElementById('save-class-btn').innerText = "إضافة ➕";
-            } else {
-                if(classList.includes(name)) return alert('هذا الفصل موجود مسبقاً');
-                classList.push(name);
-            }
-
-            classNameInput.value = '';
+            if(classList.includes(name)) return alert('الفصل موجود مسبقاً');
+            classList.push(name);
+            document.getElementById('new-class-name').value = '';
             renderClassesListUI();
             renderView();
-        };
-
-        window.editClassItem = function(index) {
-            document.getElementById('new-class-name').value = classList[index];
-            editingClassIndex = index;
-            document.getElementById('save-class-btn').innerText = "تعديل ✏️";
-        };
-
-        window.deleteClassItem = function(index) {
-            if(confirm('هل أنت متأكد من حذف هذا الفصل؟')) {
-                const removedName = classList[index];
-                classList.splice(index, 1);
-                allStudents.forEach(async stu => {
-                    if(stu.className === removedName) {
-                        stu.className = 'غير موزع';
-                        await db.collection("allowed_students").doc(stu.id).update({ className: 'غير موزع' });
-                    }
-                });
-                renderClassesListUI();
-                renderView();
-            }
-        };
-
-        window.resetClassForm = function() {
-            editingClassIndex = null;
-            document.getElementById('new-class-name').value = '';
-            document.getElementById('save-class-btn').innerText = "إضافة ➕";
+            searchStudents();
         };
 
         function renderClassesListUI() {
@@ -240,12 +464,9 @@
             container.innerHTML = '';
             classList.forEach((cls, index) => {
                 container.innerHTML += `
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center text-xs shadow-xs">
-                        <span class="font-bold text-slate-700">${cls}</span>
-                        <div class="flex gap-1.5">
-                            <button onclick="editClassItem(${index})" class="bg-amber-50 text-amber-700 px-2 py-1 rounded-lg font-semibold cursor-pointer">✏️ تعديل</button>
-                            <button onclick="deleteClassItem(${index})" class="bg-rose-50 text-rose-600 px-2 py-1 rounded-lg font-semibold cursor-pointer">🗑️ حذف</button>
-                        </div>
+                    <div class="bg-white p-2.5 rounded-xl border flex justify-between items-center text-xs">
+                        <span class="font-bold">${cls}</span>
+                        <button onclick="classList.splice(${index},1); renderClassesListUI(); renderView(); searchStudents();" class="bg-rose-50 text-rose-600 px-2 py-1 rounded-lg font-semibold">🗑️ حذف</button>
                     </div>
                 `;
             });
@@ -254,233 +475,68 @@
         window.renderSettingsActionsDropdown = function() {
             const selectEl = document.getElementById('actions-dropdown-select');
             if(!selectEl) return;
-            selectEl.innerHTML = `<option value="">-- اختر تقييماً للتعديل أو أضف جديداً --</option>`;
-            if (customActions && customActions.length > 0) {
-                customActions.forEach((act, index) => {
-                    const scoreText = act.score > 0 ? '+' + act.score : act.score;
-                    selectEl.innerHTML += `<option value="${index}">${act.icon || '⭐'} ${act.name} (${scoreText})</option>`;
-                });
-            }
+            selectEl.innerHTML = `<option value="">-- اختر تقييماً للتعديل --</option>`;
+            customActions.forEach((act, index) => {
+                selectEl.innerHTML += `<option value="${index}">${act.icon || '⭐'} ${act.name} (${act.score > 0 ? '+' + act.score : act.score})</option>`;
+            });
         };
 
         window.onSelectActionToEdit = function() {
             const index = document.getElementById('actions-dropdown-select').value;
-            if(index === "") {
-                resetActionForm();
-                return;
-            }
+            if(index === "") return;
             const act = customActions[index];
-            if(!act) return;
-            
             document.getElementById('new-action-icon').value = act.icon || '⭐';
             document.getElementById('new-action-name').value = act.name;
             document.getElementById('new-action-score').value = act.score;
-            document.getElementById('new-action-color').value = act.color;
             editingActionIndex = parseInt(index);
-            document.getElementById('save-action-btn').innerText = "تعديل التقييم ✏️";
-            document.getElementById('delete-action-btn').classList.remove('hidden');
         };
 
         window.saveCustomActionFromDropdown = function() {
             const icon = document.getElementById('new-action-icon').value;
             const name = document.getElementById('new-action-name').value.trim();
             const score = parseFloat(document.getElementById('new-action-score').value);
-            const color = document.getElementById('new-action-color').value;
-
-            if(!name || isNaN(score)) return alert('الرجاء إدخال اسم التقييم والدرجة بشكل صحيح.');
-
-            const newActObj = { icon, name, score, color };
-
-            if(editingActionIndex !== null && editingActionIndex >= 0) {
-                customActions[editingActionIndex] = newActObj;
-            } else {
-                customActions.push(newActObj);
-            }
-
+            if(!name || isNaN(score)) return alert('أدخل الاسم والدرجة بشكل صحيح.');
+            const newActObj = { icon, name, score, color: '#28a745' };
+            if(editingActionIndex !== null) customActions[editingActionIndex] = newActObj;
+            else customActions.push(newActObj);
             renderCustomActionsUI();
             renderSettingsActionsDropdown();
-            resetActionForm();
-            alert('تم حفظ التقييم بنجاح ✅');
-        };
-
-        window.deleteSelectedAction = function() {
-            if(editingActionIndex === null || editingActionIndex < 0) return alert('الرجاء اختيار تقييم من القائمة أولاً للحذف');
-            if(confirm('هل أنت متأكد من حذف هذا التقييم؟')) {
-                customActions.splice(editingActionIndex, 1);
-                renderCustomActionsUI();
-                renderSettingsActionsDropdown();
-                resetActionForm();
-                alert('تم الحذف بنجاح 🗑️');
-            }
-        };
-
-        window.resetActionForm = function() {
-            editingActionIndex = null;
-            const selectEl = document.getElementById('actions-dropdown-select');
-            if(selectEl) selectEl.value = "";
-            document.getElementById('new-action-name').value = '';
-            document.getElementById('new-action-score').value = '';
-            document.getElementById('new-action-icon').value = '⭐';
-            document.getElementById('save-action-btn').innerText = "حفظ كتقييم جديد 🚀";
-            document.getElementById('delete-action-btn').classList.add('hidden');
+            alert('تم الحفظ بنجاح ✅');
         };
 
         window.renderCustomActionsUI = function() {
             const container = document.getElementById('custom-actions-container');
             if(!container) return;
             container.innerHTML = '';
-            
             customActions.forEach(act => {
                 const fullName = `${act.icon || ''} ${act.name}`.trim();
-                const actColor = act.color || '#64748b';
-                
                 container.innerHTML += `
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-100 flex items-center justify-between shadow-xs hover:shadow transition">
-                        <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-2.5 flex-grow text-right cursor-pointer">
-                            <span class="w-9 h-9 rounded-lg flex items-center justify-center text-base border" style="background-color: ${actColor}15; border-color: ${actColor}40;">
-                                ${act.icon || '⭐'}
-                            </span>
-                            <span class="font-bold text-xs text-slate-700">${act.name}</span>
-                        </button>
-                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">${act.score > 0 ? '+' + act.score : act.score}</span>
-                    </div>
+                    <button onclick="recordAction('${fullName}', ${act.score}, null)" class="p-2 rounded-xl border bg-white flex items-center justify-between text-xs font-bold cursor-pointer hover:bg-slate-50">
+                        <span>${fullName}</span>
+                        <span class="px-1.5 py-0.5 rounded bg-slate-100">${act.score > 0 ? '+' + act.score : act.score}</span>
+                    </button>
                 `;
             });
-        }
-
-        window.removeStudentFromClass = async function(id) {
-            const student = allStudents.find(s => s.id === id);
-            if(!student) return;
-            if(confirm(`هل أنت متأكد من إزالة الطالب (${student.name}) من هذا الفصل؟`)) {
-                student.className = 'غير موزع';
-                renderClassStudents();
-                populateClassDropdown();
-                renderView();
-                await db.collection("allowed_students").doc(id).update({ className: 'غير موزع' });
-            }
         };
 
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
-
             const student = allStudents.find(s => s.id === currentStudentId);
             if(student) {
                 const now = new Date();
-                const dayName = now.toLocaleDateString('ar-SA', { weekday: 'long' });
-                const dateFormatted = now.toLocaleDateString('ar-SA', { year: 'numeric', month: '2-digit', day: '2-digit' });
-                const timeFormatted = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-                const formattedTime = `${dayName} | ${dateFormatted} - ${timeFormatted}`;
-
+                const formattedTime = `${now.toLocaleDateString('ar-SA')} - ${now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}`;
                 let attendanceStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
                 if(attendanceType) {
                     if(attendanceType === 'غائب') attendanceStats.absents++;
                     if(attendanceType === 'متأخر') attendanceStats.lates++;
                     if(attendanceType === 'مستأذن') attendanceStats.excuses++;
                 }
-                
-                const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
-                student.actions = [newRecord, ...(student.actions || [])];
-
-                renderClassStudents();
-
-                await db.collection("allowed_students").doc(currentStudentId).update({
-                    actions: student.actions,
-                    attendanceStats: attendanceStats
-                });
+                student.actions = [{ title: actionName, score: scoreChange, timestamp: formattedTime }, ...(student.actions || [])];
+                if(activeClass) renderClassStudents();
+                await db.collection("allowed_students").doc(currentStudentId).update({ actions: student.actions, attendanceStats: attendanceStats });
             }
         };
-
-        window.deleteStudentAction = async function(actionIndex) {
-            if(!currentStudentId) return;
-            const student = allStudents.find(s => s.id === currentStudentId);
-            if(student && student.actions) {
-                student.actions.splice(actionIndex, 1);
-                openModal(currentStudentId);
-                renderClassStudents();
-                await db.collection("allowed_students").doc(currentStudentId).update({ actions: student.actions });
-            }
-        };
-
-        window.adjustAttendance = async function(type, delta) {
-            if(!currentStudentId) return;
-            const student = allStudents.find(s => s.id === currentStudentId);
-            if(student) {
-                let att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
-                if(type === 'absents') att.absents = Math.max(0, (att.absents || 0) + delta);
-                if(type === 'lates') att.lates = Math.max(0, (att.lates || 0) + delta);
-                if(type === 'excuses') att.excuses = Math.max(0, (att.excuses || 0) + delta);
-
-                openModal(currentStudentId);
-                await db.collection("allowed_students").doc(currentStudentId).update({ attendanceStats: att });
-            }
-        };
-
-        function renderView() {
-            const classesContainer = document.getElementById('dynamic-classes-grid');
-            if(!classesContainer) return;
-            classesContainer.innerHTML = '';
-
-            classList.forEach(cls => {
-                const count = allStudents.filter(s => s.className === cls).length;
-                classesContainer.innerHTML += `
-                    <div onclick="openClass('${cls}')" class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-slate-400 cursor-pointer transition flex items-center justify-between" style="background: rgba(255, 255, 255, 0.95);">
-                        <div>
-                            <span class="text-2xl mb-1 block">📚</span>
-                            <h3 class="text-base font-bold text-slate-800">${cls}</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">${count} طلاب مخصصين</p>
-                        </div>
-                        <span class="bg-slate-100 text-slate-700 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shadow-2xs">➔</span>
-                    </div>
-                `;
-            });
-        }
-
-        function renderClassStudents() {
-            if(!activeClass) return;
-            const container = document.getElementById('class-students-container');
-            if(!container) return;
-            container.innerHTML = '';
-            const students = allStudents.filter(s => s.className === activeClass);
-
-            if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. اختر طالباً من القائمة المنسدلة بالأعلى للإضافة.</p>`;
-                return;
-            }
-
-            students.forEach(student => {
-                const btnPrimaryClass = window.currentTheme ? window.currentTheme.btnPrimary.split(' ')[0] : 'bg-slate-700';
-                
-                let totalScore = 0;
-                if(student.actions && Array.isArray(student.actions)) {
-                    student.actions.forEach(act => {
-                        totalScore += (parseFloat(act.score) || 0);
-                    });
-                }
-
-                let scoreBadgeBg = "bg-slate-100 text-slate-700 border-slate-200";
-                if(totalScore > 0) scoreBadgeBg = "bg-emerald-50 text-emerald-700 border-emerald-200";
-                if(totalScore < 0) scoreBadgeBg = "bg-rose-50 text-rose-700 border-rose-200";
-                const formattedScore = totalScore > 0 ? `+${totalScore}` : totalScore;
-
-                container.innerHTML += `
-                    <div class="bg-white p-3.5 rounded-2xl shadow-2xs flex items-center justify-between border border-slate-200 hover:shadow-xs transition">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-bold text-sm text-slate-800">${student.name}</h3>
-                                <span class="text-[11px] font-black px-2 py-0.5 rounded-lg border ${scoreBadgeBg}" title="مجموع التقييمات">⭐ ${formattedScore}</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">${student.email || 'بدون إيميل'}</p>
-                        </div>
-                        <div class="flex gap-1.5 items-center">
-                            <button onclick="openActionModal('${student.id}')" class="${btnPrimaryClass} text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
-                            <button onclick="removeStudentFromClass('${student.id}')" title="إزالة الطالب من الفصل" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
 
         window.openActionModal = function(id) {
             currentStudentId = id;
@@ -499,75 +555,28 @@
             currentStudentId = id;
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
-
             const att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
             const actions = student.actions || [];
-            const btnPrimaryClass = window.currentTheme ? window.currentTheme.btnPrimary.split(' ')[0] : 'bg-slate-800';
-
+            
             const modalContent = document.getElementById('modal-content');
             modalContent.innerHTML = `
-                <div class="text-center mb-6">
-                    <div class="w-20 h-20 ${btnPrimaryClass} text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-lg">👤</div>
-                    <h2 class="text-2xl font-black text-slate-800">${student.name}</h2>
-                    <p class="text-sm font-bold text-slate-500 mt-1">${student.className}</p>
+                <div class="text-center mb-4">
+                    <h2 class="text-xl font-black text-slate-800">${student.name}</h2>
+                    <p class="text-xs font-bold text-slate-500">${student.className}</p>
                 </div>
-
-                <div class="bg-slate-50 p-5 rounded-2xl mb-6 border border-slate-200 shadow-2xs">
-                    <h4 class="font-bold text-slate-800 text-sm mb-3">👤 الحضور والغياب (تعديل فوري بالضغط)</h4>
-                    <div class="grid grid-cols-3 gap-3 text-center">
-                        <div class="bg-rose-50 p-3.5 rounded-xl flex flex-col justify-between border border-rose-100 shadow-2xs">
-                            <span class="block text-xs font-bold text-rose-700">غائب (${att.absents || 0})</span>
-                            <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('absents', 1)" class="bg-rose-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-rose-700">+</button>
-                                <button onclick="adjustAttendance('absents', -1)" class="bg-rose-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-rose-900">-</button>
-                            </div>
-                        </div>
-                        <div class="bg-amber-50 p-3.5 rounded-xl flex flex-col justify-between border border-amber-100 shadow-2xs">
-                            <span class="block text-xs font-bold text-amber-700">متأخر (${att.lates || 0})</span>
-                            <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('lates', 1)" class="bg-amber-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-amber-700">+</button>
-                                <button onclick="adjustAttendance('lates', -1)" class="bg-amber-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-amber-900">-</button>
-                            </div>
-                        </div>
-                        <div class="bg-sky-50 p-3.5 rounded-xl flex flex-col justify-between border border-sky-100 shadow-2xs">
-                            <span class="block text-xs font-bold text-sky-700">مستأذن (${att.excuses || 0})</span>
-                            <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('excuses', 1)" class="bg-sky-600 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-sky-700">+</button>
-                                <button onclick="adjustAttendance('excuses', -1)" class="bg-sky-800 text-white w-8 h-8 rounded-lg font-black text-sm cursor-pointer shadow-xs hover:bg-sky-900">-</button>
-                            </div>
-                        </div>
+                <div class="bg-slate-50 p-4 rounded-xl mb-4 border">
+                    <h4 class="font-bold text-xs mb-2">👤 الحضور والغياب</h4>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                        <div class="bg-rose-50 p-2 rounded-lg text-rose-700 font-bold">غائب (${att.absents})</div>
+                        <div class="bg-amber-50 p-2 rounded-lg text-amber-700 font-bold">متأخر (${att.lates})</div>
+                        <div class="bg-sky-50 p-2 rounded-lg text-sky-700 font-bold">مستأذن (${att.excuses})</div>
                     </div>
                 </div>
-
-                <div class="mb-6">
-                    <h4 class="font-bold text-slate-800 text-sm mb-3 flex items-center justify-between">
-                        <span>📅 النشاطات والسلوكيات المسجلة</span>
-                        <span class="text-xs text-slate-500 font-normal">موثق بالتاريخ والوقت</span>
-                    </h4>
-                    <div class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-                        ${actions.length === 0 ? '<p class="text-sm text-slate-400 text-center py-6">لا توجد نشاطات مسجلة حالياً</p>' : 
-                            actions.map((act, index) => `
-                                <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center text-sm shadow-2xs">
-                                    <div class="flex items-center gap-3">
-                                        <span class="w-3 h-3 rounded-full ${act.score > 0 ? 'bg-emerald-500' : (act.score < 0 ? 'bg-rose-500' : 'bg-sky-500')}"></span>
-                                        <div>
-                                            <span class="font-bold text-slate-800 block text-sm">${act.title} (${act.score > 0 ? '+' + act.score : act.score})</span>
-                                            <span class="text-xs text-slate-400 font-mono mt-0.5 block">${act.timestamp}</span>
-                                        </div>
-                                    </div>
-                                    <button onclick="deleteStudentAction(${index})" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ حذف</button>
-                                </div>
-                            `).join('')
-                        }
-                    </div>
-                </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button onclick="window.print()" class="flex-1 ${btnPrimaryClass} text-white py-3 rounded-xl font-bold text-sm cursor-pointer shadow-md">🖨️ طباعة التقرير</button>
-                    <button onclick="closeModal()" class="flex-1 bg-slate-200 text-slate-700 py-3 rounded-xl font-bold text-sm hover:bg-slate-300 cursor-pointer shadow-md">إغلاق</button>
+                <div class="flex gap-2">
+                    <button onclick="window.print()" class="flex-1 bg-slate-800 text-white py-2.5 rounded-xl font-bold text-xs cursor-pointer">🖨️ طباعة</button>
+                    <button onclick="closeModal()" class="flex-1 bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs cursor-pointer">إغلاق</button>
                 </div>
             `;
-
             document.getElementById('student-modal').classList.remove('hidden');
             document.getElementById('student-modal').classList.add('flex');
         };
@@ -577,173 +586,146 @@
             document.getElementById('student-modal').classList.remove('flex');
         };
 
-        window.onload = function() {
-            initFastLoad();
-        };
+        window.onload = function() { initSystem(); };
     </script>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col justify-between text-sm">
 
     <header id="main-header" class="p-4 shadow-md border-b">
-        <div class="container mx-auto max-w-3xl flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="container mx-auto max-w-4xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
                 <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
                 <p class="text-xs opacity-90 mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="openSettingsModal('classes')" class="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition backdrop-blur-xs">
-                    🏫 الفصول
-                </button>
-                <button onclick="openSettingsModal('actions')" class="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition backdrop-blur-xs">
-                    ⚙️ التقييمات
-                </button>
+                <button onclick="openSettingsModal('classes')" class="bg-white/20 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer">🏫 الفصول</button>
+                <button onclick="openSettingsModal('actions')" class="bg-white/20 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer">⚙️ التقييمات</button>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto p-3 max-w-3xl flex-grow my-3">
+    <main class="container mx-auto p-3 max-w-4xl flex-grow my-3">
 
-        <div id="main-dashboard" class="py-1">
-            <h2 class="text-lg font-bold text-slate-800 mb-4 text-center">الفصول الدراسية</h2>
-            
-            <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
+        <!-- لوحة الفصول والتحكم الرئيسية -->
+        <div id="main-dashboard" class="py-1 space-y-4">
+            <h2 class="text-lg font-bold text-slate-800 text-center">الفصول الدراسية</h2>
+            <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
 
-            <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 text-center" style="background: rgba(255, 255, 255, 0.95);">
-                <p class="text-xs text-slate-700 font-bold" id="loading-status-text">⏳ جاري تحميل جميع أسماء الطلاب مرة واحدة...</p>
+            <!-- الكود الثاني المدمج تماماً ببطاقته وتنسيقه الكلاسيكي -->
+            <div class="admin-box">
+                <!-- طلبات التسجيل المعلقة -->
+                <div class="pending-section" id="pendingSection">
+                    <h3 style="color: #d32f2f; margin-top:0; font-size: 1rem;">🔔 طلبات تسجيل جديدة بانتظار المراجعة</h3>
+                    <table id="pendingTable">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>البريد الإلكتروني</th>
+                                <th>الإجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- الرفع الجماعي -->
+                <div class="bulk-section">
+                    <label><strong>لصق القائمة هنا (اعتماد مباشر للمعتمدين):</strong></label>
+                    <textarea id="bulkInput" placeholder="الصق هنا.. لا يهم إذا بدأ السطر بالاسم أو الإيميل"></textarea>
+                    <div class="controls">
+                        <button class="btn btn-upload" onclick="superSmartBulkAdd()">بدء المعالجة والرفع 🚀</button>
+                        <button class="btn btn-copy" onclick="copyAllStudents()">📋 نسخ الكل (الاسم والإيميل)</button>
+                        <button class="btn btn-delete-all" onclick="deleteAllStudents()">حذف الكل 🗑️</button>
+                    </div>
+                </div>
+
+                <!-- الإحصائيات -->
+                <div class="stats-bar">
+                    <span id="approvedCount">الطلاب المعتمدين: 0</span>
+                    <span id="pendingCountBadge" style="color: #d32f2f;">الطلبات المعلقة: 0</span>
+                </div>
+
+                <!-- البحث وجدول الطلاب الشامل -->
+                <div class="search-container">
+                    <h3 style="margin: 0; font-size: 1rem; color: var(--maroon);">🎓 قائمة الطلاب المعتمدين (المصرح لهم بالاختبار)</h3>
+                    <input type="text" id="searchInput" class="search-box" onkeyup="searchStudents()" placeholder="🔍 ابحث عن اسم الطالب أو إيميله...">
+                </div>
+
+                <table id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
 
+        <!-- واجهة عرض الفصل (للرصد والتقارير دون أي بحث) -->
         <div id="class-view" class="hidden py-1">
-            <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-2xs border border-slate-200">
-                <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 transition cursor-pointer">⬅ الرئيسية</button>
+            <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl border">
+                <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer">⬅ الرئيسية</button>
                 <h2 class="text-base font-bold text-slate-700" id="class-title-header">الفصل</h2>
                 <div class="w-12"></div>
             </div>
-
-            <!-- قائمة منسدلة دائمة وثابتة لجميع أسماء الطلاب -->
-            <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm">🔍</span>
-                    <select id="class-student-select" onchange="onSelectStudentToAdd()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer">
-                        <option value="">-- جاري تحميل قائمة الطلاب... --</option>
-                    </select>
-                </div>
-            </div>
-
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
         </div>
 
     </main>
 
-    <footer class="bg-slate-900 text-slate-400 py-4 text-center text-[11px] font-semibold border-t border-slate-800">
+    <footer class="bg-slate-900 text-slate-400 py-4 text-center text-[11px] font-semibold border-t">
         <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
     </footer>
 
-    <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
+    <!-- لوحة الإعدادات -->
+    <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
-            <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
-            <h3 class="text-lg font-bold text-center mb-1 text-slate-800">⚙️ لوحة الإعدادات</h3>
-            <p class="text-[11px] text-center text-slate-500 mb-4 font-medium">تحكم بالفصول الدراسية أو خصص التقييمات عبر القائمة المنسدلة</p>
-
+            <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer">✕</button>
+            <h3 class="text-lg font-bold text-center mb-3">⚙️ لوحة الإعدادات</h3>
             <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-xl">
-                <button id="btn-tab-classes" onclick="switchSettingsTab('classes')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">🏫 إعدادات الفصول</button>
-                <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">⭐ إعدادات التقييمات</button>
+                <button id="btn-tab-classes" onclick="switchSettingsTab('classes')" class="flex-1 py-2 rounded-xl font-bold text-xs bg-slate-800 text-white">🏫 الفصول</button>
+                <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-600">⭐ التقييمات</button>
             </div>
-
             <div id="classes-tab-content" class="space-y-3">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
-                    <h4 class="font-bold text-xs text-slate-700">إضافة أو تعديل فصل دراسي</h4>
-                    <div class="flex gap-2">
-                        <input type="text" id="new-class-name" placeholder="اسم الفصل (مثال: أول ثانوي / 5)..." class="flex-1 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400">
-                        <button id="save-class-btn" onclick="saveClassItem()" class="bg-slate-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 cursor-pointer">إضافة ➕</button>
-                    </div>
+                <div class="flex gap-2">
+                    <input type="text" id="new-class-name" placeholder="اسم الفصل..." class="flex-1 border p-2 rounded-xl text-xs">
+                    <button onclick="saveClassItem()" class="bg-slate-700 text-white px-3 py-2 rounded-xl text-xs font-bold">إضافة</button>
                 </div>
-                <div class="space-y-1.5">
-                    <h4 class="font-bold text-xs text-slate-700">قائمة الفصول الحالية</h4>
-                    <div id="settings-classes-list" class="max-h-44 overflow-y-auto space-y-1.5 pr-1 border border-slate-200 p-2.5 rounded-2xl bg-slate-50"></div>
-                </div>
+                <div id="settings-classes-list" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
             </div>
-
             <div id="actions-tab-content" class="space-y-3 hidden">
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
-                    <h4 class="font-bold text-xs text-slate-700">📌 اختر تقييماً للتعديل أو أضف جديداً</h4>
-                    
-                    <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer">
-                        <option value="">-- اختر تقييماً للتعديل أو أضف جديداً --</option>
-                    </select>
-
-                    <div class="grid grid-cols-3 gap-2">
-                        <select id="new-action-icon" class="border border-slate-200 p-2.5 rounded-xl text-base font-bold bg-white">
-                            <option value="⭐">⭐ نجمة</option>
-                            <option value="✅">✅ صح</option>
-                            <option value="❌">❌ خطأ</option>
-                            <option value="💡">💡 مشاركة</option>
-                            <option value="📘">📘 واجب</option>
-                            <option value="📕">📕 عدم حل</option>
-                            <option value="🎁">🎁 هدية</option>
-                            <option value="🏆">🏆 كأس</option>
-                            <option value="💤">💤 نوم</option>
-                            <option value="🗣️">🗣️ تحدث</option>
-                            <option value="⚡">⚡ نشاط</option>
-                            <option value="🔥">🔥 تميز</option>
-                        </select>
-
-                        <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white focus:outline-none">
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (1 أو -1)" class="border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white">
-                        
-                        <select id="new-action-color" class="border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white">
-                            <option value="#28a745">🟢 أخضر عشبي</option>
-                            <option value="#20c997">🔹 أخضر فيروزي</option>
-                            <option value="#007bff">🔵 أزرق غامق</option>
-                            <option value="#17a2b8">🟦 سماوي فاتح</option>
-                            <option value="#6610f2">🟣 بنفسجي ملكي</option>
-                            <option value="#e83e8c">🩷 وردي زاهي</option>
-                            <option value="#dc3545">🔴 أحمر قاني</option>
-                            <option value="#ffc107">🟡 أصفر ذهبي</option>
-                        </select>
-                    </div>
-
-                    <div class="flex gap-2 pt-1">
-                        <button id="save-action-btn" onclick="saveCustomActionFromDropdown()" class="flex-1 bg-slate-700 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 transition cursor-pointer">حفظ التقييم 🚀</button>
-                        <button id="delete-action-btn" onclick="deleteSelectedAction()" class="hidden bg-rose-600 text-white px-3 py-2.5 rounded-xl font-bold text-xs hover:bg-rose-700 transition cursor-pointer">حذف 🗑️</button>
-                        <button onclick="resetActionForm()" class="bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-300 cursor-pointer">إلغاء</button>
-                    </div>
-                </div>
+                <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border p-2 rounded-xl text-xs"></select>
+                <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="w-full border p-2 rounded-xl text-xs">
+                <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة" class="w-full border p-2 rounded-xl text-xs">
+                <button onclick="saveCustomActionFromDropdown()" class="w-full bg-slate-700 text-white py-2 rounded-xl text-xs font-bold">حفظ التقييم</button>
             </div>
-
-            <button onclick="closeSettingsModal()" class="w-full bg-slate-900 text-slate-100 py-3 rounded-xl font-bold text-xs cursor-pointer hover:bg-black shadow-md mt-4">إغلاق</button>
         </div>
     </div>
 
-    <div id="student-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 md:p-6 z-50 backdrop-blur-xs">
-        <div class="bg-white rounded-3xl w-[95%] md:w-full md:max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl">
-            <button onclick="closeModal()" class="absolute top-5 left-5 bg-slate-100 text-slate-600 w-10 h-10 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer shadow-xs">✕</button>
+    <!-- نافذة التقرير -->
+    <div id="student-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
+        <div class="bg-white rounded-3xl w-[95%] md:max-w-xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer">✕</button>
             <div id="modal-content"></div>
         </div>
     </div>
 
-    <div id="action-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 relative shadow-xl max-h-[90vh] overflow-y-auto">
-            <button onclick="closeActionModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
-            <div class="text-center mb-4">
-                <h3 class="text-base font-bold text-slate-800" id="action-student-name">رصد الطالب</h3>
-                <p class="text-[11px] text-slate-400 mt-0.5">أ/ عبدالعزيز موسى الفيفي</p>
-                <p class="text-[10px] text-slate-600 font-semibold mt-0.5">اختر التقييم أو الحالة أدناه ليتم حفظها وتحديثها لحظياً</p>
-            </div>
-
+    <!-- نافذة الرصد -->
+    <div id="action-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 relative shadow-xl">
+            <button onclick="closeActionModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer">✕</button>
+            <h3 class="text-base font-bold text-center mb-3" id="action-student-name">رصد الطالب</h3>
             <div class="grid grid-cols-4 gap-1.5 mb-3">
-                <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-emerald-700 transition flex flex-col items-center justify-center">🟢 حاضر</button>
-                <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-rose-700 transition flex flex-col items-center justify-center">🔴 غائب</button>
-                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-sky-700 transition flex flex-col items-center justify-center">🔵 مستأذن</button>
-                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-amber-700 transition flex flex-col items-center justify-center">🟠 متأخر</button>
+                <button onclick="recordAction('حاضر', 0, null)" class="p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer">🟢 حاضر</button>
+                <button onclick="recordAction('غائب', 0, 'غائب')" class="p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer">🔴 غائب</button>
+                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer">🔵 مستأذن</button>
+                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer">🟠 متأخر</button>
             </div>
-
-            <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto pr-1"></div>
-            
-            <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-black shadow-xs">إغلاق</button>
+            <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-3 max-h-48 overflow-y-auto"></div>
+            <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2 rounded-xl font-bold text-xs cursor-pointer">إغلاق</button>
         </div>
     </div>
 
