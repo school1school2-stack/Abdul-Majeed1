@@ -14,7 +14,19 @@
         :root { --maroon: #800000; --gold: #d4af37; --bg: #fdfaf1; --danger: #c62828; --success: #28a745; --info: #17a2b8; }
         body { font-family: 'Tajawal', sans-serif; min-height: 100vh; background: var(--bg); padding: 15px; font-size: 1rem; transition: background 0.5s ease; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
-        .glass-card { backdrop-filter: blur(10px); transition: all 0.5s ease; }
+        
+        /* تصميم بطاقة الطالب الفاخرة ثلاثية الأبعاد */
+        .student-3d-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+        .student-3d-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.08), 0 10px 12px -5px rgba(0, 0, 0, 0.05);
+            border-color: #cbd5e1;
+        }
         
         .admin-card { background: white; max-width: 1100px; margin: auto; border-radius: 16px; padding: 30px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); border-top: 8px solid var(--maroon); }
         .header { text-align: center; border-bottom: 2px solid var(--gold); margin-bottom: 25px; padding-bottom: 12px; }
@@ -443,13 +455,13 @@
                 const count = allStudents.filter(s => s.className === cls).length;
                 const cardBgClass = window.currentTheme ? window.currentTheme.cardBg : 'bg-white/95';
                 classesContainer.innerHTML += `
-                    <div onclick="openClass('${cls}')" class="glass-card p-5 rounded-2xl shadow-sm border hover:border-slate-400 cursor-pointer transition flex items-center justify-between ${cardBgClass}">
+                    <div onclick="openClass('${cls}')" class="student-3d-card p-6 rounded-2xl cursor-pointer transition flex items-center justify-between">
                         <div>
                             <span class="text-3xl mb-1.5 block">📚</span>
-                            <h3 class="text-lg font-black text-slate-900">${cls}</h3>
-                            <p class="text-xs text-slate-600 mt-0.5 font-bold">${count} طلاب مخصصين</p>
+                            <h3 class="text-xl font-black text-slate-900">${cls}</h3>
+                            <p class="text-xs text-slate-500 mt-1 font-bold">${count} طلاب مخصصين</p>
                         </div>
-                        <span class="bg-slate-100 text-slate-700 w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shadow-2xs">➔</span>
+                        <span class="bg-slate-100 text-slate-700 w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shadow-xs">➔</span>
                     </div>
                 `;
             });
@@ -463,14 +475,11 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-10 font-bold bg-white rounded-2xl shadow-2xs text-sm">لا توجد طلاب في هذا الفصل حالياً. يمكنك تعيينهم من لوحة التحكم الرئيسية.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-12 font-bold bg-white rounded-2xl shadow-xs text-sm">لا توجد طلاب في هذا الفصل حالياً. يمكنك تعيينهم من لوحة التحكم الرئيسية.</p>`;
                 return;
             }
 
             students.forEach(student => {
-                const btnPrimaryClass = window.currentTheme ? window.currentTheme.btnPrimary.split(' ')[0] : 'bg-slate-700';
-                const cardBgClass = window.currentTheme ? window.currentTheme.cardBg : 'bg-white';
-                
                 let totalScore = 0;
                 if(student.actions && Array.isArray(student.actions)) {
                     student.actions.forEach(act => {
@@ -484,18 +493,21 @@
                 const formattedScore = totalScore > 0 ? `+${totalScore}` : totalScore;
 
                 container.innerHTML += `
-                    <div class="p-4 rounded-2xl shadow-2xs flex items-center justify-between border transition ${cardBgClass}">
-                        <div>
-                            <div class="flex items-center gap-2.5">
-                                <h3 class="font-black text-sm text-slate-900">${student.name}</h3>
-                                <span class="text-xs font-black px-2 py-0.5 rounded-lg border ${scoreBadgeBg}" title="مجموع التقييمات">⭐ ${formattedScore}</span>
+                    <div class="student-3d-card p-5 rounded-2xl flex items-center justify-between transition">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200/60 text-amber-800 flex items-center justify-center text-xl font-black shadow-inner">👤</div>
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <h3 class="font-black text-lg text-slate-900 tracking-wide">${student.name}</h3>
+                                    <span class="text-xs font-black px-2.5 py-1 rounded-xl border ${scoreBadgeBg}" title="مجموع التقييمات">⭐ ${formattedScore}</span>
+                                </div>
+                                <p class="text-xs text-slate-500 font-semibold mt-1">${student.email || 'بدون إيميل'}</p>
                             </div>
-                            <p class="text-xs text-slate-500 font-bold mt-1">${student.email || 'بدون إيميل'}</p>
                         </div>
                         <div class="flex gap-2 items-center">
-                            <button onclick="openActionModal('${student.id}')" class="${btnPrimaryClass} text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
-                            <button onclick="removeStudentFromClass('${student.id}')" title="إزالة الطالب من الفصل" class="bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
+                            <button onclick="openActionModal('${student.id}')" class="bg-gradient-to-l from-stone-700 to-stone-800 hover:from-stone-800 hover:to-stone-900 text-amber-100 px-4 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer transition">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-gradient-to-l from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer transition">📊 التقرير</button>
+                            <button onclick="removeStudentFromClass('${student.id}')" title="إزالة الطالب من الفصل" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-2.5 rounded-xl text-xs font-bold transition">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -697,7 +709,7 @@
                 const actColor = act.color || '#64748b';
                 
                 container.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl border border-slate-100 flex items-center justify-between shadow-2xs hover:shadow transition">
+                    <div class="bg-white p-3 rounded-xl border border-slate-100 flex items-center justify-between shadow-xs hover:shadow transition">
                         <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-3 flex-grow text-right cursor-pointer">
                             <span class="w-10 h-10 rounded-xl flex items-center justify-center text-lg border" style="background-color: ${actColor}15; border-color: ${actColor}40;">
                                 ${act.icon || '⭐'}
@@ -899,7 +911,7 @@
 
         <div id="main-dashboard" class="py-1 space-y-4">
             <h2 class="text-lg font-black text-slate-900 text-center">الفصول الدراسية</h2>
-            <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+            <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
 
             <div class="admin-card">
                 <div class="header">
@@ -961,7 +973,7 @@
                 <div class="w-12"></div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
+            <div class="grid grid-cols-1 gap-4" id="class-students-container"></div>
         </div>
 
     </main>
