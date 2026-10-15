@@ -524,10 +524,11 @@
                             displayIcon = '🟠';
                         }
 
+                        // الأيقونات هنا أصبحت شفافة تماماً بدون خلفية مظللة
                         actionsListHtml += `
-                            <div onclick="openActionModal('${student.id}')" class="relative cursor-pointer transition hover:scale-105" title="${act.title}">
-                                <div class="w-12 h-12 rounded-2xl bg-teal-500 text-white flex items-center justify-center text-xl shadow-xs border border-teal-600">${displayIcon}</div>
-                                <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full ${badgeBg} text-[10px] font-black flex items-center justify-center shadow-xs">${act.score}</span>
+                            <div onclick="openActionModal('${student.id}')" class="relative cursor-pointer transition hover:scale-110 flex items-center justify-center p-2" title="${act.title}">
+                                <span class="text-3xl">${displayIcon}</span>
+                                <span class="absolute top-0 right-0 w-5 h-5 rounded-full ${badgeBg} text-[10px] font-black flex items-center justify-center shadow-xs">${act.score}</span>
                             </div>
                         `;
                     });
