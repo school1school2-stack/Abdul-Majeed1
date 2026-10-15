@@ -111,7 +111,7 @@
             document.getElementById('class-view').classList.remove('hidden');
             document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
             renderClassStudents();
-            setupStudentSearch('');
+            closeCustomSelect();
         };
 
         window.backToHome = function() {
@@ -121,54 +121,59 @@
             renderView();
         };
 
-        // تصفية وعرض نتائج البحث عن الطلاب
-        window.setupStudentSearch = function(keyword) {
-            const dropdownList = document.getElementById('student-search-dropdown');
-            if(!dropdownList) return;
+        // دوال التحكم بالقائمة المنسدلة المخصصة مع خانة البحث بداخلها
+        window.toggleCustomSelect = function() {
+            const dropdown = document.getElementById('custom-dropdown-box');
+            if(dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                document.getElementById('custom-select-search').value = '';
+                renderCustomDropdownOptions('');
+                setTimeout(() => document.getElementById('custom-select-search').focus(), 100);
+            } else {
+                closeCustomSelect();
+            }
+        };
+
+        window.closeCustomSelect = function() {
+            const dropdown = document.getElementById('custom-dropdown-box');
+            if(dropdown) dropdown.classList.add('hidden');
+        };
+
+        window.filterCustomDropdown = function(keyword) {
+            renderCustomDropdownOptions(keyword);
+        };
+
+        window.renderCustomDropdownOptions = function(keyword) {
+            const listContainer = document.getElementById('custom-dropdown-list');
+            if(!listContainer) return;
 
             const trimmed = keyword.trim().toLowerCase();
-            
-            // إذا كان حقل البحث فارغاً، أخفِ القائمة المنسدلة
-            if(trimmed === '') {
-                dropdownList.classList.add('hidden');
-                dropdownList.innerHTML = '';
-                return;
-            }
-
-            // تصفية الطلاب حسب الكلمة المدخلة
             const filtered = allStudents.filter(student => student.name.toLowerCase().includes(trimmed));
 
             if(filtered.length === 0) {
-                dropdownList.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">لا توجد نتائج مطابقة لـ "${keyword}"</div>`;
-                dropdownList.classList.remove('hidden');
+                listContainer.innerHTML = `<div class="p-3 text-xs text-slate-400 text-center">لا توجد نتائج مطابقة</div>`;
                 return;
             }
 
-            dropdownList.innerHTML = '';
+            listContainer.innerHTML = '';
             filtered.forEach(student => {
                 const statusText = student.className && student.className !== 'غير موزع' ? ` (مضاف في: ${student.className})` : ' (غير موزع)';
-                dropdownList.innerHTML += `
-                    <div onclick="selectStudentToAdd('${student.id}', '${student.name}')" class="p-2.5 hover:bg-slate-100 cursor-pointer border-b border-slate-100 last:border-b-0 text-xs font-bold text-slate-700 flex justify-between items-center transition">
+                listContainer.innerHTML += `
+                    <div onclick="selectStudentFromCustomDropdown('${student.id}', '${student.name}')" class="p-2.5 hover:bg-slate-100 cursor-pointer border-b border-slate-100 last:border-b-0 text-xs font-bold text-slate-700 flex justify-between items-center transition">
                         <span>👤 ${student.name}</span>
                         <span class="text-[10px] text-slate-400 font-normal">${statusText}</span>
                     </div>
                 `;
             });
-            dropdownList.classList.remove('hidden');
         };
 
-        // إضافة الطالب المختار مباشرة للفصل الحالي
-        window.selectStudentToAdd = async function(id, name) {
+        window.selectStudentFromCustomDropdown = async function(id, name) {
+            closeCustomSelect();
             const student = allStudents.find(s => s.id === id);
             if(student) {
                 student.className = activeClass;
                 renderClassStudents();
-                
-                // تفريغ حقل البحث وإخفاء القائمة
-                document.getElementById('student-search-input').value = '';
-                document.getElementById('student-search-dropdown').classList.add('hidden');
-                document.getElementById('student-search-dropdown').innerHTML = '';
-
+                document.getElementById('custom-select-display-text').innerText = `تم اختيار: ${name}`;
                 await db.collection("allowed_students").doc(id).update({ className: activeClass });
             }
         };
@@ -470,7 +475,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. ابحث عن اسم الطالب بالأعلى للإضافة.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم القائمة المنسدلة بالأعلى للإضافة.</p>`;
                 return;
             }
 
@@ -647,14 +652,27 @@
                 <div class="w-12"></div>
             </div>
 
-            <!-- خانة البحث التفاعلية المحدثة -->
+            <!-- القائمة المنسدلة المخصصة مع خانة البحث في جزئها العُلوي -->
             <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 border border-slate-200 relative" style="background: rgba(255, 255, 255, 0.95);">
-                <div class="flex items-center gap-2 relative">
-                    <span class="text-sm">🔍</span>
-                    <input type="text" id="student-search-input" oninput="setupStudentSearch(this.value)" placeholder="اكتب اسم الطالب للبحث السريع (مثال: محمد)..." class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400">
+                <div class="relative">
+                    <!-- الزر الرئيسي الذي يبدو كقائمة منسدلة -->
+                    <div onclick="toggleCustomSelect()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white flex justify-between items-center cursor-pointer shadow-2xs">
+                        <span id="custom-select-display-text" class="text-slate-700">🔍 اضغط هنا لاختيار الطالب أو ابحث بالاسم...</span>
+                        <span class="text-slate-400">▼</span>
+                    </div>
+
+                    <!-- صندوق القائمة المنسدلة المنسدل الذي يحتوي في أعلاه على أيقونة وخانة بحث -->
+                    <div id="custom-dropdown-box" class="absolute right-0 left-0 top-12 bg-white border border-slate-200 rounded-xl shadow-xl z-30 hidden p-2 space-y-2">
+                        <!-- خانة البحث المضمنة في جزئها العلوي بالأيقونة -->
+                        <div class="relative flex items-center border border-slate-200 rounded-lg bg-slate-50 px-2.5 py-1.5">
+                            <span class="text-sm ml-2">🔍</span>
+                            <input type="text" id="custom-select-search" oninput="filterCustomDropdown(this.value)" placeholder="اكتب اسم الطالب للبحث..." class="w-full bg-transparent text-xs font-bold text-slate-800 focus:outline-none">
+                        </div>
+
+                        <!-- قائمة أسماء الطلاب المتاحة للتصفية والاختيار -->
+                        <div id="custom-dropdown-list" class="max-h-52 overflow-y-auto space-y-0.5"></div>
+                    </div>
                 </div>
-                <!-- قائمة النتائج المنسدلة الذكية -->
-                <div id="student-search-dropdown" class="absolute right-3 left-3 top-16 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto z-20 hidden"></div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
@@ -764,7 +782,7 @@
             <div class="grid grid-cols-4 gap-1.5 mb-3">
                 <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-emerald-700 transition flex flex-col items-center justify-center">🟢 حاضر</button>
                 <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-rose-700 transition flex flex-col items-center justify-center">🔴 غائب</button>
-                <button onclick="recordAction/('مستأذن', 0, 'مستأذن')" class="click-effect p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-sky-700 transition flex flex-col items-center justify-center">🔵 مستأذن</button>
+                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-sky-700 transition flex flex-col items-center justify-center">🔵 مستأذن</button>
                 <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-amber-700 transition flex flex-col items-center justify-center">🟠 متأخر</button>
             </div>
 
