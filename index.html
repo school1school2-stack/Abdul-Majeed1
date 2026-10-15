@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام متابعة الطلاب الشامل - أ/ عبدالعزيز الفيفي</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -15,6 +15,13 @@
         html, body { font-family: 'Tajawal', sans-serif; height: 100vh; overflow: hidden; background: var(--bg); margin: 0; padding: 0; font-size: 1rem; transition: background 0.5s ease; display: flex; flex-direction: column; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         
+        /* تطبيق خط النسخ الجميل لأسماء الطلاب */
+        .student-name-font {
+            font-family: 'Amiri', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+        }
+
         /* تصميم بطاقات الفصول الاحترافية ثلاثية الأبعاد */
         .class-3d-card {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
@@ -28,16 +35,17 @@
             border-color: var(--maroon);
         }
 
-        /* تصميم بطاقة الطالب المربعة الفاخرة */
+        /* تصميم بطاقة الطالب المربعة الأكبر والأفخم */
         .student-square-card {
             background: linear-gradient(135deg, #ffffff 0%, #fafaf9 100%);
             border: 1.5px solid #e2e8f0;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
+            min-height: 185px;
         }
         .student-square-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.09);
             border-color: #cbd5e1;
         }
         
@@ -561,27 +569,27 @@
                 }
 
                 container.innerHTML += `
-                    <div class="student-square-card p-4 rounded-2xl flex flex-col justify-between transition gap-3">
+                    <div class="student-square-card p-5 rounded-2xl flex flex-col justify-between transition gap-3.5">
                         
-                        <!-- رأس البطاقة: الأيقونة، الاسم، والبريد -->
-                        <div class="flex items-center gap-3 cursor-pointer" onclick="openModal('${student.id}')" title="اضغط لعرض التقرير المفصل">
-                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-lg font-black shadow-md shrink-0">👤</div>
+                        <!-- رأس البطاقة: الأيقونة، الاسم بخط النسخ، والبريد -->
+                        <div class="flex items-center gap-3.5 cursor-pointer" onclick="openModal('${student.id}')" title="اضغط لعرض التقرير المفصل">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-xl font-black shadow-md shrink-0">👤</div>
                             <div class="overflow-hidden">
-                                <h3 class="font-black text-sm text-slate-900 tracking-wide truncate hover:text-blue-600 transition">${student.name}</h3>
+                                <h3 class="student-name-font text-slate-900 tracking-wide truncate hover:text-blue-600 transition">${student.name}</h3>
                                 <p class="text-[11px] text-slate-400 font-semibold truncate mt-0.5">${student.email || 'بدون إيميل'}</p>
                             </div>
                         </div>
 
                         <!-- وسط البطاقة: التقييمات والأيقونات مجتمعة بدون تكرار -->
-                        <div class="flex items-center gap-2 overflow-x-auto py-1 bg-slate-50/70 px-3 rounded-xl min-h-[44px]">
+                        <div class="flex items-center gap-2 overflow-x-auto py-1.5 bg-slate-50/70 px-3 rounded-xl min-h-[46px]">
                             ${actionsListHtml}
                         </div>
 
                         <!-- ذيل البطاقة: الأزرار الثلاثة المطلوبة (رصد، التقرير، حذف) -->
-                        <div class="grid grid-cols-3 gap-1.5 pt-1">
-                            <button onclick="openActionModal('${student.id}')" class="bg-stone-800 hover:bg-stone-900 text-amber-100 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition text-center">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition text-center">📊 التقرير</button>
-                            <button onclick="removeStudentFromClass('${student.id}')" class="bg-rose-500 hover:bg-rose-600 text-white py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition text-center">🗑️ حذف</button>
+                        <div class="grid grid-cols-3 gap-2 pt-1">
+                            <button onclick="openActionModal('${student.id}')" class="bg-stone-800 hover:bg-stone-900 text-amber-100 py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition text-center">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition text-center">📊 التقرير</button>
+                            <button onclick="removeStudentFromClass('${student.id}')" class="bg-rose-500 hover:bg-rose-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition text-center">🗑️ حذف</button>
                         </div>
 
                     </div>
@@ -893,7 +901,7 @@
             modalContent.innerHTML = `
                 <div class="text-center mb-5">
                     <div class="w-20 h-20 ${btnPrimaryClass} text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-md">👤</div>
-                    <h2 class="text-2xl font-black text-slate-900">${student.name}</h2>
+                    <h2 class="student-name-font text-2xl text-slate-900">${student.name}</h2>
                     <p class="text-sm font-bold text-slate-600 mt-1">${student.className}</p>
                 </div>
 
@@ -1050,7 +1058,7 @@
                 <div class="w-12"></div>
             </div>
 
-            <!-- عرض الطلاب في مربعات كبيرة (اثنين بجانب بعض في الشاشات الكبيرة) -->
+            <!-- عرض الطلاب في مربعات أكبر مع خط النسخ -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="class-students-container"></div>
         </div>
 
