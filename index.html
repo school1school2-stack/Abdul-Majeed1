@@ -5,17 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام متابعة الطلاب الاحترافي - أ/ عبدالعزيز الفيفي</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- استيراد مكتبات Firebase الإصدار الثامن السريع والمستقر -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
-        body { font-family: 'Cairo', sans-serif; min-height: 100vh; transition: background 0.5s ease; }
+        body { font-family: 'Tajawal', sans-serif; min-height: 100vh; transition: background 0.5s ease; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         .glass-card { backdrop-filter: blur(10px); transition: all 0.5s ease; }
     </style>
-    <!-- استيراد مكتبات Firebase (Realtime Database) -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push, remove, update, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAVrIIm7aXjg0hGrMk0qVrXT8gaRIpHoBk",
             authDomain: "youy-apps.firebaseapp.com",
@@ -26,9 +28,9 @@
             appId: "1:690543747528:web:10c85ef0c93b79596620fd",
             measurementId: "G-LL8PGM8G8E"
         };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
         let activeClass = null;
         let currentStudentId = null;
@@ -44,11 +46,7 @@
             { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50" },
             { name: "الفانيلا اللاتيه", bg: "linear-gradient(135deg, #faf7f2 0%, #f0eae1 100%)", headerBg: "bg-amber-950 text-orange-100 border-amber-900", btnPrimary: "bg-amber-950 hover:bg-black text-orange-100" },
             { name: "السحاب الفرنسي", bg: "linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%)", headerBg: "bg-sky-900 text-sky-50 border-sky-800", btnPrimary: "bg-sky-900 hover:bg-sky-950 text-white" },
-            { name: "الزمرد الخفيف", bg: "linear-gradient(135deg, #f4fcf7 0%, #e6f4ed 100%)", headerBg: "bg-emerald-900 text-emerald-50 border-emerald-800", btnPrimary: "bg-emerald-800 hover:bg-emerald-900 text-white" },
-            { name: "الشمبانيا الملكي", bg: "linear-gradient(135deg, #fffcf4 0%, #f7f1e3 100%)", headerBg: "bg-yellow-900 text-yellow-50 border-yellow-800", btnPrimary: "bg-yellow-800 hover:bg-yellow-900 text-white" },
-            { name: "الكوارتز الوردي", bg: "linear-gradient(135deg, #fdf8f8 0%, #f9f0f0 100%)", headerBg: "bg-rose-900 text-rose-50 border-rose-800", btnPrimary: "bg-rose-800 hover:bg-rose-900 text-white" },
-            { name: "النحاس الدافئ", bg: "linear-gradient(135deg, #faf6f5 0%, #f0eae6 100%)", headerBg: "bg-orange-950 text-orange-50 border-orange-900", btnPrimary: "bg-orange-900 hover:bg-orange-950 text-white" },
-            { name: "اللافندر الملكي الفاتح", bg: "linear-gradient(135deg, #f7f5fa 0%, #edeaf2 100%)", headerBg: "bg-purple-950 text-purple-50 border-purple-900", btnPrimary: "bg-purple-900 hover:bg-purple-950 text-white" }
+            { name: "الزمرد الخفيف", bg: "linear-gradient(135deg, #f4fcf7 0%, #e6f4ed 100%)", headerBg: "bg-emerald-900 text-emerald-50 border-emerald-800", btnPrimary: "bg-emerald-800 hover:bg-emerald-900 text-white" }
         ];
 
         function applyRandomTheme() {
@@ -70,47 +68,22 @@
             { icon: '📕', name: 'لم يحل الواجب', score: -3.0, color: '#e83e8c' },
             { icon: '💤', name: 'النوم في الحصة', score: -1.0, color: '#6610f2' },
             { icon: '🗣️', name: 'التحدث أثناء الدرس', score: -1.0, color: '#6f42c1' },
-            { icon: '🏃‍♂️', name: 'خرج ولم يعد', score: -1.0, color: '#007bff' },
-            { icon: '😑', name: 'غير مهتم', score: -1.0, color: '#fd7e14' },
-            { icon: '📁', name: 'نسيان ملف أو واجب', score: -5.0, color: '#ffc107' },
-            { icon: '📱', name: 'استخدام الهاتف', score: -1.0, color: '#d9534f' },
             { icon: '⭐', name: 'إنجاز ملف', score: 5.0, color: '#00cec9' },
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل محسن: قراءة من الذاكرة المحلية أولاً ثم مزامنة ذكية وهادئة في الخلفية
-        window.initFastLoad = async function() {
+        // الاستماع اللحظي الفائق السرعة (مثل الكود الثاني الناجح)
+        function initFirebaseListeners() {
             applyRandomTheme();
 
-            const cachedStudents = localStorage.getItem('fifi_cached_students');
-            const cachedActions = localStorage.getItem('fifi_cached_actions');
-            const cachedClasses = localStorage.getItem('fifi_cached_classes');
-
-            if (cachedStudents) allStudents = JSON.parse(cachedStudents);
-            if (cachedActions) customActions = JSON.parse(cachedActions); else customActions = defaultActions;
-            if (cachedClasses) classList = JSON.parse(cachedClasses);
-
-            renderView();
-            renderCustomActionsUI();
-            renderSettingsActionsDropdown();
-            renderClassesListUI();
-
-            const dbRef = ref(db);
-            try {
-                const [studentsSnap, settingsSnap, classesSnap] = await Promise.all([
-                    get(child(dbRef, 'fifi_students_tracker')),
-                    get(child(dbRef, 'fifi_custom_actions')),
-                    get(child(dbRef, 'fifi_classes_list'))
-                ]);
-
-                let needsUIRender = false;
-
-                if (studentsSnap.exists()) {
-                    const newStudents = [];
-                    const data = studentsSnap.val();
+            // الاستماع للطلاب
+            db.ref('fifi_students_tracker').on('value', (snapshot) => {
+                allStudents = [];
+                const data = snapshot.val();
+                if (data) {
                     Object.keys(data).forEach((key) => {
                         const studentItem = data[key];
-                        newStudents.push({ 
+                        allStudents.push({ 
                             id: key, 
                             name: studentItem.name || 'بدون اسم',
                             email: studentItem.email || 'بدون إيميل',
@@ -120,47 +93,36 @@
                             attendanceStats: studentItem.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
                         });
                     });
-                    if (JSON.stringify(newStudents) !== JSON.stringify(allStudents)) {
-                        allStudents = newStudents;
-                        localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
-                        needsUIRender = true;
-                    }
                 }
+                renderView();
+                if (activeClass) renderClassStudents();
+            });
 
-                if (settingsSnap.exists()) {
-                    const rawData = settingsSnap.val();
-                    const fetchedActions = Array.isArray(rawData) ? rawData : Object.values(rawData);
-                    if (JSON.stringify(fetchedActions) !== JSON.stringify(customActions)) {
-                        customActions = fetchedActions;
-                        localStorage.setItem('fifi_cached_actions', JSON.stringify(customActions));
-                        needsUIRender = true;
-                    }
+            // الاستماع للتقييمات
+            db.ref('fifi_custom_actions').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    customActions = Array.isArray(data) ? data : Object.values(data);
                 } else {
                     customActions = defaultActions;
-                    set(ref(db, 'fifi_custom_actions'), defaultActions);
+                    db.ref('fifi_custom_actions').set(defaultActions);
                 }
+                renderCustomActionsUI();
+                renderSettingsActionsDropdown();
+            });
 
-                if (classesSnap.exists()) {
-                    const fetchedClasses = classesSnap.val();
-                    if (JSON.stringify(fetchedClasses) !== JSON.stringify(classList)) {
-                        classList = fetchedClasses;
-                        localStorage.setItem('fifi_cached_classes', JSON.stringify(classList));
-                        needsUIRender = true;
-                    }
+            // الاستماع للفصول
+            db.ref('fifi_classes_list').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    classList = data;
                 } else {
-                    set(ref(db, 'fifi_classes_list'), classList);
+                    db.ref('fifi_classes_list').set(classList);
                 }
-
-                if (needsUIRender) {
-                    renderView();
-                    renderCustomActionsUI();
-                    renderSettingsActionsDropdown();
-                    renderClassesListUI();
-                }
-            } catch (error) {
-                console.error("خطأ في المزامنة الخلفية: ", error);
-            }
-        };
+                renderClassesListUI();
+                renderView();
+            });
+        }
 
         window.openClass = function(className) {
             activeClass = className;
@@ -230,10 +192,9 @@
             }
 
             classNameInput.value = '';
-            localStorage.setItem('fifi_cached_classes', JSON.stringify(classList));
             renderClassesListUI();
             renderView();
-            set(ref(db, 'fifi_classes_list'), classList);
+            db.ref('fifi_classes_list').set(classList);
         };
 
         window.editClassItem = function(index) {
@@ -249,10 +210,9 @@
                 allStudents.forEach(stu => {
                     if(stu.className === removedName) stu.className = 'غير موزع';
                 });
-                localStorage.setItem('fifi_cached_classes', JSON.stringify(classList));
                 renderClassesListUI();
                 renderView();
-                set(ref(db, 'fifi_classes_list'), classList);
+                db.ref('fifi_classes_list').set(classList);
             }
         };
 
@@ -325,8 +285,7 @@
                 customActions.push(newActObj);
             }
 
-            localStorage.setItem('fifi_cached_actions', JSON.stringify(customActions));
-            set(ref(db, 'fifi_custom_actions'), customActions);
+            db.ref('fifi_custom_actions').set(customActions);
             renderCustomActionsUI();
             renderSettingsActionsDropdown();
             resetActionForm();
@@ -337,8 +296,7 @@
             if(editingActionIndex === null || editingActionIndex < 0) return alert('الرجاء اختيار تقييم من القائمة أولاً للحذف');
             if(confirm('هل أنت متأكد من حذف هذا التقييم؟')) {
                 customActions.splice(editingActionIndex, 1);
-                localStorage.setItem('fifi_cached_actions', JSON.stringify(customActions));
-                set(ref(db, 'fifi_custom_actions'), customActions);
+                db.ref('fifi_custom_actions').set(customActions);
                 renderCustomActionsUI();
                 renderSettingsActionsDropdown();
                 resetActionForm();
@@ -380,12 +338,12 @@
             });
         }
 
-        window.superSmartBulkAdd = async function() {
+        window.superSmartBulkAdd = function() {
             const bulkText = document.getElementById('bulk-students-input').value.trim();
             if(!bulkText) return alert('الرجاء إدخال قائمة الطلاب في المربع');
             const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l !== "");
             let count = 0;
-            const studentsRef = ref(db, 'fifi_students_tracker');
+            const studentsRef = db.ref('fifi_students_tracker');
             const updates = {};
 
             for(let i = 0; i < lines.length; i++) {
@@ -399,13 +357,12 @@
                     email = line1.toLowerCase(); name = line2; i++;
                 }
                 if(name && email) {
-                    const newStudentRef = push(studentsRef);
+                    const newStudentRef = studentsRef.push();
                     const newStuObj = {
                         id: newStudentRef.key, name: name, email: email, className: 'غير موزع',
                         phone: '966566688614', actions: [],
                         attendanceStats: { absents: 0, lates: 0, excuses: 0 }
                     };
-                    allStudents.push(newStuObj);
                     updates[newStudentRef.key] = newStuObj;
                     count++;
                 }
@@ -413,9 +370,7 @@
 
             if(count > 0) {
                 document.getElementById('bulk-students-input').value = '';
-                localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
-                renderView();
-                update(studentsRef, updates);
+                studentsRef.update(updates);
                 alert(`تم حفظ ${count} طالب في السحابة بنجاح وبسرعة فائقة ✅`);
             } else {
                 alert('تأكد من تنسيق القائمة (اسم الطالب ثم الإيميل في كل سطر).');
@@ -433,13 +388,9 @@
             });
         };
 
-        window.deleteAllStudents = async function() {
+        window.deleteAllStudents = function() {
             if(confirm('تحذير: هل أنت متأكد من حذف جميع الطلاب من السحابة نهائياً؟')) {
-                allStudents = [];
-                localStorage.setItem('fifi_cached_students', JSON.stringify([]));
-                renderView();
-                if(activeClass) renderClassStudents();
-                set(ref(db, 'fifi_students_tracker'), null);
+                db.ref('fifi_students_tracker').set(null);
                 alert('تم تفريغ وحذف جميع الطلاب بنجاح 🗑️');
             }
         };
@@ -469,39 +420,24 @@
             resultsBox.classList.remove('hidden');
         };
 
-        window.transferStudentToCurrentClass = async function(id) {
-            const student = allStudents.find(s => s.id === id);
-            if(student) {
-                student.className = activeClass;
-                localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
-                renderClassStudents();
-                document.getElementById('global-search-input').value = '';
-                document.getElementById('global-search-results').classList.add('hidden');
-                update(ref(db, `fifi_students_tracker/${id}`), { className: activeClass });
-            }
+        window.transferStudentToCurrentClass = function(id) {
+            db.ref(`fifi_students_tracker/${id}`).update({ className: activeClass });
+            document.getElementById('global-search-input').value = '';
+            document.getElementById('global-search-results').classList.add('hidden');
         };
 
-        window.editStudent = async function(id) {
+        window.editStudent = function(id) {
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
             const newName = prompt("تعديل اسم الطالب:", student.name);
             if(newName === null) return;
             const newEmail = prompt("تعديل إيميل مدرستي:", student.email || '');
-            student.name = newName.trim();
-            student.email = newEmail.trim();
-            localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
-            renderView();
-            if(activeClass) renderClassStudents();
-            update(ref(db, `fifi_students_tracker/${id}`), { name: student.name, email: student.email });
+            db.ref(`fifi_students_tracker/${id}`).update({ name: newName.trim(), email: newEmail.trim() });
         };
 
-        window.deleteStudent = async function(id) {
+        window.deleteStudent = function(id) {
             if(confirm('هل أنت متأكد من حذف هذا الطالب نهائياً؟')) {
-                allStudents = allStudents.filter(s => s.id !== id);
-                localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
-                renderView();
-                if(activeClass) renderClassStudents();
-                remove(ref(db, `fifi_students_tracker/${id}`));
+                db.ref(`fifi_students_tracker/${id}`).remove();
             }
         };
 
@@ -517,21 +453,19 @@
                 const timeFormatted = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const formattedTime = `${dayName} | ${dateFormatted} - ${timeFormatted}`;
 
+                let attendanceStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
                 if(attendanceType) {
-                    if(attendanceType === 'غائب') student.attendanceStats.absents = (student.attendanceStats.absents || 0) + 1;
-                    if(attendanceType === 'متأخر') student.attendanceStats.lates = (student.attendanceStats.lates || 0) + 1;
-                    if(attendanceType === 'مستأذن') student.attendanceStats.excuses = (student.attendanceStats.excuses || 0) + 1;
+                    if(attendanceType === 'غائب') attendanceStats.absents++;
+                    if(attendanceType === 'متأخر') attendanceStats.lates++;
+                    if(attendanceType === 'مستأذن') attendanceStats.excuses++;
                 }
                 
                 const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
-                student.actions = [newRecord, ...(student.actions || [])];
+                const updatedActions = [newRecord, ...(student.actions || [])];
 
-                localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
-                renderClassStudents();
-
-                update(ref(db, `fifi_students_tracker/${currentStudentId}`), {
-                    actions: student.actions,
-                    attendanceStats: student.attendanceStats
+                db.ref(`fifi_students_tracker/${currentStudentId}`).update({
+                    actions: updatedActions,
+                    attendanceStats: attendanceStats
                 });
             }
         };
@@ -541,10 +475,8 @@
             const student = allStudents.find(s => s.id === currentStudentId);
             if(student && student.actions) {
                 student.actions.splice(actionIndex, 1);
-                localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
                 openModal(currentStudentId);
-                renderClassStudents();
-                update(ref(db, `fifi_students_tracker/${currentStudentId}`), { actions: student.actions });
+                db.ref(`fifi_students_tracker/${currentStudentId}`).update({ actions: student.actions });
             }
         };
 
@@ -552,13 +484,13 @@
             if(!currentStudentId) return;
             const student = allStudents.find(s => s.id === currentStudentId);
             if(student) {
-                if(type === 'absents') student.attendanceStats.absents = Math.max(0, (student.attendanceStats.absents || 0) + delta);
-                if(type === 'lates') student.attendanceStats.lates = Math.max(0, (student.attendanceStats.lates || 0) + delta);
-                if(type === 'excuses') student.attendanceStats.excuses = Math.max(0, (student.attendanceStats.excuses || 0) + delta);
+                let att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
+                if(type === 'absents') att.absents = Math.max(0, (att.absents || 0) + delta);
+                if(type === 'lates') att.lates = Math.max(0, (att.lates || 0) + delta);
+                if(type === 'excuses') att.excuses = Math.max(0, (att.excuses || 0) + delta);
 
-                localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
                 openModal(currentStudentId);
-                update(ref(db, `fifi_students_tracker/${currentStudentId}`), { attendanceStats: student.attendanceStats });
+                db.ref(`fifi_students_tracker/${currentStudentId}`).update({ attendanceStats: att });
             }
         };
 
@@ -748,13 +680,12 @@
         };
 
         window.onload = function() {
-            initFastLoad();
+            initFirebaseListeners();
         };
     </script>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col justify-between text-sm">
 
-    <!-- الترويسة الاحترافية -->
     <header id="main-header" class="p-4 shadow-md border-b">
         <div class="container mx-auto max-w-3xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
@@ -774,7 +705,6 @@
 
     <main class="container mx-auto p-3 max-w-3xl flex-grow my-3">
 
-        <!-- لوحة التحكم الرئيسية -->
         <div id="main-dashboard" class="py-1">
             <h2 class="text-lg font-bold text-slate-800 mb-4 text-center">الفصول الدراسية</h2>
             
@@ -801,7 +731,6 @@
             </div>
         </div>
 
-        <!-- واجهة الفصل المستقلة -->
         <div id="class-view" class="hidden py-1">
             <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-2xs border border-slate-200">
                 <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 transition cursor-pointer">⬅ الرئيسية</button>
@@ -822,12 +751,10 @@
 
     </main>
 
-    <!-- تذييل الصفحة -->
     <footer class="bg-slate-900 text-slate-400 py-4 text-center text-[11px] font-semibold border-t border-slate-800">
         <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
     </footer>
 
-    <!-- نافذة الإعدادات الشاملة -->
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
@@ -839,7 +766,6 @@
                 <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer">⭐ إعدادات التقييمات</button>
             </div>
 
-            <!-- محتوى تبويب الفصول -->
             <div id="classes-tab-content" class="space-y-3">
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
                     <h4 class="font-bold text-xs text-slate-700">إضافة أو تعديل فصل دراسي</h4>
@@ -854,7 +780,6 @@
                 </div>
             </div>
 
-            <!-- محتوى تبويب التقييمات -->
             <div id="actions-tab-content" class="space-y-3 hidden">
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
                     <h4 class="font-bold text-xs text-slate-700">📌 اختر تقييماً للتعديل أو أضف جديداً</h4>
@@ -875,10 +800,6 @@
                             <option value="🏆">🏆 كأس</option>
                             <option value="💤">💤 نوم</option>
                             <option value="🗣️">🗣️ تحدث</option>
-                            <option value="📱">📱 جوال</option>
-                            <option value="😑">😑 غير مهتم</option>
-                            <option value="🏃‍♂️">🏃‍♂️ هروب</option>
-                            <option value="📁">📁 نسيان</option>
                             <option value="⚡">⚡ نشاط</option>
                             <option value="🔥">🔥 تميز</option>
                         </select>
@@ -895,12 +816,9 @@
                             <option value="#007bff">🔵 أزرق غامق</option>
                             <option value="#17a2b8">🟦 سماوي فاتح</option>
                             <option value="#6610f2">🟣 بنفسجي ملكي</option>
-                            <option value="#6f42c1">🔮 أرجواني</option>
                             <option value="#e83e8c">🩷 وردي زاهي</option>
                             <option value="#dc3545">🔴 أحمر قاني</option>
-                            <option value="#fd7e14">🟠 برتقالي ساطع</option>
                             <option value="#ffc107">🟡 أصفر ذهبي</option>
-                            <option value="#6c757d">⚪ رمادي رسمي</option>
                         </select>
                     </div>
 
@@ -916,7 +834,6 @@
         </div>
     </div>
 
-    <!-- نافذة تقرير ملف الطالب -->
     <div id="student-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 md:p-6 z-50 backdrop-blur-xs">
         <div class="bg-white rounded-3xl w-[95%] md:w-full md:max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-8 relative shadow-2xl">
             <button onclick="closeModal()" class="absolute top-5 left-5 bg-slate-100 text-slate-600 w-10 h-10 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer shadow-xs">✕</button>
@@ -924,7 +841,6 @@
         </div>
     </div>
 
-    <!-- نافذة رصد التقييمات للطالب -->
     <div id="action-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
         <div class="bg-white rounded-2xl max-w-md w-full p-5 relative shadow-xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeActionModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
@@ -934,7 +850,6 @@
                 <p class="text-[10px] text-slate-600 font-semibold mt-0.5">اختر التقييم أو الحالة أدناه ليتم حفظها وتحديثها لحظياً</p>
             </div>
 
-            <!-- أزرار الحضور والغياب الأربعة العلوية -->
             <div class="grid grid-cols-4 gap-1.5 mb-3">
                 <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-emerald-700 transition flex flex-col items-center justify-center">🟢 حاضر</button>
                 <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-rose-700 transition flex flex-col items-center justify-center">🔴 غائب</button>
@@ -942,7 +857,6 @@
                 <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-amber-700 transition flex flex-col items-center justify-center">🟠 متأخر</button>
             </div>
 
-            <!-- شبكة التقييمات والسلوكيات -->
             <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto pr-1"></div>
             
             <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-black shadow-xs">إغلاق</button>
