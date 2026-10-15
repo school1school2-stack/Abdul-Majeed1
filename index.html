@@ -78,11 +78,10 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل سريع جداً باستخدام الذاكرة المحلية أولاً ثم مزامنة السحابة
+        // تحميل محسن: قراءة من الذاكرة المحلية أولاً ثم مزامنة ذكية وهادئة في الخلفية
         window.initFastLoad = async function() {
             applyRandomTheme();
 
-            // قراءة من الذاكرة المحلية لظهور الفصول فوراً بدون أي تأخير
             const cachedStudents = localStorage.getItem('fifi_cached_students');
             const cachedActions = localStorage.getItem('fifi_cached_actions');
             const cachedClasses = localStorage.getItem('fifi_cached_classes');
@@ -96,7 +95,6 @@
             renderSettingsActionsDropdown();
             renderClassesListUI();
 
-            // جلب التحديثات من السحابة في الخلفية
             const dbRef = ref(db);
             try {
                 const [studentsSnap, settingsSnap, classesSnap] = await Promise.all([
@@ -105,12 +103,14 @@
                     get(child(dbRef, 'fifi_classes_list'))
                 ]);
 
+                let needsUIRender = false;
+
                 if (studentsSnap.exists()) {
-                    allStudents = [];
+                    const newStudents = [];
                     const data = studentsSnap.val();
                     Object.keys(data).forEach((key) => {
                         const studentItem = data[key];
-                        allStudents.push({ 
+                        newStudents.push({ 
                             id: key, 
                             name: studentItem.name || 'بدون اسم',
                             email: studentItem.email || 'بدون إيميل',
@@ -120,29 +120,43 @@
                             attendanceStats: studentItem.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
                         });
                     });
-                    localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
+                    if (JSON.stringify(newStudents) !== JSON.stringify(allStudents)) {
+                        allStudents = newStudents;
+                        localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
+                        needsUIRender = true;
+                    }
                 }
 
                 if (settingsSnap.exists()) {
                     const rawData = settingsSnap.val();
-                    customActions = Array.isArray(rawData) ? rawData : Object.values(rawData);
-                    localStorage.setItem('fifi_cached_actions', JSON.stringify(customActions));
+                    const fetchedActions = Array.isArray(rawData) ? rawData : Object.values(rawData);
+                    if (JSON.stringify(fetchedActions) !== JSON.stringify(customActions)) {
+                        customActions = fetchedActions;
+                        localStorage.setItem('fifi_cached_actions', JSON.stringify(customActions));
+                        needsUIRender = true;
+                    }
                 } else {
                     customActions = defaultActions;
                     set(ref(db, 'fifi_custom_actions'), defaultActions);
                 }
 
                 if (classesSnap.exists()) {
-                    classList = classesSnap.val();
-                    localStorage.setItem('fifi_cached_classes', JSON.stringify(classList));
+                    const fetchedClasses = classesSnap.val();
+                    if (JSON.stringify(fetchedClasses) !== JSON.stringify(classList)) {
+                        classList = fetchedClasses;
+                        localStorage.setItem('fifi_cached_classes', JSON.stringify(classList));
+                        needsUIRender = true;
+                    }
                 } else {
                     set(ref(db, 'fifi_classes_list'), classList);
                 }
 
-                renderView();
-                renderCustomActionsUI();
-                renderSettingsActionsDropdown();
-                renderClassesListUI();
+                if (needsUIRender) {
+                    renderView();
+                    renderCustomActionsUI();
+                    renderSettingsActionsDropdown();
+                    renderClassesListUI();
+                }
             } catch (error) {
                 console.error("خطأ في المزامنة الخلفية: ", error);
             }
@@ -366,7 +380,6 @@
             });
         }
 
-        // تحسين وحل مشكلة البطء: الحفظ الجماعي بطلب سحابي واحد فوري
         window.superSmartBulkAdd = async function() {
             const bulkText = document.getElementById('bulk-students-input').value.trim();
             if(!bulkText) return alert('الرجاء إدخال قائمة الطلاب في المربع');
@@ -402,7 +415,6 @@
                 document.getElementById('bulk-students-input').value = '';
                 localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
                 renderView();
-                // تحديث السحابة دفعة واحدة بدون أي تعليق
                 update(studentsRef, updates);
                 alert(`تم حفظ ${count} طالب في السحابة بنجاح وبسرعة فائقة ✅`);
             } else {
@@ -410,7 +422,6 @@
             }
         };
 
-        // زر نسخ الكل
         window.copyAllStudents = function() {
             if(allStudents.length === 0) return alert('لا توجد أسماء للنسخ');
             let textToCopy = "";
@@ -422,7 +433,6 @@
             });
         };
 
-        // زر حذف الكل
         window.deleteAllStudents = async function() {
             if(confirm('تحذير: هل أنت متأكد من حذف جميع الطلاب من السحابة نهائياً؟')) {
                 allStudents = [];
