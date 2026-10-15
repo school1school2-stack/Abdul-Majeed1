@@ -17,15 +17,15 @@
         
         /* تصميم بطاقات الفصول الاحترافية ثلاثية الأبعاد */
         .class-3d-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 10px 25px -5px rgba(128, 0, 0, 0.06), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.95) 100%);
+            border: 1.5px solid rgba(212, 175, 55, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(128, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
             transition: all 0.3s ease;
         }
         .class-3d-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 15px 30px -5px rgba(128, 0, 0, 0.12), 0 10px 12px -5px rgba(0, 0, 0, 0.06);
-            border-color: var(--gold);
+            box-shadow: 0 15px 30px -5px rgba(128, 0, 0, 0.15), 0 10px 12px -5px rgba(0, 0, 0, 0.08);
+            border-color: var(--maroon);
         }
 
         /* تصميم بطاقة الطالب الاحترافية */
@@ -476,14 +476,16 @@
             classList.forEach((cls, idx) => {
                 const count = allStudents.filter(s => s.className === cls).length;
                 const gradientStyle = classGradients[idx % classGradients.length];
+                
+                // تم تكبير الخطوط واسم الفصل، وعدد الطلاب أصبح باللون الأحمر الفاقع والبارز
                 classesContainer.innerHTML += `
-                    <div onclick="openClass('${cls}')" class="class-3d-card ${gradientStyle} p-6 rounded-2xl cursor-pointer transition flex items-center justify-between border shadow-sm">
+                    <div onclick="openClass('${cls}')" class="class-3d-card ${gradientStyle} p-7 rounded-2xl cursor-pointer transition flex items-center justify-between border shadow-md">
                         <div>
-                            <span class="text-3xl mb-1.5 block">📚</span>
-                            <h3 class="text-xl font-black tracking-wide">${cls}</h3>
-                            <p class="text-xs opacity-75 mt-1 font-bold">${count} طلاب مخصصين</p>
+                            <span class="text-4xl mb-2 block">📚</span>
+                            <h3 class="text-2xl font-black tracking-wide text-slate-900">${cls}</h3>
+                            <p class="text-sm text-red-600 mt-1.5 font-black">${count} طلاب مخصصين</p>
                         </div>
-                        <span class="bg-white/80 backdrop-blur-xs w-10 h-10 rounded-xl flex items-center justify-center font-black text-base shadow-xs">➔</span>
+                        <span class="bg-white/95 backdrop-blur-xs w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shadow-sm border border-slate-200">➔</span>
                     </div>
                 `;
             });
@@ -524,7 +526,7 @@
                             displayIcon = '🟠';
                         }
 
-                        // الأيقونات هنا أصبحت شفافة تماماً بدون خلفية مظللة
+                        // الأيقونات شفافة وبدون خلفية مظللة
                         actionsListHtml += `
                             <div onclick="openActionModal('${student.id}')" class="relative cursor-pointer transition hover:scale-110 flex items-center justify-center p-2" title="${act.title}">
                                 <span class="text-3xl">${displayIcon}</span>
@@ -964,7 +966,7 @@
     <main class="container mx-auto p-3 max-w-5xl flex-grow overflow-y-auto my-2">
 
         <div id="main-dashboard" class="py-1 space-y-4">
-            <h2 class="text-lg font-black text-slate-900 text-center">الفصول الدراسية</h2>
+            <h2 class="text-xl font-black text-slate-900 text-center tracking-wider mb-3">الفصول الدراسية</h2>
             <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
 
             <div class="admin-card">
