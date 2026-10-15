@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); min-height: 100vh; }
+        body { font-family: 'Cairo', sans-serif; background: linear-gradient(135deg, #f4f6f9 0%, #e2e8f0 100%); min-height: 100vh; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     </style>
@@ -147,13 +147,13 @@
             if(tab === 'classes') {
                 classesTabContent.classList.remove('hidden');
                 actionsTabContent.classList.add('hidden');
-                btnClasses.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-indigo-600 text-white shadow transition-all cursor-pointer";
-                btnActions.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-gray-200 text-gray-700 transition-all cursor-pointer";
+                btnClasses.className = "flex-1 py-2 rounded-xl font-bold text-xs bg-slate-700 text-white shadow transition-all cursor-pointer";
+                btnActions.className = "flex-1 py-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 transition-all cursor-pointer";
             } else {
                 classesTabContent.classList.add('hidden');
                 actionsTabContent.classList.remove('hidden');
-                btnActions.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-indigo-600 text-white shadow transition-all cursor-pointer";
-                btnClasses.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-gray-200 text-gray-700 transition-all cursor-pointer";
+                btnActions.className = "flex-1 py-2 rounded-xl font-bold text-xs bg-slate-700 text-white shadow transition-all cursor-pointer";
+                btnClasses.className = "flex-1 py-2 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 transition-all cursor-pointer";
                 renderSettingsActionsDropdown();
             }
         };
@@ -213,11 +213,11 @@
             container.innerHTML = '';
             classList.forEach((cls, index) => {
                 container.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl border flex justify-between items-center text-sm shadow-sm">
-                        <span class="font-bold text-gray-800">${cls}</span>
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center text-xs shadow-sm">
+                        <span class="font-bold text-slate-700">${cls}</span>
                         <div class="flex gap-1.5">
-                            <button onclick="editClassItem(${index})" class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">✏️ تعديل</button>
-                            <button onclick="deleteClassItem(${index})" class="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">🗑️ حذف</button>
+                            <button onclick="editClassItem(${index})" class="bg-amber-50 text-amber-700 px-2 py-1 rounded-lg font-semibold cursor-pointer">✏️ تعديل</button>
+                            <button onclick="deleteClassItem(${index})" class="bg-rose-50 text-rose-600 px-2 py-1 rounded-lg font-semibold cursor-pointer">🗑️ حذف</button>
                         </div>
                     </div>
                 `;
@@ -250,7 +250,7 @@
             document.getElementById('new-action-score').value = act.score;
             document.getElementById('new-action-color').value = act.color;
             editingActionIndex = parseInt(index);
-            document.getElementById('save-action-btn').innerText = "تعديل التقييم المختار ✏️";
+            document.getElementById('save-action-btn').innerText = "تعديل التقييم ✏️";
             document.getElementById('delete-action-btn').classList.remove('hidden');
         };
 
@@ -300,7 +300,6 @@
             document.getElementById('delete-action-btn').classList.add('hidden');
         };
 
-        // عرض التقييمات بألوان خلفية هادئة وحدود واضحة تبرز الفيس والأيقونة
         function renderCustomActionsUI() {
             const container = document.getElementById('custom-actions-container');
             if(!container) return;
@@ -308,17 +307,17 @@
             
             customActions.forEach(act => {
                 const fullName = `${act.icon || ''} ${act.name}`.trim();
-                const actColor = act.color || '#28a745';
+                const actColor = act.color || '#64748b';
                 
                 container.innerHTML += `
-                    <div class="bg-white p-2.5 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm hover:shadow transition">
-                        <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-2.5 flex-grow text-right cursor-pointer">
-                            <span class="w-9 h-9 rounded-xl flex items-center justify-center text-base border" style="background-color: ${actColor}20; border-color: ${actColor}50;">
+                    <div class="bg-white p-2 rounded-xl border border-slate-100 flex items-center justify-between shadow-xs hover:shadow transition">
+                        <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-2 flex-grow text-right cursor-pointer">
+                            <span class="w-8 h-8 rounded-lg flex items-center justify-center text-sm border" style="background-color: ${actColor}15; border-color: ${actColor}40;">
                                 ${act.icon || '⭐'}
                             </span>
-                            <span class="font-bold text-xs text-gray-800">${act.name}</span>
+                            <span class="font-bold text-xs text-slate-700">${act.name}</span>
                         </button>
-                        <span class="text-[11px] font-black px-2 py-1 rounded-xl bg-gray-100 text-gray-700">${act.score > 0 ? '+' + act.score : act.score}</span>
+                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600">${act.score > 0 ? '+' + act.score : act.score}</span>
                     </div>
                 `;
             });
@@ -363,19 +362,19 @@
             if(!query) { resultsBox.innerHTML = ''; resultsBox.classList.add('hidden'); return; }
             const matches = allStudents.filter(s => s.name.toLowerCase().includes(query) || (s.email && s.email.toLowerCase().includes(query)));
             if(matches.length === 0) {
-                resultsBox.innerHTML = `<div class="p-3 text-sm text-gray-500">لا توجد نتائج مطابقة.</div>`;
+                resultsBox.innerHTML = `<div class="p-2.5 text-xs text-slate-500">لا توجد نتائج مطابقة.</div>`;
                 resultsBox.classList.remove('hidden');
                 return;
             }
             resultsBox.innerHTML = '';
             matches.forEach(student => {
                 resultsBox.innerHTML += `
-                    <div class="p-3 hover:bg-indigo-50 flex justify-between items-center border-b text-sm">
+                    <div class="p-2.5 hover:bg-slate-50 flex justify-between items-center border-b border-slate-100 text-xs">
                         <div>
-                            <span class="font-bold text-gray-800">${student.name}</span>
-                            <span class="text-xs text-indigo-600 block">${student.email || ''} (الحالة: ${student.className})</span>
+                            <span class="font-bold text-slate-700">${student.name}</span>
+                            <span class="text-[11px] text-slate-500 block">${student.email || ''} (الحالة: ${student.className})</span>
                         </div>
-                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">➕ إضافة</button>
+                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-md font-bold text-[11px]">➕ إضافة</button>
                     </div>
                 `;
             });
@@ -476,13 +475,13 @@
             classList.forEach(cls => {
                 const count = allStudents.filter(s => s.className === cls).length;
                 classesContainer.innerHTML += `
-                    <div onclick="openClass('${cls}')" class="glass-card p-6 rounded-3xl shadow-lg border-2 border-indigo-100 hover:border-indigo-600 cursor-pointer transition transform hover:-translate-y-1 flex items-center justify-between">
+                    <div onclick="openClass('${cls}')" class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-slate-400 cursor-pointer transition flex items-center justify-between">
                         <div>
-                            <span class="text-3xl mb-1 block">📚</span>
-                            <h3 class="text-xl font-black text-indigo-900">${cls}</h3>
-                            <p class="text-sm font-bold text-gray-500 mt-1">${count} طلاب مخصصين</p>
+                            <span class="text-2xl mb-1 block">📚</span>
+                            <h3 class="text-base font-bold text-slate-800">${cls}</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">${count} طلاب مخصصين</p>
                         </div>
-                        <span class="bg-indigo-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shadow-md">➔</span>
+                        <span class="bg-slate-100 text-slate-700 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shadow-2xs">➔</span>
                     </div>
                 `;
             });
@@ -497,14 +496,14 @@
                 globalContainer.innerHTML = '';
                 allStudents.forEach(student => {
                     globalContainer.innerHTML += `
-                        <div class="bg-white p-3.5 rounded-2xl border flex justify-between items-center shadow-sm text-sm">
+                        <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center shadow-2xs text-xs">
                             <div>
-                                <span class="font-bold text-gray-800">${student.name}</span>
-                                <span class="text-xs text-indigo-600 block">${student.email || 'بدون إيميل'} | الفصل: <strong class="text-gray-700">${student.className}</strong></span>
+                                <span class="font-bold text-slate-800">${student.name}</span>
+                                <span class="text-[11px] text-slate-500 block">${student.email || 'بدون إيميل'} | الفصل: <strong class="text-slate-700">${student.className}</strong></span>
                             </div>
                             <div class="flex gap-1.5">
-                                <button onclick="editStudent('${student.id}')" class="bg-amber-50 text-amber-700 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer hover:bg-amber-100">✏️ تعديل</button>
-                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer hover:bg-rose-100">🗑️ حذف</button>
+                                <button onclick="editStudent('${student.id}')" class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg font-bold cursor-pointer hover:bg-amber-100">✏️ تعديل</button>
+                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-bold cursor-pointer hover:bg-rose-100">🗑️ حذف</button>
                             </div>
                         </div>
                     `;
@@ -520,21 +519,21 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-gray-500 col-span-2 text-center py-12 font-bold bg-white rounded-3xl shadow">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث بالأعلى.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث بالأعلى.</p>`;
                 return;
             }
 
             students.forEach(student => {
                 container.innerHTML += `
-                    <div class="bg-white p-5 rounded-3xl shadow-md flex items-center justify-between border border-indigo-50 hover:shadow-lg transition">
+                    <div class="bg-white p-3.5 rounded-2xl shadow-2xs flex items-center justify-between border border-slate-200 hover:shadow-xs transition">
                         <div>
-                            <h3 class="font-black text-xl text-gray-800">${student.name}</h3>
-                            <p class="text-xs text-indigo-600 font-semibold mt-0.5"><span class="text-gray-500">${student.email || 'بدون إيميل'}</span></p>
+                            <h3 class="font-bold text-sm text-slate-800">${student.name}</h3>
+                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">${student.email || 'بدون إيميل'}</p>
                         </div>
-                        <div class="flex gap-2 items-center">
-                            <button onclick="openActionModal('${student.id}')" class="bg-indigo-600 text-white px-4 py-2.5 rounded-2xl text-xs font-black shadow hover:bg-indigo-700 cursor-pointer transition">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-4 py-2.5 rounded-2xl text-xs font-black shadow hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
-                            <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-3 py-2.5 rounded-2xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
+                        <div class="flex gap-1.5 items-center">
+                            <button onclick="openActionModal('${student.id}')" class="bg-slate-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-slate-800 cursor-pointer transition">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
+                            <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -564,65 +563,65 @@
 
             const modalContent = document.getElementById('modal-content');
             modalContent.innerHTML = `
-                <div class="text-center mb-6">
-                    <div class="w-24 h-24 bg-gradient-to-tr from-indigo-600 to-violet-500 text-white rounded-full flex items-center justify-center text-5xl font-bold mx-auto mb-3 shadow-xl">👤</div>
-                    <h2 class="text-3xl font-black text-gray-800">${student.name}</h2>
-                    <p class="text-base font-semibold text-indigo-600 mt-1">${student.className}</p>
+                <div class="text-center mb-4">
+                    <div class="w-16 h-16 bg-gradient-to-tr from-slate-700 to-slate-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-2 shadow-md">👤</div>
+                    <h2 class="text-xl font-bold text-slate-800">${student.name}</h2>
+                    <p class="text-xs font-medium text-slate-500 mt-0.5">${student.className}</p>
                 </div>
 
-                <div class="bg-indigo-50/60 p-5 rounded-3xl mb-6 border border-indigo-100">
-                    <h4 class="font-bold text-gray-800 text-base mb-3">👤 الحضور والغياب (تعديل فوري بالضغط)</h4>
-                    <div class="grid grid-cols-3 gap-3 text-center">
-                        <div class="bg-rose-100 p-3 rounded-2xl flex flex-col justify-between shadow-sm">
-                            <span class="block text-xs font-bold text-rose-700">غائب (${att.absents || 0})</span>
-                            <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('absents', 1)" class="bg-rose-600 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-rose-700">+</button>
-                                <button onclick="adjustAttendance('absents', -1)" class="bg-rose-800 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-rose-900">-</button>
+                <div class="bg-slate-50 p-3.5 rounded-2xl mb-4 border border-slate-200">
+                    <h4 class="font-bold text-slate-700 text-xs mb-2.5">👤 الحضور والغياب (تعديل فوري بالضغط)</h4>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-rose-50 p-2.5 rounded-xl flex flex-col justify-between border border-rose-100">
+                            <span class="block text-[11px] font-bold text-rose-700">غائب (${att.absents || 0})</span>
+                            <div class="flex justify-center gap-1.5 mt-1.5">
+                                <button onclick="adjustAttendance('absents', 1)" class="bg-rose-600 text-white w-6 h-6 rounded-lg font-bold text-xs cursor-pointer shadow-2xs">+</button>
+                                <button onclick="adjustAttendance('absents', -1)" class="bg-rose-800 text-white w-6 h-6 rounded-lg font-bold text-xs cursor-pointer shadow-2xs">-</button>
                             </div>
                         </div>
-                        <div class="bg-amber-100 p-3 rounded-2xl flex flex-col justify-between shadow-sm">
-                            <span class="block text-xs font-bold text-amber-700">متأخر (${att.lates || 0})</span>
-                            <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('lates', 1)" class="bg-amber-600 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-amber-700">+</button>
-                                <button onclick="adjustAttendance('lates', -1)" class="bg-amber-800 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-amber-900">-</button>
+                        <div class="bg-amber-50 p-2.5 rounded-xl flex flex-col justify-between border border-amber-100">
+                            <span class="block text-[11px] font-bold text-amber-700">متأخر (${att.lates || 0})</span>
+                            <div class="flex justify-center gap-1.5 mt-1.5">
+                                <button onclick="adjustAttendance('lates', 1)" class="bg-amber-600 text-white w-6 h-6 rounded-lg font-bold text-xs cursor-pointer shadow-2xs">+</button>
+                                <button onclick="adjustAttendance('lates', -1)" class="bg-amber-800 text-white w-6 h-6 rounded-lg font-bold text-xs cursor-pointer shadow-2xs">-</button>
                             </div>
                         </div>
-                        <div class="bg-blue-100 p-3 rounded-2xl flex flex-col justify-between shadow-sm">
-                            <span class="block text-xs font-bold text-blue-700">مستأذن (${att.excuses || 0})</span>
-                            <div class="flex justify-center gap-2 mt-2">
-                                <button onclick="adjustAttendance('excuses', 1)" class="bg-blue-600 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-blue-700">+</button>
-                                <button onclick="adjustAttendance('excuses', -1)" class="bg-blue-800 text-white w-8 h-8 rounded-xl font-bold text-sm cursor-pointer shadow hover:bg-blue-900">-</button>
+                        <div class="bg-sky-50 p-2.5 rounded-xl flex flex-col justify-between border border-sky-100">
+                            <span class="block text-[11px] font-bold text-sky-700">مستأذن (${att.excuses || 0})</span>
+                            <div class="flex justify-center gap-1.5 mt-1.5">
+                                <button onclick="adjustAttendance('excuses', 1)" class="bg-sky-600 text-white w-6 h-6 rounded-lg font-bold text-xs cursor-pointer shadow-2xs">+</button>
+                                <button onclick="adjustAttendance('excuses', -1)" class="bg-sky-800 text-white w-6 h-6 rounded-lg font-bold text-xs cursor-pointer shadow-2xs">-</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="mb-6">
-                    <h4 class="font-bold text-gray-800 text-base mb-3 flex items-center justify-between">
+                <div class="mb-4">
+                    <h4 class="font-bold text-slate-700 text-xs mb-2.5 flex items-center justify-between">
                         <span>📅 النشاطات والسلوكيات المسجلة</span>
-                        <span class="text-xs text-indigo-600 font-normal">موثق بالتاريخ والوقت</span>
+                        <span class="text-[10px] text-slate-400 font-normal">موثق بالتاريخ والوقت</span>
                     </h4>
-                    <div class="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                        ${actions.length === 0 ? '<p class="text-sm text-gray-400 text-center py-6">لا توجد نشاطات مسجلة حالياً</p>' : 
+                    <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        ${actions.length === 0 ? '<p class="text-xs text-slate-400 text-center py-4">لا توجد نشاطات مسجلة حالياً</p>' : 
                             actions.map((act, index) => `
-                                <div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
-                                    <div class="flex items-center gap-3">
-                                        <span class="w-3.5 h-3.5 rounded-full ${act.score > 0 ? 'bg-emerald-500' : (act.score < 0 ? 'bg-rose-500' : 'bg-blue-500')}"></span>
+                                <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center text-xs shadow-2xs">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2.5 h-2.5 rounded-full ${act.score > 0 ? 'bg-emerald-500' : (act.score < 0 ? 'bg-rose-500' : 'bg-sky-500')}"></span>
                                         <div>
-                                            <span class="font-bold text-sm text-gray-800 block">${act.title}</span>
-                                            <span class="text-[11px] text-gray-400 font-mono">${act.timestamp}</span>
+                                            <span class="font-bold text-slate-700 block text-xs">${act.title}</span>
+                                            <span class="text-[10px] text-slate-400 font-mono">${act.timestamp}</span>
                                         </div>
                                     </div>
-                                    <button onclick="deleteStudentAction(${index})" class="bg-rose-50 text-rose-600 px-3.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️ حذف</button>
+                                    <button onclick="deleteStudentAction(${index})" class="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg text-[11px] font-bold hover:bg-rose-100 cursor-pointer">🗑️ حذف</button>
                                 </div>
                             `).join('')
                         }
                     </div>
                 </div>
 
-                <div class="flex gap-3">
-                    <button onclick="window.print()" class="flex-1 bg-gray-900 text-white py-3.5 rounded-2xl font-black text-sm hover:bg-black cursor-pointer shadow-lg">🖨️ طباعة التقرير</button>
-                    <button onclick="closeModal()" class="flex-1 bg-indigo-600 text-white py-3.5 rounded-2xl font-black text-sm hover:bg-indigo-700 cursor-pointer shadow-lg">إغلاق</button>
+                <div class="flex gap-2">
+                    <button onclick="window.print()" class="flex-1 bg-slate-800 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-slate-900 cursor-pointer shadow-xs">🖨️ طباعة التقرير</button>
+                    <button onclick="closeModal()" class="flex-1 bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-300 cursor-pointer shadow-xs">إغلاق</button>
                 </div>
             `;
 
@@ -640,114 +639,114 @@
         };
     </script>
 </head>
-<body class="text-gray-800 min-h-screen flex flex-col justify-between">
+<body class="text-slate-800 min-h-screen flex flex-col justify-between text-sm">
 
-    <!-- الترويسة الاحترافية -->
-    <header class="bg-gradient-to-r from-indigo-900 via-indigo-700 to-violet-800 text-white p-6 shadow-2xl border-b-4 border-indigo-500">
-        <div class="container mx-auto max-w-4xl flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="text-center md:text-right">
-                <h1 class="text-3xl font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
-                <p class="text-sm font-semibold opacity-90 mt-1">المعلم: أ/ عبدالعزيز الفيفي | المادة: الكفايات اللغوية | المدرسة: ثانوية الأمير عبدالمجيد (الرياض)</p>
+    <!-- الترويسة الاحترافية (ألوان هادئة ومتناسقة) -->
+    <header class="bg-slate-800 text-slate-100 p-4 shadow-md border-b border-slate-700">
+        <div class="container mx-auto max-w-3xl flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="text-center sm:text-right">
+                <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
+                <p class="text-xs text-slate-300 mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="openSettingsModal('classes')" class="bg-white/10 hover:bg-white/25 border border-white/30 text-white px-4 py-2.5 rounded-2xl font-black text-xs flex items-center gap-1.5 cursor-pointer shadow backdrop-blur transition-all">
-                    🏫 إعدادات الفصول
+                <button onclick="openSettingsModal('classes')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition">
+                    🏫 الفصول
                 </button>
-                <button onclick="openSettingsModal('actions')" class="bg-white/20 hover:bg-white/30 border border-white/30 text-white px-4 py-2.5 rounded-2xl font-black text-xs flex items-center gap-1.5 cursor-pointer shadow backdrop-blur transition-all">
-                    ⚙️ إعدادات التقييمات
+                <button onclick="openSettingsModal('actions')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition">
+                    ⚙️ التقييمات
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto p-4 max-w-4xl flex-grow my-6">
+    <main class="container mx-auto p-3 max-w-3xl flex-grow my-3">
 
         <!-- لوحة التحكم الرئيسية -->
-        <div id="main-dashboard" class="py-2">
-            <h2 class="text-2xl font-black text-indigo-950 mb-6 text-center">الفصول الدراسية</h2>
+        <div id="main-dashboard" class="py-1">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 text-center">الفصول الدراسية</h2>
             
-            <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-10"></div>
+            <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
 
-            <div class="glass-card p-8 rounded-3xl shadow-xl border border-green-200 mb-8">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-3 gap-2">
-                    <h3 class="font-black text-lg text-green-800 flex items-center gap-2">📥 حفظ القائمة العامة للطلاب في السحابة</h3>
-                    <span class="text-xs bg-green-100 text-green-900 font-black px-4 py-1.5 rounded-full shadow-sm" id="total-cloud-count">إجمالي القائمة العامة بالسحابة: 0 طالب</span>
+            <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-2 gap-1.5">
+                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">📥 حفظ القائمة العامة للطلاب في السحابة</h3>
+                    <span class="text-[11px] bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-full" id="total-cloud-count">إجمالي القائمة العامة بالسحابة: 0 طالب</span>
                 </div>
-                <p class="text-xs text-gray-500 mb-4 font-semibold">الصق القائمة الكاملة هنا (اسم الطالب والإيميل سطر بسطر):</p>
-                <textarea id="bulk-students-input" rows="5" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa" class="w-full border-2 border-green-100 p-4 rounded-2xl text-sm focus:outline-none focus:border-green-500 mb-4 font-sans bg-white shadow-inner"></textarea>
-                <button onclick="superSmartBulkAdd()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-black hover:bg-green-700 transition text-base cursor-pointer shadow-lg shadow-green-600/20">حفظ القائمة العامة في السحابة 🚀</button>
+                <p class="text-xs text-slate-500 mb-3">الصق القائمة الكاملة هنا (اسم الطالب والإيميل سطر بسطر):</p>
+                <textarea id="bulk-students-input" rows="4" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa" class="w-full border border-slate-200 p-3 rounded-xl text-xs focus:outline-none focus:border-slate-500 mb-3 font-sans bg-white shadow-2xs"></textarea>
+                <button onclick="superSmartBulkAdd()" class="w-full bg-slate-700 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition text-xs cursor-pointer shadow-xs">حفظ القائمة العامة في السحابة 🚀</button>
             </div>
 
-            <div class="glass-card p-8 rounded-3xl shadow-xl border">
-                <h3 class="font-black text-lg text-indigo-950 mb-4">📋 القائمة العامة للطلاب المحفوظين بالسحابة</h3>
-                <div id="general-students-list-container" class="space-y-3 max-h-72 overflow-y-auto pr-2"></div>
+            <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-sm text-slate-800 mb-3">📋 القائمة العامة للطلاب المحفوظين بالسحابة</h3>
+                <div id="general-students-list-container" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
             </div>
         </div>
 
         <!-- واجهة الفصل المستقلة -->
-        <div id="class-view" class="hidden py-2">
-            <div class="flex items-center justify-between mb-6 bg-white p-5 rounded-3xl shadow-lg border border-indigo-50">
-                <button onclick="backToHome()" class="bg-gray-100 text-gray-800 px-5 py-2.5 rounded-2xl font-black text-sm hover:bg-gray-200 transition cursor-pointer shadow-sm">⬅ العودة للرئيسية</button>
-                <h2 class="text-2xl font-black text-indigo-700" id="class-title-header">الفصل</h2>
-                <div class="w-16"></div>
+        <div id="class-view" class="hidden py-1">
+            <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-2xs border border-slate-200">
+                <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 transition cursor-pointer">⬅ الرئيسية</button>
+                <h2 class="text-base font-bold text-slate-700" id="class-title-header">الفصل</h2>
+                <div class="w-12"></div>
             </div>
 
-            <div class="glass-card p-4 rounded-3xl shadow-lg mb-6 relative border border-indigo-100">
-                <div class="flex items-center gap-3 px-2">
-                    <span class="text-xl">🔍</span>
-                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب من القائمة العامة لإضافته لهذا الفصل..." class="w-full border-none focus:outline-none text-sm font-semibold bg-transparent">
+            <div class="glass-card p-3 rounded-2xl shadow-2xs mb-4 relative border border-slate-200">
+                <div class="flex items-center gap-2 px-1">
+                    <span class="text-sm">🔍</span>
+                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب من القائمة العامة لإضافته لهذا الفصل..." class="w-full border-none focus:outline-none text-xs font-semibold bg-transparent">
                 </div>
-                <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-2xl rounded-3xl mt-2 border max-h-60 overflow-y-auto z-30 p-2"></div>
+                <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-lg rounded-2xl mt-1 border border-slate-200 max-h-48 overflow-y-auto z-30 p-1"></div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="class-students-container"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
         </div>
 
     </main>
 
-    <!-- تذييل الصفحة الرسمي -->
-    <footer class="bg-indigo-950 text-indigo-200 py-6 text-center text-xs font-bold border-t border-indigo-900 shadow-inner">
+    <!-- تذييل الصفحة -->
+    <footer class="bg-slate-900 text-slate-400 py-4 text-center text-[11px] font-semibold border-t border-slate-800">
         <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
     </footer>
 
-    <!-- نافذة الإعدادات الشاملة (بتبويبات منفصلة) -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl max-w-xl w-full p-8 relative shadow-2xl max-h-[92vh] overflow-y-auto">
-            <button onclick="closeSettingsModal()" class="absolute top-6 left-6 bg-gray-100 text-gray-700 w-10 h-10 rounded-full font-black flex items-center justify-center hover:bg-gray-200 cursor-pointer shadow">✕</button>
-            <h3 class="text-2xl font-black text-center mb-1 text-indigo-950">⚙️ لوحة الإعدادات</h3>
-            <p class="text-xs text-center text-gray-500 mb-5 font-semibold">تحكم بالفصول الدراسية أو خصص التقييمات عبر القائمة المنسدلة</p>
+    <!-- نافذة الإعدادات الشاملة -->
+    <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
+            <h3 class="text-lg font-bold text-center mb-1 text-slate-800">⚙️ لوحة الإعدادات</h3>
+            <p class="text-[11px] text-center text-slate-500 mb-4 font-medium">تحكم بالفصول الدراسية أو خصص التقييمات عبر القائمة المنسدلة</p>
 
-            <div class="flex gap-2 mb-6 bg-gray-100 p-1.5 rounded-2xl">
-                <button id="btn-tab-classes" onclick="switchSettingsTab('classes')" class="flex-1 py-2.5 rounded-2xl font-black text-xs transition-all cursor-pointer">🏫 إعدادات الفصول</button>
-                <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2.5 rounded-2xl font-black text-xs transition-all cursor-pointer">⭐ إعدادات التقييمات</button>
+            <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-xl">
+                <button id="btn-tab-classes" onclick="switchSettingsTab('classes')" class="flex-1 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer">🏫 إعدادات الفصول</button>
+                <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer">⭐ إعدادات التقييمات</button>
             </div>
 
             <!-- محتوى تبويب الفصول -->
-            <div id="classes-tab-content" class="space-y-4">
-                <div class="bg-indigo-50/60 p-5 rounded-3xl border border-indigo-100 space-y-3">
-                    <h4 class="font-black text-sm text-indigo-900">إضافة أو تعديل فصل دراسي</h4>
+            <div id="classes-tab-content" class="space-y-3">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
+                    <h4 class="font-bold text-xs text-slate-700">إضافة أو تعديل فصل دراسي</h4>
                     <div class="flex gap-2">
-                        <input type="text" id="new-class-name" placeholder="اسم الفصل (مثال: أول ثانوي / 5)..." class="flex-1 border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
-                        <button id="save-class-btn" onclick="saveClassItem()" class="bg-indigo-600 text-white px-5 py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 cursor-pointer shadow">إضافة ➕</button>
+                        <input type="text" id="new-class-name" placeholder="اسم الفصل (مثال: أول ثانوي / 5)..." class="flex-1 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400">
+                        <button id="save-class-btn" onclick="saveClassItem()" class="bg-slate-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 cursor-pointer">إضافة ➕</button>
                     </div>
                 </div>
-                <div class="space-y-2">
-                    <h4 class="font-black text-sm text-gray-800">قائمة الفصول الحالية</h4>
-                    <div id="settings-classes-list" class="max-h-56 overflow-y-auto space-y-2 pr-1 border p-3 rounded-3xl bg-gray-50 shadow-inner"></div>
+                <div class="space-y-1.5">
+                    <h4 class="font-bold text-xs text-slate-700">قائمة الفصول الحالية</h4>
+                    <div id="settings-classes-list" class="max-h-44 overflow-y-auto space-y-1.5 pr-1 border border-slate-200 p-2.5 rounded-2xl bg-slate-50"></div>
                 </div>
             </div>
 
-            <!-- محتوى تبويب التقييمات (بالقائمة المنسدلة) -->
-            <div id="actions-tab-content" class="space-y-4 hidden">
-                <div class="bg-gray-50 p-5 rounded-3xl border space-y-3">
-                    <h4 class="font-black text-sm text-gray-800">📌 اختر تقييماً للتعديل أو أضف تقييماً جديداً</h4>
+            <!-- محتوى تبويب التقييمات -->
+            <div id="actions-tab-content" class="space-y-3 hidden">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2.5">
+                    <h4 class="font-bold text-xs text-slate-700">📌 اختر تقييماً للتعديل أو أضف جديداً</h4>
                     
-                    <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner cursor-pointer">
+                    <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer">
                         <option value="">-- اختر تقييماً للتعديل أو أضف جديداً --</option>
                     </select>
 
-                    <div class="grid grid-cols-3 gap-2 mt-2">
-                        <select id="new-action-icon" class="border p-3 rounded-2xl text-xl font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                    <div class="grid grid-cols-3 gap-2">
+                        <select id="new-action-icon" class="border border-slate-200 p-2.5 rounded-xl text-base font-bold bg-white">
                             <option value="⭐">⭐ نجمة</option>
                             <option value="✅">✅ صح</option>
                             <option value="❌">❌ خطأ</option>
@@ -761,18 +760,18 @@
                             <option value="📱">📱 جوال</option>
                             <option value="😑">😑 غير مهتم</option>
                             <option value="🏃‍♂️">🏃‍♂️ هروب</option>
-                            <option value="📁">📁 نسيان ملف</option>
+                            <option value="📁">📁 نسيان</option>
                             <option value="⚡">⚡ نشاط</option>
                             <option value="🔥">🔥 تميز</option>
                         </select>
 
-                        <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border p-3 rounded-2xl text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        <input type="text" id="new-action-name" placeholder="اسم التقييم..." class="col-span-2 border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white focus:outline-none">
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-3">
-                        <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (1 أو -1)" class="border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" step="0.5" id="new-action-score" placeholder="الدرجة (1 أو -1)" class="border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white">
                         
-                        <select id="new-action-color" class="border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner">
+                        <select id="new-action-color" class="border border-slate-200 p-2.5 rounded-xl text-xs font-semibold bg-white">
                             <option value="#28a745">🟢 أخضر عشبي</option>
                             <option value="#20c997">🔹 أخضر فيروزي</option>
                             <option value="#007bff">🔵 أزرق غامق</option>
@@ -783,56 +782,52 @@
                             <option value="#dc3545">🔴 أحمر قاني</option>
                             <option value="#fd7e14">🟠 برتقالي ساطع</option>
                             <option value="#ffc107">🟡 أصفر ذهبي</option>
-                            <option value="#fd79a8">🌸 زهري فاتح</option>
                             <option value="#6c757d">⚪ رمادي رسمي</option>
-                            <option value="#343a40">⚫ أسود فحمي</option>
-                            <option value="#00cec9">🪩 تركواز لامع</option>
-                            <option value="#e17055">🧱 قرميدي</option>
                         </select>
                     </div>
 
-                    <div class="flex gap-2 pt-2">
-                        <button id="save-action-btn" onclick="saveCustomActionFromDropdown()" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 transition cursor-pointer shadow">حفظ التقييم 🚀</button>
-                        <button id="delete-action-btn" onclick="deleteSelectedAction()" class="hidden bg-rose-600 text-white px-4 py-3 rounded-2xl font-black text-sm hover:bg-rose-700 transition cursor-pointer shadow">حذف 🗑️</button>
-                        <button onclick="resetActionForm()" class="bg-gray-300 text-gray-700 px-4 py-3 rounded-2xl font-black text-sm hover:bg-gray-400 cursor-pointer shadow">إلغاء</button>
+                    <div class="flex gap-2 pt-1">
+                        <button id="save-action-btn" onclick="saveCustomActionFromDropdown()" class="flex-1 bg-slate-700 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 transition cursor-pointer">حفظ التقييم 🚀</button>
+                        <button id="delete-action-btn" onclick="deleteSelectedAction()" class="hidden bg-rose-600 text-white px-3 py-2.5 rounded-xl font-bold text-xs hover:bg-rose-700 transition cursor-pointer">حذف 🗑️</button>
+                        <button onclick="resetActionForm()" class="bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-300 cursor-pointer">إلغاء</button>
                     </div>
                 </div>
             </div>
 
-            <button onclick="closeSettingsModal()" class="w-full bg-gray-900 text-white py-3.5 rounded-2xl font-black text-base cursor-pointer hover:bg-black shadow-xl mt-6">إغلاق</button>
+            <button onclick="closeSettingsModal()" class="w-full bg-slate-900 text-slate-100 py-3 rounded-xl font-bold text-xs cursor-pointer hover:bg-black shadow-md mt-4">إغلاق</button>
         </div>
     </div>
 
     <!-- نافذة تقرير ملف الطالب -->
-    <div id="student-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-8 relative shadow-2xl">
-            <button onclick="closeModal()" class="absolute top-6 left-6 bg-gray-100 text-gray-700 w-10 h-10 rounded-full font-black flex items-center justify-center hover:bg-gray-200 cursor-pointer shadow">✕</button>
+    <div id="student-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6 relative shadow-xl">
+            <button onclick="closeModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
             <div id="modal-content"></div>
         </div>
     </div>
 
     <!-- نافذة رصد التقييمات للطالب -->
-    <div id="action-modal" class="fixed inset-0 bg-black/70 hidden items-center justify-center p-4 z-50 backdrop-blur-sm">
-        <div class="bg-white rounded-3xl max-w-xl w-full p-6 relative shadow-2xl max-h-[92vh] overflow-y-auto">
-            <button onclick="closeActionModal()" class="absolute top-5 left-5 bg-gray-100 text-gray-700 w-9 h-9 rounded-full font-black flex items-center justify-center hover:bg-gray-200 cursor-pointer shadow">✕</button>
-            <div class="text-center mb-5">
-                <h3 class="text-xl font-black text-indigo-950" id="action-student-name">رصد الطالب</h3>
-                <p class="text-xs text-gray-400 mt-0.5">أ/ عبدالعزيز موسى الفيفي</p>
-                <p class="text-[11px] text-indigo-600 font-bold mt-1">اختر التقييم أو الحالة أدناه ليتم حفظها وتحديثها لحظياً</p>
+    <div id="action-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 relative shadow-xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeActionModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
+            <div class="text-center mb-4">
+                <h3 class="text-base font-bold text-slate-800" id="action-student-name">رصد الطالب</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">أ/ عبدالعزيز موسى الفيفي</p>
+                <p class="text-[10px] text-slate-600 font-semibold mt-0.5">اختر التقييم أو الحالة أدناه ليتم حفظها وتحديثها لحظياً</p>
             </div>
 
-            <!-- أزرار الحضور والغياب الأربعة العلوية -->
-            <div class="grid grid-cols-4 gap-2 mb-4">
-                <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-2.5 rounded-2xl bg-emerald-500 text-white font-black text-xs cursor-pointer shadow hover:bg-emerald-600 transition flex flex-col items-center justify-center">🟢 حاضر</button>
-                <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-2.5 rounded-2xl bg-rose-500 text-white font-black text-xs cursor-pointer shadow hover:bg-rose-600 transition flex flex-col items-center justify-center">🔴 غائب</button>
-                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-2.5 rounded-2xl bg-blue-500 text-white font-black text-xs cursor-pointer shadow hover:bg-blue-600 transition flex flex-col items-center justify-center">🔵 مستأذن</button>
-                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-2.5 rounded-2xl bg-amber-500 text-white font-black text-xs cursor-pointer shadow hover:bg-amber-600 transition flex flex-col items-center justify-center">🟠 متأخر</button>
+            <!-- أزرار الحضور والغياب الأربعة العلوية (ألوان مريحة وهادئة) -->
+            <div class="grid grid-cols-4 gap-1.5 mb-3">
+                <button onclick="recordAction('حاضر', 0, null)" class="click-effect p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-emerald-700 transition flex flex-col items-center justify-center">🟢 حاضر</button>
+                <button onclick="recordAction('غائب', 0, 'غائب')" class="click-effect p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-rose-700 transition flex flex-col items-center justify-center">🔴 غائب</button>
+                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="click-effect p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-sky-700 transition flex flex-col items-center justify-center">🔵 مستأذن</button>
+                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="click-effect p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer shadow-2xs hover:bg-amber-700 transition flex flex-col items-center justify-center">🟠 متأخر</button>
             </div>
 
-            <!-- شبكة التقييمات والسلوكيات كاملة ومنسقة -->
-            <div id="custom-actions-container" class="grid grid-cols-2 gap-2.5 mb-5 max-h-72 overflow-y-auto pr-1"></div>
+            <!-- شبكة التقييمات والسلوكيات -->
+            <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-4 max-h-60 overflow-y-auto pr-1"></div>
             
-            <button onclick="closeActionModal()" class="w-full bg-gray-900 text-white py-3 rounded-2xl font-black text-sm cursor-pointer hover:bg-black shadow-lg">إغلاق</button>
+            <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-black shadow-xs">إغلاق</button>
         </div>
     </div>
 
