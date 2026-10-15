@@ -697,14 +697,14 @@
                 const actColor = act.color || '#64748b';
                 
                 container.innerHTML += `
-                    <div class="bg-white p-2.5 rounded-xl border border-slate-100 flex items-center justify-between shadow-2xs hover:shadow transition">
-                        <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-2.5 flex-grow text-right cursor-pointer">
-                            <span class="w-9 h-9 rounded-xl flex items-center justify-center text-base border" style="background-color: ${actColor}15; border-color: ${actColor}40;">
+                    <div class="bg-white p-3 rounded-xl border border-slate-100 flex items-center justify-between shadow-2xs hover:shadow transition">
+                        <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-3 flex-grow text-right cursor-pointer">
+                            <span class="w-10 h-10 rounded-xl flex items-center justify-center text-lg border" style="background-color: ${actColor}15; border-color: ${actColor}40;">
                                 ${act.icon || '⭐'}
                             </span>
-                            <span class="font-bold text-xs text-slate-800">${act.name}</span>
+                            <span class="font-bold text-sm text-slate-900">${act.name}</span>
                         </button>
-                        <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700">${act.score > 0 ? '+' + act.score : act.score}</span>
+                        <span class="text-xs font-black px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">${act.score > 0 ? '+' + act.score : act.score}</span>
                     </div>
                 `;
             });
@@ -780,7 +780,10 @@
         window.openActionModal = function(id) {
             currentStudentId = id;
             const student = allStudents.find(s => s.id === id);
-            if(student) document.getElementById('action-student-name').innerText = student.name;
+            if(student) {
+                document.getElementById('action-student-name').innerText = `رصد الطالب: ${student.name}`;
+                document.getElementById('action-student-subtitle').innerText = student.className || '';
+            }
             document.getElementById('action-modal').classList.remove('hidden');
             document.getElementById('action-modal').classList.add('flex');
         };
@@ -1034,17 +1037,24 @@
     </div>
 
     <div id="action-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 relative shadow-xl">
+        <div class="bg-white rounded-3xl w-[95%] md:max-w-xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeActionModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-700 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200">✕</button>
-            <h3 class="text-base font-black text-center mb-3 text-slate-900" id="action-student-name">رصد الطالب</h3>
-            <div class="grid grid-cols-4 gap-1.5 mb-3">
-                <button onclick="recordAction('حاضر', 0, null)" class="p-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs cursor-pointer hover:bg-emerald-700">🟢 حاضر</button>
-                <button onclick="recordAction('غائب', 0, 'غائب')" class="p-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs cursor-pointer hover:bg-rose-700">🔴 غائب</button>
-                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="p-2.5 rounded-xl bg-sky-600 text-white font-bold text-xs cursor-pointer hover:bg-sky-700">🔵 مستأذن</button>
-                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="p-2.5 rounded-xl bg-amber-600 text-white font-bold text-xs cursor-pointer hover:bg-amber-700">🟠 متأخر</button>
+            <div class="text-center mb-5">
+                <div class="w-20 h-20 bg-slate-800 text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-md">📝</div>
+                <h3 class="text-2xl font-black text-slate-900" id="action-student-name">رصد الطالب</h3>
+                <p class="text-sm font-bold text-slate-600 mt-1" id="action-student-subtitle"></p>
             </div>
-            <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-3 max-h-48 overflow-y-auto"></div>
-            <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2.5 rounded-xl font-bold text-xs cursor-pointer">إغلاق</button>
+            <div class="grid grid-cols-4 gap-2 mb-4">
+                <button onclick="recordAction('حاضر', 0, null)" class="p-3 rounded-xl bg-emerald-600 text-white font-bold text-xs cursor-pointer hover:bg-emerald-700 shadow-xs">🟢 حاضر</button>
+                <button onclick="recordAction('غائب', 0, 'غائب')" class="p-3 rounded-xl bg-rose-600 text-white font-bold text-xs cursor-pointer hover:bg-rose-700 shadow-xs">🔴 غائب</button>
+                <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="p-3 rounded-xl bg-sky-600 text-white font-bold text-xs cursor-pointer hover:bg-sky-700 shadow-xs">🔵 مستأذن</button>
+                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="p-3 rounded-xl bg-amber-600 text-white font-bold text-xs cursor-pointer hover:bg-amber-700 shadow-xs">🟠 متأخر</button>
+            </div>
+            <div class="mb-4">
+                <h4 class="font-bold text-slate-900 text-sm mb-3">⭐ اختر التقييم السريع:</h4>
+                <div id="custom-actions-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto pr-1"></div>
+            </div>
+            <button onclick="closeActionModal()" class="w-full bg-slate-200 text-slate-800 py-3 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-300 shadow-md">إغلاق</button>
         </div>
     </div>
 
