@@ -16,21 +16,25 @@
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         .glass-card { backdrop-filter: blur(10px); transition: all 0.5s ease; }
         
-        /* تنسيق جدول الكود الثاني تماماً */
-        .admin-box { background: white; max-width: 1000px; margin: 20px auto; border-radius: 15px; padding: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border-top: 8px solid var(--maroon); }
-        .bulk-section { background: #f4f4f4; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed var(--maroon); }
-        textarea { width: 100%; height: 100px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: sans-serif; resize: vertical; box-sizing: border-box; }
+        .admin-card { background: white; max-width: 1050px; margin: auto; border-radius: 15px; padding: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); border-top: 8px solid var(--maroon); }
+        .header { text-align: center; border-bottom: 2px solid var(--gold); margin-bottom: 20px; padding-bottom: 10px; }
+        .bulk-section { background: #f4f4f4; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px dashed var(--maroon); }
+        textarea { width: 100%; height: 150px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-family: sans-serif; resize: vertical; box-sizing: border-box; }
         .controls { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-        .btn { padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: 0.3s; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .btn-upload { background: var(--maroon); color: var(--gold); }
         .btn-copy { background: var(--info); color: white; }
         .btn-delete-all { background: var(--danger); color: white; }
         
-        .pending-section { background: #fff8e1; border: 2px solid #ffc107; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none; }
+        .pending-section { background: #fff8e1; border: 2px solid #ffc107; padding: 15px; border-radius: 10px; margin-bottom: 25px; display: none; }
+        .pending-section h3 { color: #d32f2f; margin-top: 0; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
-        th { background: var(--maroon); color: var(--gold); padding: 12px; font-size: 0.9rem; text-align: center; }
-        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; vertical-align: middle; font-size: 0.85rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th { background: var(--maroon); color: var(--gold); padding: 12px; }
+        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; vertical-align: middle; }
+        
+        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-reject { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         
         .action-select {
             padding: 6px 10px;
@@ -38,7 +42,7 @@
             border: 1px solid #b0bec5;
             background-color: #f8f9fa;
             font-family: inherit;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: bold;
             color: var(--maroon);
             cursor: pointer;
@@ -46,9 +50,11 @@
             transition: 0.2s;
         }
         .action-select:hover { border-color: var(--maroon); background-color: #fff; }
-        .stats-bar { display: flex; justify-content: space-between; background: #e9ecef; padding: 12px; border-radius: 8px; font-weight: bold; color: var(--maroon); font-size: 1rem; margin-bottom: 15px; }
-        .search-container { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; flex-wrap: wrap; gap: 10px; }
-        .search-box { padding: 8px 12px; width: 100%; max-width: 300px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.9rem; outline: none; }
+
+        .stats-bar { display: flex; justify-content: space-between; background: #e9ecef; padding: 15px; border-radius: 8px; font-weight: bold; color: var(--maroon); font-size: 1.1rem; margin-bottom: 15px; }
+        .search-container { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; flex-wrap: wrap; gap: 10px; }
+        .search-container h3 { margin: 0; }
+        .search-box { padding: 10px 15px; width: 100%; max-width: 350px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; outline: none; transition: 0.3s; }
         .search-box:focus { border-color: var(--maroon); box-shadow: 0 0 5px rgba(128,0,0,0.2); }
     </style>
 
@@ -61,7 +67,6 @@
             messagingSenderId: "597051893949",
             appId: "1:597051893949:web:de5554ac900317a92b2fd4"
         };
-        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -74,9 +79,9 @@
         let editingClassIndex = null;
 
         const themes = [
-            { name: "الذهب الأبيض", bg: "linear-gradient(135deg, #fdfbf7 0%, #eef2f3 100%)", headerBg: "bg-stone-800 text-amber-100 border-stone-700", btnPrimary: "bg-stone-800 hover:bg-stone-900 text-amber-100", cardBg: "bg-stone-50/90 border-stone-200" },
-            { name: "اللؤلؤ الطبيعي", bg: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", headerBg: "bg-slate-700 text-slate-100 border-slate-600", btnPrimary: "bg-slate-700 hover:bg-slate-800 text-white", cardBg: "bg-slate-50/90 border-slate-200" },
-            { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50", cardBg: "bg-amber-50/60 border-amber-200" }
+            { name: "الذهب الأبيض", bg: "linear-gradient(135deg, #fdfbf7 0%, #eef2f3 100%)", headerBg: "bg-stone-800 text-amber-100 border-stone-700", btnPrimary: "bg-stone-800 hover:bg-stone-900 text-amber-100" },
+            { name: "اللؤلؤ الطبيعي", bg: "linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)", headerBg: "bg-slate-700 text-slate-100 border-slate-600", btnPrimary: "bg-slate-700 hover:bg-slate-800 text-white" },
+            { name: "الكشمير الفاخر", bg: "linear-gradient(135deg, #fcfaf8 0%, #f5efe6 100%)", headerBg: "bg-amber-900 text-amber-50 border-amber-800", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50" }
         ];
 
         function applyRandomTheme() {
@@ -103,34 +108,79 @@
         function initSystem() {
             applyRandomTheme();
             customActions = defaultActions;
-            fetchStudentsData();
+            fetchStudents();
             renderCustomActionsUI();
             renderSettingsActionsDropdown();
             renderClassesListUI();
         }
 
-        // جلب البيانات ومراقبتها سحابياً
-        function fetchStudentsData() {
+        function fetchStudents() {
             const approvedTbody = document.querySelector("#studentsTable tbody");
             const pendingTbody = document.querySelector("#pendingTable tbody");
             const pendingSection = document.getElementById("pendingSection");
 
             db.collection("allowed_students").orderBy("name").onSnapshot((snapshot) => {
+                let approvedCount = snapshot.size;
+                approvedTbody.innerHTML = "";
+                document.getElementById("approvedCount").innerText = `الطلاب المعتمدين: ${approvedCount}`;
+
                 allStudents = [];
-                snapshot.forEach(doc => {
-                    const item = doc.data();
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const email = doc.id;
+                    const name = data.name || "";
+                    
                     allStudents.push({
                         id: doc.id,
-                        name: item.name || 'بدون اسم',
-                        email: doc.id,
-                        className: item.className || 'غير موزع',
-                        phone: item.phone || '966566688614',
-                        actions: item.actions || [],
-                        attendanceStats: item.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
+                        name: name,
+                        email: email,
+                        className: data.className || 'غير موزع',
+                        phone: data.phone || '966566688614',
+                        actions: data.actions || [],
+                        attendanceStats: data.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
                     });
-                });
+                    
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-name', name);
+                    tr.setAttribute('data-email', email);
 
-                document.getElementById('approvedCount').innerText = `الطلاب المعتمدين: ${allStudents.length}`;
+                    // إضافة خيارات تعيين الفصول للقائمة المنسدلة بكل دقة دون المساس بكود ZBID الأساسي
+                    let classOptionsHtml = `<option value="" disabled>📁 تعيين لفصل دراسي</option>`;
+                    classList.forEach(cls => {
+                        const prefix = (data.className === cls) ? '✔️ ' : '';
+                        classOptionsHtml += `<option value="class_${cls}">${prefix}${cls}</option>`;
+                    });
+                    classOptionsHtml += `<option value="class_غير موزع">❌ إزالة من الفصل</option>`;
+
+                    tr.innerHTML = `
+                        <td class="name-cell" style="text-align: right; font-weight: bold;">
+                            ${name}
+                            <div style="font-size: 0.75rem; color: #800000; margin-top: 2px;">الفصل: ${data.className || 'غير موزع'}</div>
+                        </td>
+                        <td class="email-cell">${email}</td>
+                        <td>
+                            <div style="display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                                <select class="action-select" onchange="handleAction(this, '${email}', '${name.replace(/'/g, "\\'")}', '${doc.id}')">
+                                    <option value="" disabled selected>⚙️ خيارات الإجراء</option>
+                                    <optgroup label="الفصول الدراسية">
+                                        ${classOptionsHtml}
+                                    </optgroup>
+                                    <optgroup label="العمليات الأساسية">
+                                        <option value="copy_email">📧 نسخ الإيميل</option>
+                                        <option value="edit_email">✏️ تعديل الإيميل</option>
+                                        <option value="copy_name">📋 نسخ الاسم</option>
+                                        <option value="edit_name">✏️ تعديل الاسم</option>
+                                        <option value="copy_both">📑 نسخ الكل (الاسم والإيميل)</option>
+                                        <option value="delete">🗑️ حذف الطالب</option>
+                                    </optgroup>
+                                </select>
+                                <button onclick="openActionModal('${doc.id}')" style="background:#1e293b; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📝 رصد</button>
+                                <button onclick="openModal('${doc.id}')" style="background:var(--success); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📊 التقرير</button>
+                            </div>
+                        </td>
+                    `;
+                    approvedTbody.appendChild(tr);
+                });
                 renderView();
                 searchStudents();
             });
@@ -149,32 +199,161 @@
                             <td>${data.name}</td>
                             <td>${email}</td>
                             <td>
-                                <button style="background:var(--success); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold;" onclick="approveStudent('${email}', '${data.name}')">✅ قبول</button>
-                                <button style="background:var(--danger); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-weight:bold;" onclick="deletePending('${email}')">❌ رفض</button>
+                                <button class="btn-approve" onclick="approveStudent('${email}', '${data.name}')">✅ قبول</button>
+                                <button class="btn-reject" onclick="deletePending('${email}')">❌ رفض</button>
                             </td>
                         </tr>`;
                 });
             });
         }
 
-        window.openClass = function(className) {
-            activeClass = className;
-            document.getElementById('main-dashboard').classList.add('hidden');
-            document.getElementById('class-view').classList.remove('hidden');
-            document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
-            renderClassStudents();
+        window.handleAction = async function(selectElement, email, currentName, studentId) {
+            const action = selectElement.value;
+            selectElement.value = ""; 
+
+            if (action.startsWith('class_')) {
+                const targetClass = action.replace('class_', '');
+                await assignStudentClass(studentId, targetClass);
+                return;
+            }
+
+            if (action === 'copy_email') copyText(email);
+            else if (action === 'edit_email') editStudentEmail(email, currentName);
+            else if (action === 'copy_name') copyText(currentName);
+            else if (action === 'edit_name') editStudentName(email, currentName);
+            else if (action === 'copy_both') copyText(`${currentName}\n${email}`);
+            else if (action === 'delete') deleteAllowed(email);
         };
 
-        window.backToHome = function() {
-            activeClass = null;
-            document.getElementById('class-view').classList.add('hidden');
-            document.getElementById('main-dashboard').classList.remove('hidden');
-            renderView();
-            searchStudents();
-        };
+        async function assignStudentClass(studentId, newClass) {
+            const student = allStudents.find(s => s.id === studentId);
+            if(student) {
+                student.className = newClass;
+                renderView();
+                await db.collection("allowed_students").doc(studentId).update({ className: newClass });
+            }
+        }
 
-        // بحث الكود الثاني السريع
-        window.searchStudents = function() {
+        async function copyText(text) {
+            try { await navigator.clipboard.writeText(text); alert("تم النسخ بنجاح!"); } 
+            catch (err) { alert("فشل النسخ تلقائياً."); }
+        }
+
+        async function editStudentName(email, currentName) {
+            const newName = prompt("أدخل الاسم الجديد للطالب:", currentName);
+            if (newName === null) return;
+            const trimmedName = newName.trim();
+            if (!trimmedName) return alert("لا يمكن ترك الاسم فارغاً.");
+            try { await db.collection("allowed_students").doc(email).update({ name: trimmedName }); } 
+            catch (error) { alert("حدث خطأ أثناء تحديث الاسم."); }
+        }
+
+        async function editStudentEmail(currentEmail, currentName) {
+            const newEmailInput = prompt("أدخل البريد الإلكتروني الجديد للطالب:", currentEmail);
+            if (newEmailInput === null) return;
+            const newEmail = newEmailInput.trim().toLowerCase();
+            if (!newEmail || !newEmail.includes('@')) return alert("يرجى إدخال بريد إلكتروني صحيح.");
+            if (newEmail === currentEmail) return;
+            try {
+                const docCheck = await db.collection("allowed_students").doc(newEmail).get();
+                if (docCheck.exists) return alert("هذا البريد الإلكتروني موجود مسبقاً!");
+                await db.collection("allowed_students").doc(newEmail).set({ name: currentName, className: 'غير موزع', added_at: firebase.firestore.FieldValue.serverTimestamp() });
+                await db.collection("allowed_students").doc(currentEmail).delete();
+                alert("تم تعديل الإيميل بنجاح!");
+            } catch (error) { alert("حدث خطأ أثناء تحديث الإيميل."); }
+        }
+
+        async function approveStudent(email, name) {
+            try {
+                await db.collection("allowed_students").doc(email).set({
+                    name: name,
+                    className: 'غير موزع',
+                    added_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await db.collection("pending_students").doc(email).delete();
+            } catch (error) { alert("حدث خطأ أثناء الموافقة."); }
+        }
+
+        async function deletePending(email) {
+            if(confirm(`رفض وحذف ${email} من قائمة الانتظار؟`)) {
+                await db.collection("pending_students").doc(email).delete();
+            }
+        }
+
+        async function deleteAllowed(email) {
+            if(confirm(`حذف ${email} من الطلاب المعتمدين؟`)) {
+                await db.collection("allowed_students").doc(email).delete();
+            }
+        }
+
+        async function superSmartBulkAdd() {
+            const input = document.getElementById("bulkInput").value.trim();
+            if(!input) return alert("يرجى لصق البيانات");
+
+            const lines = input.split('\n').map(l => l.trim()).filter(l => l !== "");
+            const batch = db.batch();
+            let count = 0;
+
+            for(let i = 0; i < lines.length; i++) {
+                let line1 = lines[i];
+                let line2 = lines[i+1];
+                if(!line2) break;
+
+                let name = "", email = "";
+                if(!line1.includes('@') && line2.includes('@')) {
+                    name = line1; email = line2.toLowerCase();
+                    i++;
+                } else if(line1.includes('@') && !line2.includes('@')) {
+                    email = line1.toLowerCase(); name = line2;
+                    i++;
+                }
+
+                if(name && email) {
+                    const ref = db.collection("allowed_students").doc(email);
+                    batch.set(ref, { name: name, className: 'غير موزع', added_at: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+                    count++;
+                }
+            }
+
+            if(count > 0) {
+                await batch.commit();
+                alert(`تم رفع واعتماد ${count} طالب مباشرة بنجاح!`);
+                document.getElementById("bulkInput").value = "";
+            } else {
+                alert("تنسيق غير معروف. تأكد من وجود الاسم والإيميل في سطرين متتاليين.");
+            }
+        }
+
+        async function copyAllStudents() {
+            const rows = document.querySelectorAll("#studentsTable tbody tr");
+            if(rows.length === 0) return alert("لا يوجد طلاب معتمدون للنسخ.");
+
+            let textToCopy = "";
+            rows.forEach(row => {
+                if (row.style.display !== "none") {
+                    const name = row.getAttribute("data-name");
+                    const email = row.getAttribute("data-email");
+                    if(name && email) textToCopy += `${name}\n${email}\n`;
+                }
+            });
+
+            if(!textToCopy) return alert("لا توجد بيانات مطابقة للنسخ.");
+            try {
+                await navigator.clipboard.writeText(textToCopy.trim());
+                alert("تم نسخ جميع الطلاب إلى الحافظة بنجاح! 📋");
+            } catch (err) { alert("فشل النسخ تلقائياً."); }
+        }
+
+        async function deleteAllStudents() {
+            if(!confirm("تحذير: هل أنت متأكد من مسح جميع الطلاب المعتمدين؟")) return;
+            const snapshot = await db.collection("allowed_students").get();
+            const batch = db.batch();
+            snapshot.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            alert("تمت تصفية قائمة المعتمدين.");
+        }
+
+        function searchStudents() {
             let input = document.getElementById("searchInput");
             let filter = input.value.toUpperCase();
             let table = document.getElementById("studentsTable");
@@ -193,192 +372,43 @@
                     }
                 }       
             }
+        }
+
+        window.openClass = function(className) {
+            activeClass = className;
+            document.getElementById('main-dashboard').classList.add('hidden');
+            document.getElementById('class-view').classList.remove('hidden');
+            document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
+            renderClassStudents();
         };
 
-        // رسم جدول المعتمدين بنفس تنسيق الكود الثاني مع خيارات الإجراءات المتقدمة
-        function renderAllStudentsTable(studentsList) {
-            const tbody = document.querySelector("#studentsTable tbody");
-            if(!tbody) return;
-            tbody.innerHTML = '';
-
-            if(studentsList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-gray-500">لا توجد نتائج مطابقة</td></tr>`;
-                return;
-            }
-
-            studentsList.forEach(student => {
-                let classOptionsHtml = `<option value="" disabled>📁 تعيين لفصل دراسي</option>`;
-                classList.forEach(cls => {
-                    const prefix = student.className === cls ? '✔️ ' : '';
-                    classOptionsHtml += `<option value="class_${cls}">${prefix}${cls}</option>`;
-                });
-                classOptionsHtml += `<option value="class_غير موزع">❌ إزالة من الفصل</option>`;
-
-                const tr = document.createElement('tr');
-                tr.setAttribute('data-name', student.name);
-                tr.setAttribute('data-email', student.email);
-
-                tr.innerHTML = `
-                    <td style="text-align: right; font-weight: bold;">
-                        ${student.name}
-                        <div style="font-size: 0.75rem; color: #800000; margin-top: 2px;">الفصل: ${student.className || 'غير موزع'}</div>
-                    </td>
-                    <td>${student.email || 'بدون إيميل'}</td>
-                    <td>
-                        <div style="display: flex; gap: 5px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                            <select class="action-select" onchange="handleAction(this, '${student.email}', '${student.name.replace(/'/g, "\\'")}', '${student.id}')">
-                                <option value="" disabled selected>⚙️ خيارات الإجراء</option>
-                                <optgroup label="الفصول الدراسية">
-                                    ${classOptionsHtml}
-                                </optgroup>
-                                <optgroup label="العمليات الإدارية">
-                                    <option value="copy_email">📧 نسخ الإيميل</option>
-                                    <option value="edit_email">✏️ تعديل الإيميل</option>
-                                    <option value="copy_name">📋 نسخ الاسم</option>
-                                    <option value="edit_name">✏️ تعديل الاسم</option>
-                                    <option value="copy_both">📑 نسخ الاسم والإيميل</option>
-                                    <option value="delete">🗑️ حذف الطالب</option>
-                                </optgroup>
-                            </select>
-                            <button onclick="openActionModal('${student.id}')" style="background:#1e293b; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" style="background:var(--success); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📊 التقرير</button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // معالجة القائمة المنسدلة للإجراءات وتوزيع الفصول
-        window.handleAction = async function(selectElement, email, currentName, studentId) {
-            const action = selectElement.value;
-            selectElement.value = "";
-
-            if (action.startsWith('class_')) {
-                const targetClass = action.replace('class_', '');
-                await assignStudentClass(studentId, targetClass);
-                return;
-            }
-
-            if (action === 'copy_email') copyText(email);
-            else if (action === 'copy_name') copyText(currentName);
-            else if (action === 'copy_both') copyText(`${currentName}\n${email}`);
-            else if (action === 'edit_name') editStudentName(email, currentName);
-            else if (action === 'edit_email') editStudentEmail(email, currentName);
-            else if (action === 'delete') deleteAllowed(email);
+        window.backToHome = function() {
+            activeClass = null;
+            document.getElementById('class-view').classList.add('hidden');
+            document.getElementById('main-dashboard').classList.remove('hidden');
+            renderView();
         };
-
-        async function copyText(text) {
-            try { await navigator.clipboard.writeText(text); alert("تم النسخ بنجاح!"); } 
-            catch (err) { alert("فشل النسخ."); }
-        }
-
-        async function assignStudentClass(studentId, newClass) {
-            const student = allStudents.find(s => s.id === studentId);
-            if(student) {
-                student.className = newClass;
-                renderView();
-                searchStudents();
-                await db.collection("allowed_students").doc(studentId).update({ className: newClass });
-            }
-        }
-
-        async function editStudentName(email, currentName) {
-            const newName = prompt("أدخل الاسم الجديد للطالب:", currentName);
-            if (newName === null) return;
-            const trimmedName = newName.trim();
-            if (!trimmedName) return alert("لا يمكن ترك الاسم فارغاً.");
-            try { await db.collection("allowed_students").doc(email).update({ name: trimmedName }); } 
-            catch (error) { alert("حدث خطأ أثناء تحديث الاسم."); }
-        }
-
-        async function editStudentEmail(currentEmail, currentName) {
-            const newEmailInput = prompt("أدخل البريد الإلكتروني الجديد للطالب:", currentEmail);
-            if (newEmailInput === null) return;
-            const newEmail = newEmailInput.trim().toLowerCase();
-            if (!newEmail || !newEmail.includes('@')) return alert("يرجى إدخال بريد صحيح.");
-            if (newEmail === currentEmail) return;
-            try {
-                const docCheck = await db.collection("allowed_students").doc(newEmail).get();
-                if (docCheck.exists) return alert("البريد موجود مسبقاً!");
-                await db.collection("allowed_students").doc(newEmail).set({ name: currentName, added_at: firebase.firestore.FieldValue.serverTimestamp() });
-                await db.collection("allowed_students").doc(currentEmail).delete();
-                alert("تم تعديل الإيميل بنجاح!");
-            } catch (error) { alert("حدث خطأ."); }
-        }
-
-        async function deleteAllowed(email) {
-            if(confirm(`حذف ${email} من الطلاب المعتمدين؟`)) await db.collection("allowed_students").doc(email).delete();
-        }
-
-        async function approveStudent(email, name) {
-            await db.collection("allowed_students").doc(email).set({ name: name, className: 'غير موزع', added_at: firebase.firestore.FieldValue.serverTimestamp() });
-            await db.collection("pending_students").doc(email).delete();
-        }
-
-        async function deletePending(email) {
-            if(confirm(`رفض وحذف ${email}؟`)) await db.collection("pending_students").doc(email).delete();
-        }
-
-        async function superSmartBulkAdd() {
-            const input = document.getElementById("bulkInput").value.trim();
-            if(!input) return alert("يرجى لصق البيانات");
-            const lines = input.split('\n').map(l => l.trim()).filter(l => l !== "");
-            const batch = db.batch();
-            let count = 0;
-            for(let i = 0; i < lines.length; i++) {
-                let line1 = lines[i], line2 = lines[i+1];
-                if(!line2) break;
-                let name = "", email = "";
-                if(!line1.includes('@') && line2.includes('@')) { name = line1; email = line2.toLowerCase(); i++; } 
-                else if(line1.includes('@') && !line2.includes('@')) { email = line1.toLowerCase(); name = line2; i++; }
-                if(name && email) {
-                    const ref = db.collection("allowed_students").doc(email);
-                    batch.set(ref, { name: name, className: 'غير موزع', added_at: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-                    count++;
-                }
-            }
-            if(count > 0) { await batch.commit(); alert(`تم رفع واعتماد ${count} طالب بنجاح!`); document.getElementById("bulkInput").value = ""; } 
-            else { alert("تنسيق غير معروف."); }
-        }
-
-        async function copyAllStudents() {
-            let textToCopy = "";
-            allStudents.forEach(s => { textToCopy += `${s.name}\n${s.email}\n`; });
-            if(!textToCopy) return alert("لا توجد بيانات للنسخ.");
-            await navigator.clipboard.writeText(textToCopy.trim());
-            alert("تم نسخ جميع الطلاب بنجاح!");
-        }
-
-        async function deleteAllStudents() {
-            if(!confirm("تحذير: هل أنت متأكد من مسح جميع الطلاب المعتمدين؟")) return;
-            const snapshot = await db.collection("allowed_students").get();
-            const batch = db.batch();
-            snapshot.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
-            alert("تمت تصفية قائمة المعتمدين.");
-        }
 
         function renderView() {
             const classesContainer = document.getElementById('dynamic-classes-grid');
             if(!classesContainer) return;
             classesContainer.innerHTML = '';
+
             classList.forEach(cls => {
                 const count = allStudents.filter(s => s.className === cls).length;
                 classesContainer.innerHTML += `
-                    <div onclick="openClass('${cls}')" class="glass-card p-4 rounded-2xl shadow-sm border hover:border-slate-400 cursor-pointer transition flex items-center justify-between bg-white/95">
+                    <div onclick="openClass('${cls}')" class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 hover:border-slate-400 cursor-pointer transition flex items-center justify-between" style="background: rgba(255, 255, 255, 0.95);">
                         <div>
                             <span class="text-2xl mb-1 block">📚</span>
                             <h3 class="text-base font-bold text-slate-800">${cls}</h3>
                             <p class="text-xs text-slate-500 mt-0.5">${count} طلاب مخصصين</p>
                         </div>
-                        <span class="bg-slate-100 text-slate-700 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm">➔</span>
+                        <span class="bg-slate-100 text-slate-700 w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm shadow-2xs">➔</span>
                     </div>
                 `;
             });
         }
 
-        // واجهة الفصل (بدون أي بحث، للفصول فقط)
         function renderClassStudents() {
             if(!activeClass) return;
             const container = document.getElementById('class-students-container');
@@ -387,7 +417,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. قم بتوزيعهم من الجدول الرئيسي بالأعلى.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. قم بتوزيعهم من خلال قائمة الخيارات في الجدول الرئيسي بالأعلى.</p>`;
                 return;
             }
 
@@ -396,21 +426,25 @@
                 if(student.actions && Array.isArray(student.actions)) {
                     student.actions.forEach(act => { totalScore += (parseFloat(act.score) || 0); });
                 }
-                let scoreBadgeBg = totalScore > 0 ? "bg-emerald-50 text-emerald-700" : (totalScore < 0 ? "bg-rose-50 text-rose-700" : "bg-slate-100 text-slate-700");
+
+                let scoreBadgeBg = "bg-slate-100 text-slate-700 border-slate-200";
+                if(totalScore > 0) scoreBadgeBg = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                if(totalScore < 0) scoreBadgeBg = "bg-rose-50 text-rose-700 border-rose-200";
+                const formattedScore = totalScore > 0 ? `+${totalScore}` : totalScore;
 
                 container.innerHTML += `
-                    <div class="p-3.5 rounded-2xl shadow-2xs flex items-center justify-between border bg-white">
+                    <div class="bg-white p-3.5 rounded-2xl shadow-2xs flex items-center justify-between border border-slate-200 hover:shadow-xs transition">
                         <div>
                             <div class="flex items-center gap-2">
                                 <h3 class="font-bold text-sm text-slate-800">${student.name}</h3>
-                                <span class="text-[11px] font-black px-2 py-0.5 rounded-lg border ${scoreBadgeBg}">⭐ ${totalScore > 0 ? '+' + totalScore : totalScore}</span>
+                                <span class="text-[11px] font-black px-2 py-0.5 rounded-lg border ${scoreBadgeBg}">⭐ ${formattedScore}</span>
                             </div>
-                            <p class="text-[11px] text-slate-500 mt-0.5">${student.email || 'بدون إيميل'}</p>
+                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">${student.email || 'بدون إيميل'}</p>
                         </div>
                         <div class="flex gap-1.5 items-center">
-                            <button onclick="openActionModal('${student.id}')" class="bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">📊 التقرير</button>
-                            <button onclick="assignStudentClass('${student.id}', 'غير موزع')" title="إزالة من الفصل" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer">🗑️</button>
+                            <button onclick="openActionModal('${student.id}')" class="bg-slate-800 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer">📊 التقرير</button>
+                            <button onclick="assignStudentClass('${student.id}', 'غير موزع')" title="إزالة من الفصل" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -455,7 +489,7 @@
             document.getElementById('new-class-name').value = '';
             renderClassesListUI();
             renderView();
-            searchStudents();
+            fetchStudents();
         };
 
         function renderClassesListUI() {
@@ -464,9 +498,9 @@
             container.innerHTML = '';
             classList.forEach((cls, index) => {
                 container.innerHTML += `
-                    <div class="bg-white p-2.5 rounded-xl border flex justify-between items-center text-xs">
-                        <span class="font-bold">${cls}</span>
-                        <button onclick="classList.splice(${index},1); renderClassesListUI(); renderView(); searchStudents();" class="bg-rose-50 text-rose-600 px-2 py-1 rounded-lg font-semibold">🗑️ حذف</button>
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex justify-between items-center text-xs">
+                        <span class="font-bold text-slate-700">${cls}</span>
+                        <button onclick="classList.splice(${index},1); renderClassesListUI(); renderView(); fetchStudents();" class="bg-rose-50 text-rose-600 px-2 py-1 rounded-lg font-semibold cursor-pointer">🗑️ حذف</button>
                     </div>
                 `;
             });
@@ -560,9 +594,9 @@
             
             const modalContent = document.getElementById('modal-content');
             modalContent.innerHTML = `
-                <div class="text-center mb-4">
-                    <h2 class="text-xl font-black text-slate-800">${student.name}</h2>
-                    <p class="text-xs font-bold text-slate-500">${student.className}</p>
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-black text-slate-800">${student.name}</h2>
+                    <p class="text-sm font-bold text-slate-500 mt-1">${student.className}</p>
                 </div>
                 <div class="bg-slate-50 p-4 rounded-xl mb-4 border">
                     <h4 class="font-bold text-xs mb-2">👤 الحضور والغياب</h4>
@@ -592,7 +626,7 @@
 <body class="text-slate-800 min-h-screen flex flex-col justify-between text-sm">
 
     <header id="main-header" class="p-4 shadow-md border-b">
-        <div class="container mx-auto max-w-4xl flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="container mx-auto max-w-5xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
                 <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
                 <p class="text-xs opacity-90 mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
@@ -604,18 +638,22 @@
         </div>
     </header>
 
-    <main class="container mx-auto p-3 max-w-4xl flex-grow my-3">
+    <main class="container mx-auto p-3 max-w-5xl flex-grow my-3">
 
-        <!-- لوحة الفصول والتحكم الرئيسية -->
+        <!-- الفصول الدراسية في الأعلى -->
         <div id="main-dashboard" class="py-1 space-y-4">
             <h2 class="text-lg font-bold text-slate-800 text-center">الفصول الدراسية</h2>
             <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
 
-            <!-- الكود الثاني المدمج تماماً ببطاقته وتنسيقه الكلاسيكي -->
-            <div class="admin-box">
-                <!-- طلبات التسجيل المعلقة -->
+            <!-- لوحة تحكم ZBID الكلاسيكية تماماً في الأسفل -->
+            <div class="admin-card">
+                <div class="header">
+                    <h2>لوحة التحكم الشاملة (ZBID) 🔒</h2>
+                    <p>إدارة الطلاب المعتمدين ومراجعة طلبات التسجيل الجديدة</p>
+                </div>
+
                 <div class="pending-section" id="pendingSection">
-                    <h3 style="color: #d32f2f; margin-top:0; font-size: 1rem;">🔔 طلبات تسجيل جديدة بانتظار المراجعة</h3>
+                    <h3>🔔 طلبات تسجيل جديدة بانتظار المراجعة</h3>
                     <table id="pendingTable">
                         <thead>
                             <tr>
@@ -628,26 +666,23 @@
                     </table>
                 </div>
 
-                <!-- الرفع الجماعي -->
                 <div class="bulk-section">
-                    <label><strong>لصق القائمة هنا (اعتماد مباشر للمعتمدين):</strong></label>
+                    <label><strong>لصق القائمة هنا (سيتم اعتمادهم مباشرة للمعتمدين):</strong></label>
                     <textarea id="bulkInput" placeholder="الصق هنا.. لا يهم إذا بدأ السطر بالاسم أو الإيميل"></textarea>
                     <div class="controls">
                         <button class="btn btn-upload" onclick="superSmartBulkAdd()">بدء المعالجة والرفع 🚀</button>
-                        <button class="btn btn-copy" onclick="copyAllStudents()">📋 نسخ الكل (الاسم والإيميل)</button>
-                        <button class="btn btn-delete-all" onclick="deleteAllStudents()">حذف الكل 🗑️</button>
+                        <button class="btn btn-copy" onclick="copyAllStudents()">📋 نسخ الكل (الاسم والإيميل سطر بسطر)</button>
+                        <button class="btn btn-delete-all" onclick="deleteAllStudents()">حذف الكل (المعتمدين) 🗑️</button>
                     </div>
                 </div>
 
-                <!-- الإحصائيات -->
                 <div class="stats-bar">
                     <span id="approvedCount">الطلاب المعتمدين: 0</span>
                     <span id="pendingCountBadge" style="color: #d32f2f;">الطلبات المعلقة: 0</span>
                 </div>
 
-                <!-- البحث وجدول الطلاب الشامل -->
                 <div class="search-container">
-                    <h3 style="margin: 0; font-size: 1rem; color: var(--maroon);">🎓 قائمة الطلاب المعتمدين (المصرح لهم بالاختبار)</h3>
+                    <h3>🎓 قائمة الطلاب المعتمدين (المصرح لهم بالاختبار)</h3>
                     <input type="text" id="searchInput" class="search-box" onkeyup="searchStudents()" placeholder="🔍 ابحث عن اسم الطالب أو إيميله...">
                 </div>
 
@@ -664,7 +699,7 @@
             </div>
         </div>
 
-        <!-- واجهة عرض الفصل (للرصد والتقارير دون أي بحث) -->
+        <!-- واجهة الفصل الدراسي -->
         <div id="class-view" class="hidden py-1">
             <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl border">
                 <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer">⬅ الرئيسية</button>
@@ -713,7 +748,7 @@
         </div>
     </div>
 
-    <!-- نافذة الرصد -->
+    <!-- نافذة الرصد السريع -->
     <div id="action-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-5 relative shadow-xl">
             <button onclick="closeActionModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer">✕</button>
@@ -722,7 +757,7 @@
                 <button onclick="recordAction('حاضر', 0, null)" class="p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer">🟢 حاضر</button>
                 <button onclick="recordAction('غائب', 0, 'غائب')" class="p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer">🔴 غائب</button>
                 <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer">🔵 مستأذن</button>
-                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer">🟠 متأخر</button>
+                <button onclick="recordCardAction('متأخر', 0, 'متأخر')" class="p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer">🟠 متأخر</button>
             </div>
             <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-3 max-h-48 overflow-y-auto"></div>
             <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2 rounded-xl font-bold text-xs cursor-pointer">إغلاق</button>
