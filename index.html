@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام متابعة الطلاب الشامل - أ/ عبدالعزيز الفيفي</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;900&family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Readex+Pro:wght@400;600;700&family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -22,22 +22,22 @@
             font-weight: 700;
         }
 
-        /* خط عصري ومميز لعناوين بطاقات الفصول */
+        /* خط عصري ومميز جداً لعناوين بطاقات الفصول */
         .class-title-font {
-            font-family: 'Cairo', sans-serif;
-            font-weight: 800;
+            font-family: 'Readex Pro', sans-serif;
+            font-weight: 700;
         }
 
-        /* تصميم بطاقات الفصول الاحترافية بألوان خفيفة وعصرية */
+        /* تصميم بطاقات الفصول الاحترافية الأكبر حجماً والأنيقة */
         .class-3d-card {
-            border: 1px solid rgba(226, 232, 240, 0.9);
-            box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.03), 0 2px 6px -2px rgba(0, 0, 0, 0.02);
+            border: 1.5px solid rgba(212, 175, 55, 0.3);
+            box-shadow: 0 6px 20px -4px rgba(128, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.02);
             transition: all 0.3s ease;
         }
         .class-3d-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
-            border-color: rgba(212, 175, 55, 0.5);
+            box-shadow: 0 12px 30px -5px rgba(128, 0, 0, 0.12);
+            border-color: var(--maroon);
         }
 
         /* تصميم بطاقة الطالب المربعة الأكبر والأفخم */
@@ -496,14 +496,14 @@
             renderView();
         };
 
-        // تشكيلة ألوان خفيفة وعصرية واحترافية متناسقة لبطاقات الفصول
+        // تشكيلة ألوان خلفيات البطاقات (خفيفة وعصرية)
         const classSoftThemes = [
-            { bg: "bg-gradient-to-br from-amber-50/80 via-white to-orange-50/30", text: "text-amber-950", badge: "text-amber-700 bg-amber-50" },
-            { bg: "bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/30", text: "text-emerald-950", badge: "text-emerald-700 bg-emerald-50" },
-            { bg: "bg-gradient-to-br from-sky-50/80 via-white to-blue-50/30", text: "text-sky-950", badge: "text-sky-700 bg-sky-50" },
-            { bg: "bg-gradient-to-br from-purple-50/80 via-white to-indigo-50/30", text: "text-purple-950", badge: "text-purple-700 bg-purple-50" },
-            { bg: "bg-gradient-to-br from-rose-50/80 via-white to-pink-50/30", text: "text-rose-950", badge: "text-rose-700 bg-rose-50" },
-            { bg: "bg-gradient-to-br from-cyan-50/80 via-white to-sky-50/30", text: "text-cyan-950", badge: "text-cyan-700 bg-cyan-50" }
+            { bg: "bg-gradient-to-br from-amber-50/90 via-white to-orange-50/40", text: "text-stone-900" },
+            { bg: "bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/40", text: "text-stone-900" },
+            { bg: "bg-gradient-to-br from-sky-50/90 via-white to-blue-50/40", text: "text-stone-900" },
+            { bg: "bg-gradient-to-br from-purple-50/90 via-white to-indigo-50/40", text: "text-stone-900" },
+            { bg: "bg-gradient-to-br from-rose-50/90 via-white to-pink-50/40", text: "text-stone-900" },
+            { bg: "bg-gradient-to-br from-cyan-50/90 via-white to-sky-50/40", text: "text-stone-900" }
         ];
 
         function renderView() {
@@ -516,15 +516,16 @@
                 const theme = classSoftThemes[idx % classSoftThemes.length];
                 
                 classesContainer.innerHTML += `
-                    <div onclick="openClass('${cls}')" class="class-3d-card ${theme.bg} p-5 rounded-2xl cursor-pointer transition flex items-center justify-between border shadow-xs">
-                        <div class="flex items-center gap-3.5">
-                            <span class="text-2xl p-2.5 rounded-xl bg-white/90 shadow-2xs border border-slate-100 flex items-center justify-center">📚</span>
+                    <div onclick="openClass('${cls}')" class="class-3d-card ${theme.bg} p-7 rounded-3xl cursor-pointer transition flex items-center justify-between border shadow-sm">
+                        <div class="flex items-center gap-5">
+                            <span class="text-4xl p-4 rounded-2xl bg-white/95 shadow-xs border border-amber-100 flex items-center justify-center">📚</span>
                             <div>
-                                <h3 class="class-title-font text-base tracking-wide ${theme.text}">${cls}</h3>
-                                <p class="text-xs text-slate-500 mt-0.5 font-semibold">${count} طلاب مخصصين</p>
+                                <h3 class="class-title-font text-xl tracking-wide ${theme.text}">${cls}</h3>
+                                <!-- عداد الطلاب بالأحمر العودي الممزوج بالبيج الفاخر -->
+                                <p class="text-xs mt-1.5 font-bold px-3 py-1 rounded-lg inline-block bg-[#800000]/10 text-[#800000] border border-[#800000]/20">${count} طلاب مخصصين</p>
                             </div>
                         </div>
-                        <span class="bg-white/90 backdrop-blur-xs w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm text-slate-600 shadow-2xs border border-slate-200">➔</span>
+                        <span class="bg-white/95 backdrop-blur-xs w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl text-[#800000] shadow-xs border border-amber-200">➔</span>
                     </div>
                 `;
             });
