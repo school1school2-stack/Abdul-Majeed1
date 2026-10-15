@@ -175,9 +175,9 @@
             { icon: '🗣️', name: 'التحدث أثناء الدرس', score: -1.0, color: '#6f42c1' },
             { icon: '🏃‍♂️', name: 'خرج ولم يعد', score: -1.0, color: '#007bff' },
             { icon: '😑', name: 'غير مهتم', score: -1.0, color: '#fd7e14' },
-            { icon: '📁', name: 'نسيان ملف أو واجب', score: -5.0, color: '#ffc107' },
+            { icon: '📁', name: 'نسيان ملف', score: -5.0, color: '#dc3545' },
+            { icon: '📂', name: 'إنجاز ملف', score: 5.0, color: '#ffc107' },
             { icon: '📱', name: 'استخدام الهاتف', score: -1.0, color: '#d9534f' },
-            { icon: '⭐', name: 'إنجاز ملف', score: 5.0, color: '#00cec9' },
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
@@ -1141,6 +1141,8 @@
                         <option value="💡">💡 مشاركة</option>
                         <option value="📘">📘 واجب</option>
                         <option value="📕">📕 عدم حل</option>
+                        <option value="📁">📁 ملف أحمر</option>
+                        <option value="📂">📂 ملف أصفر</option>
                         <option value="🎁">🎁 هدية</option>
                         <option value="🏆">🏆 كأس</option>
                         <option value="💤">💤 نوم</option>
@@ -1148,7 +1150,6 @@
                         <option value="📱">📱 جوال</option>
                         <option value="😑">😑 غير مهتم</option>
                         <option value="🏃‍♂️">🏃‍♂️ هروب</option>
-                        <option value="📁">📁 نسيان</option>
                         <option value="⚡">⚡ نشاط</option>
                         <option value="🔥">🔥 تميز</option>
                     </select>
