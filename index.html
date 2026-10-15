@@ -144,7 +144,6 @@
                     tr.setAttribute('data-name', name);
                     tr.setAttribute('data-email', email);
 
-                    // إضافة خيارات تعيين الفصول للقائمة المنسدلة بكل دقة دون المساس بكود ZBID الأساسي
                     let classOptionsHtml = `<option value="" disabled>📁 تعيين لفصل دراسي</option>`;
                     classList.forEach(cls => {
                         const prefix = (data.className === cls) ? '✔️ ' : '';
@@ -152,6 +151,7 @@
                     });
                     classOptionsHtml += `<option value="class_غير موزع">❌ إزالة من الفصل</option>`;
 
+                    // جدول ZBID الأصلي تماماً (قائمة الإجراءات فقط)
                     tr.innerHTML = `
                         <td class="name-cell" style="text-align: right; font-weight: bold;">
                             ${name}
@@ -159,24 +159,20 @@
                         </td>
                         <td class="email-cell">${email}</td>
                         <td>
-                            <div style="display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                                <select class="action-select" onchange="handleAction(this, '${email}', '${name.replace(/'/g, "\\'")}', '${doc.id}')">
-                                    <option value="" disabled selected>⚙️ خيارات الإجراء</option>
-                                    <optgroup label="الفصول الدراسية">
-                                        ${classOptionsHtml}
-                                    </optgroup>
-                                    <optgroup label="العمليات الأساسية">
-                                        <option value="copy_email">📧 نسخ الإيميل</option>
-                                        <option value="edit_email">✏️ تعديل الإيميل</option>
-                                        <option value="copy_name">📋 نسخ الاسم</option>
-                                        <option value="edit_name">✏️ تعديل الاسم</option>
-                                        <option value="copy_both">📑 نسخ الكل (الاسم والإيميل)</option>
-                                        <option value="delete">🗑️ حذف الطالب</option>
-                                    </optgroup>
-                                </select>
-                                <button onclick="openActionModal('${doc.id}')" style="background:#1e293b; color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📝 رصد</button>
-                                <button onclick="openModal('${doc.id}')" style="background:var(--success); color:white; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:0.75rem;">📊 التقرير</button>
-                            </div>
+                            <select class="action-select" onchange="handleAction(this, '${email}', '${name.replace(/'/g, "\\'")}', '${doc.id}')">
+                                <option value="" disabled selected>⚙️ خيارات الإجراء</option>
+                                <optgroup label="الفصول الدراسية">
+                                    ${classOptionsHtml}
+                                </optgroup>
+                                <optgroup label="العمليات الأساسية">
+                                    <option value="copy_email">📧 نسخ الإيميل</option>
+                                    <option value="edit_email">✏️ تعديل الإيميل</option>
+                                    <option value="copy_name">📋 نسخ الاسم</option>
+                                    <option value="edit_name">✏️ تعديل الاسم</option>
+                                    <option value="copy_both">📑 نسخ الكل (الاسم والإيميل)</option>
+                                    <option value="delete">🗑️ حذف الطالب</option>
+                                </optgroup>
+                            </select>
                         </td>
                     `;
                     approvedTbody.appendChild(tr);
@@ -409,6 +405,7 @@
             });
         }
 
+        // واجهة الفصل الدراسي وتحتوي على أزرار الرصد والتقرير لكل طالب
         function renderClassStudents() {
             if(!activeClass) return;
             const container = document.getElementById('class-students-container');
@@ -417,7 +414,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. قم بتوزيعهم من خلال قائمة الخيارات في الجدول الرئيسي بالأعلى.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. قم بتوزيعهم من خلال قائمة الخيارات في جدول لوحة التحكم بالأعلى.</p>`;
                 return;
             }
 
@@ -590,7 +587,6 @@
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
             const att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
-            const actions = student.actions || [];
             
             const modalContent = document.getElementById('modal-content');
             modalContent.innerHTML = `
@@ -645,7 +641,7 @@
             <h2 class="text-lg font-bold text-slate-800 text-center">الفصول الدراسية</h2>
             <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
 
-            <!-- لوحة تحكم ZBID الكلاسيكية تماماً في الأسفل -->
+            <!-- لوحة تحكم ZBID الكلاسيكية تماماً في الأسفل (بها قائمة الإجراءات فقط) -->
             <div class="admin-card">
                 <div class="header">
                     <h2>لوحة التحكم الشاملة (ZBID) 🔒</h2>
@@ -699,7 +695,7 @@
             </div>
         </div>
 
-        <!-- واجهة الفصل الدراسي -->
+        <!-- واجهة الفصل الدراسي (تحتوي على أزرار الرصد والتقرير لكل طالب) -->
         <div id="class-view" class="hidden py-1">
             <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl border">
                 <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer">⬅ الرئيسية</button>
@@ -757,7 +753,7 @@
                 <button onclick="recordAction('حاضر', 0, null)" class="p-2 rounded-xl bg-emerald-600 text-white font-bold text-[11px] cursor-pointer">🟢 حاضر</button>
                 <button onclick="recordAction('غائب', 0, 'غائب')" class="p-2 rounded-xl bg-rose-600 text-white font-bold text-[11px] cursor-pointer">🔴 غائب</button>
                 <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="p-2 rounded-xl bg-sky-600 text-white font-bold text-[11px] cursor-pointer">🔵 مستأذن</button>
-                <button onclick="recordCardAction('متأخر', 0, 'متأخر')" class="p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer">🟠 متأخر</button>
+                <button onclick="recordAction('متأخر', 0, 'متأخر')" class="p-2 rounded-xl bg-amber-600 text-white font-bold text-[11px] cursor-pointer">🟠 متأخر</button>
             </div>
             <div id="custom-actions-container" class="grid grid-cols-2 gap-2 mb-3 max-h-48 overflow-y-auto"></div>
             <button onclick="closeActionModal()" class="w-full bg-slate-900 text-slate-100 py-2 rounded-xl font-bold text-xs cursor-pointer">إغلاق</button>
