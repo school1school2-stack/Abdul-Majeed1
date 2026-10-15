@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
     
-    <!-- استخدام مكتبات سحابة الكود الثاني السريعة (Firestore) -->
+    <!-- مكتبات السحابة لنفس قاعدة البيانات المشتركة -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -18,7 +18,7 @@
     </style>
 
     <script>
-        // إعدادات السحابة الخاصة بالكود الثاني السريع
+        // إعدادات السحابة المشتركة من الكود الثاني
         const firebaseConfig = {
             apiKey: "AIzaSyBkCO7FDQXd89YDf843J4_AtvEFvzzt-R0",
             authDomain: "aztlg-494c3.firebaseapp.com",
@@ -32,7 +32,7 @@
         const db = firebase.firestore();
 
         let activeClass = null;
-        let currentStudentId = null;
+        let currentStudentEmail = null;
         let allStudents = [];
         let customActions = [];
         let classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
@@ -71,20 +71,20 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل سريع خفيف وثابت
-        async function initFastLoad() {
+        // جلب الأسماء مباشرة من جدولallowed_students المشترك بذكاء وسرعة
+        function initFastLoad() {
             applyRandomTheme();
             customActions = defaultActions;
             
-            try {
-                const snapshot = await db.collection("fifi_students_collection").get();
+            db.collection("allowed_students").onSnapshot((snapshot) => {
                 allStudents = [];
-                snapshot.forEach(doc => {
+                snapshot.forEach((doc) => {
                     const item = doc.data();
+                    const email = doc.id; // البريد هو معرف المستند
                     allStudents.push({
-                        id: doc.id,
+                        id: email, // استخدام الإيميل كمعرف فريد
                         name: item.name || 'بدون اسم',
-                        email: item.email || 'بدون إيميل',
+                        email: email,
                         className: item.className || 'غير موزع',
                         phone: item.phone || '966566688614',
                         actions: item.actions || [],
@@ -95,9 +95,7 @@
                 renderCustomActionsUI();
                 renderSettingsActionsDropdown();
                 renderClassesListUI();
-            } catch (e) {
-                console.error("خطأ بالتحميل:", e);
-            }
+            });
         }
 
         window.openClass = function(className) {
@@ -310,67 +308,6 @@
             });
         }
 
-        window.superSmartBulkAdd = async function() {
-            const bulkText = document.getElementById('bulk-students-input').value.trim();
-            if(!bulkText) return alert('الرجاء إدخال قائمة الطلاب في المربع');
-            const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l !== "");
-            let count = 0;
-
-            for(let i = 0; i < lines.length; i++) {
-                let line1 = lines[i];
-                let line2 = lines[i+1];
-                if(!line2) break;
-                let name = "", email = "";
-                if(!line1.includes('@') && line2.includes('@')) {
-                    name = line1; email = line2.toLowerCase(); i++;
-                } else if(line1.includes('@') && !line2.includes('@')) {
-                    email = line1.toLowerCase(); name = line2; i++;
-                }
-                if(name && email) {
-                    const newStuObj = {
-                        name: name, email: email, className: 'غير موزع',
-                        phone: '966566688614', actions: [],
-                        attendanceStats: { absents: 0, lates: 0, excuses: 0 }
-                    };
-                    const docRef = await db.collection("fifi_students_collection").add(newStuObj);
-                    allStudents.push({ id: docRef.id, ...newStuObj });
-                    count++;
-                }
-            }
-
-            if(count > 0) {
-                document.getElementById('bulk-students-input').value = '';
-                renderView();
-                alert(`تم حفظ ${count} طالب في السحابة بنجاح وبسرعة فائقة ✅`);
-            } else {
-                alert('تأكد من تنسيق القائمة (اسم الطالب ثم الإيميل في كل سطر).');
-            }
-        };
-
-        window.copyAllStudents = function() {
-            if(allStudents.length === 0) return alert('لا توجد أسماء للنسخ');
-            let textToCopy = "";
-            allStudents.forEach(s => {
-                textToCopy += `${s.name}\n${s.email || ''}\n`;
-            });
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                alert('تم نسخ جميع الأسماء والإيميلات بنجاح 📋');
-            });
-        };
-
-        window.deleteAllStudents = async function() {
-            if(confirm('تحذير: هل أنت متأكد من حذف جميع الطلاب من السحابة نهائياً؟')) {
-                const snapshot = await db.collection("fifi_students_collection").get();
-                const batch = db.batch();
-                snapshot.forEach(doc => batch.delete(doc.ref));
-                await batch.commit();
-                allStudents = [];
-                renderView();
-                if(activeClass) renderClassStudents();
-                alert('تم تفريغ وحذف جميع الطلاب بنجاح 🗑️');
-            }
-        };
-
         window.searchGlobalStudents = function() {
             const query = document.getElementById('global-search-input').value.trim().toLowerCase();
             const resultsBox = document.getElementById('global-search-results');
@@ -387,53 +324,31 @@
                     <div class="p-2.5 hover:bg-slate-50 flex justify-between items-center border-b border-slate-100 text-xs">
                         <div>
                             <span class="font-bold text-slate-700">${student.name}</span>
-                            <span class="text-[11px] text-slate-500 block">${student.email || ''} (الحالة: ${student.className})</span>
+                            <span class="text-[11px] text-slate-500 block">${student.email} (الحالة: ${student.className})</span>
                         </div>
-                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-md font-bold text-[11px]">➕ إضافة</button>
+                        <button onclick="transferStudentToCurrentClass('${student.email}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-md font-bold text-[11px] cursor-pointer">➕ إضافة</button>
                     </div>
                 `;
             });
             resultsBox.classList.remove('hidden');
         };
 
-        window.transferStudentToCurrentClass = async function(id) {
-            const student = allStudents.find(s => s.id === id);
+        window.transferStudentToCurrentClass = async function(email) {
+            const student = allStudents.find(s => s.id === email);
             if(student) {
                 student.className = activeClass;
                 renderClassStudents();
                 document.getElementById('global-search-input').value = '';
                 document.getElementById('global-search-results').classList.add('hidden');
-                await db.collection("fifi_students_collection").doc(id).update({ className: activeClass });
-            }
-        };
-
-        window.editStudent = async function(id) {
-            const student = allStudents.find(s => s.id === id);
-            if(!student) return;
-            const newName = prompt("تعديل اسم الطالب:", student.name);
-            if(newName === null) return;
-            const newEmail = prompt("تعديل إيميل مدرستي:", student.email || '');
-            student.name = newName.trim();
-            student.email = newEmail.trim();
-            renderView();
-            if(activeClass) renderClassStudents();
-            await db.collection("fifi_students_collection").doc(id).update({ name: student.name, email: student.email });
-        };
-
-        window.deleteStudent = async function(id) {
-            if(confirm('هل أنت متأكد من حذف هذا الطالب نهائياً؟')) {
-                allStudents = allStudents.filter(s => s.id !== id);
-                renderView();
-                if(activeClass) renderClassStudents();
-                await db.collection("fifi_students_collection").doc(id).delete();
+                await db.collection("allowed_students").doc(email).update({ className: activeClass });
             }
         };
 
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
-            if(!currentStudentId) return;
+            if(!currentStudentEmail) return;
             closeActionModal();
 
-            const student = allStudents.find(s => s.id === currentStudentId);
+            const student = allStudents.find(s => s.id === currentStudentEmail);
             if(student) {
                 const now = new Date();
                 const dayName = now.toLocaleDateString('ar-SA', { weekday: 'long' });
@@ -453,7 +368,7 @@
 
                 renderClassStudents();
 
-                await db.collection("fifi_students_collection").doc(currentStudentId).update({
+                await db.collection("allowed_students").doc(currentStudentEmail).update({
                     actions: student.actions,
                     attendanceStats: attendanceStats
                 });
@@ -461,31 +376,30 @@
         };
 
         window.deleteStudentAction = async function(actionIndex) {
-            if(!currentStudentId) return;
-            const student = allStudents.find(s => s.id === currentStudentId);
+            if(!currentStudentEmail) return;
+            const student = allStudents.find(s => s.id === currentStudentEmail);
             if(student && student.actions) {
                 student.actions.splice(actionIndex, 1);
-                openModal(currentStudentId);
+                openModal(currentStudentEmail);
                 renderClassStudents();
-                await db.collection("fifi_students_collection").doc(currentStudentId).update({ actions: student.actions });
+                await db.collection("allowed_students").doc(currentStudentEmail).update({ actions: student.actions });
             }
         };
 
         window.adjustAttendance = async function(type, delta) {
-            if(!currentStudentId) return;
-            const student = allStudents.find(s => s.id === currentStudentId);
+            if(!currentStudentEmail) return;
+            const student = allStudents.find(s => s.id === currentStudentEmail);
             if(student) {
                 let att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
                 if(type === 'absents') att.absents = Math.max(0, (att.absents || 0) + delta);
                 if(type === 'lates') att.lates = Math.max(0, (att.lates || 0) + delta);
                 if(type === 'excuses') att.excuses = Math.max(0, (att.excuses || 0) + delta);
 
-                openModal(currentStudentId);
-                await db.collection("fifi_students_collection").doc(currentStudentId).update({ attendanceStats: att });
+                openModal(currentStudentEmail);
+                await db.collection("allowed_students").doc(currentStudentEmail).update({ attendanceStats: att });
             }
         };
 
-        // تحسين العرض لمنع ثقل المتصفح عند زيادة عدد الطلاب
         function renderView() {
             const classesContainer = document.getElementById('dynamic-classes-grid');
             if(!classesContainer) return;
@@ -507,29 +421,25 @@
 
             const totalCountBadge = document.getElementById('total-cloud-count');
             if(totalCountBadge) {
-                totalCountBadge.innerText = `إجمالي القائمة العامة بالسحابة: ${allStudents.length} طالب`;
+                totalCountBadge.innerText = `إجمالي القائمة العامة (Allowed Students): ${allStudents.length} طالب`;
             }
 
             const globalContainer = document.getElementById('general-students-list-container');
             if(globalContainer) {
                 globalContainer.innerHTML = '';
-                const limitStudents = allStudents.slice(0, 50); // عرض أول 50 طالباً لتسريع الأداء منعاً للثقل
+                const limitStudents = allStudents.slice(0, 50); // عرض أول 50 طالباً لضمان السرعة الفائقة
                 limitStudents.forEach(student => {
                     globalContainer.innerHTML += `
                         <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center shadow-2xs text-xs">
                             <div>
                                 <span class="font-bold text-slate-800">${student.name}</span>
-                                <span class="text-[11px] text-slate-500 block">${student.email || 'بدون إيميل'} | الفصل: <strong class="text-slate-700">${student.className}</strong></span>
-                            </div>
-                            <div class="flex gap-1.5">
-                                <button onclick="editStudent('${student.id}')" class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-lg font-bold cursor-pointer hover:bg-amber-100">✏️ تعديل</button>
-                                <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-bold cursor-pointer hover:bg-rose-100">🗑️ حذف</button>
+                                <span class="text-[11px] text-slate-500 block">${student.email} | الفصل: <strong class="text-slate-700">${student.className}</strong></span>
                             </div>
                         </div>
                     `;
                 });
                 if(allStudents.length > 50) {
-                    globalContainer.innerHTML += `<p class="text-center text-[10px] text-slate-400 py-1">يتم عرض أول 50 طالباً لتسريع الأداء. استخدم خانة البحث للوصول لأي طالب.</p>`;
+                    globalContainer.innerHTML += `<p class="text-center text-[10px] text-slate-400 py-1">يتم عرض أول 50 طالباً لتسريع الأداء. استخدم خانة البحث في الفصول للوصول لأي طالب.</p>`;
                 }
             }
         }
@@ -568,21 +478,20 @@
                                 <h3 class="font-bold text-sm text-slate-800">${student.name}</h3>
                                 <span class="text-[11px] font-black px-2 py-0.5 rounded-lg border ${scoreBadgeBg}" title="مجموع التقييمات">⭐ ${formattedScore}</span>
                             </div>
-                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">${student.email || 'بدون إيميل'}</p>
+                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">${student.email}</p>
                         </div>
                         <div class="flex gap-1.5 items-center">
-                            <button onclick="openActionModal('${student.id}')" class="${btnPrimaryClass} text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
-                            <button onclick="deleteStudent('${student.id}')" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
+                            <button onclick="openActionModal('${student.email}')" class="${btnPrimaryClass} text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
+                            <button onclick="openModal('${student.email}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        window.openActionModal = function(id) {
-            currentStudentId = id;
-            const student = allStudents.find(s => s.id === id);
+        window.openActionModal = function(email) {
+            currentStudentEmail = email;
+            const student = allStudents.find(s => s.id === email);
             if(student) document.getElementById('action-student-name').innerText = student.name;
             document.getElementById('action-modal').classList.remove('hidden');
             document.getElementById('action-modal').classList.add('flex');
@@ -593,9 +502,9 @@
             document.getElementById('action-modal').classList.remove('flex');
         };
 
-        window.openModal = function(id) {
-            currentStudentId = id;
-            const student = allStudents.find(s => s.id === id);
+        window.openModal = function(email) {
+            currentStudentEmail = email;
+            const student = allStudents.find(s => s.id === email);
             if(!student) return;
 
             const att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
@@ -607,7 +516,7 @@
                 <div class="text-center mb-6">
                     <div class="w-20 h-20 ${btnPrimaryClass} text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-lg">👤</div>
                     <h2 class="text-2xl font-black text-slate-800">${student.name}</h2>
-                    <p class="text-sm font-bold text-slate-500 mt-1">${student.className}</p>
+                    <p class="text-sm font-bold text-slate-500 mt-1">${student.className} | ${student.email}</p>
                 </div>
 
                 <div class="bg-slate-50 p-5 rounded-2xl mb-6 border border-slate-200 shadow-2xs">
@@ -708,21 +617,14 @@
 
             <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 mb-6" style="background: rgba(255, 255, 255, 0.95);">
                 <div class="flex flex-col sm:flex-row justify-between items-center mb-2 gap-1.5">
-                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">📥 حفظ القائمة العامة للطلاب في السحابة</h3>
-                    <span class="text-[11px] bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-full" id="total-cloud-count">إجمالي القائمة العامة بالسحابة: 0 طالب</span>
+                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">📌 حالة مزامنة الطلاب</h3>
+                    <span class="text-[11px] bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-full" id="total-cloud-count">إجمالي القائمة العامة: 0 طالب</span>
                 </div>
-                <p class="text-xs text-slate-500 mb-3">الصق القائمة الكاملة هنا (اسم الطالب والإيميل سطر بسطر):</p>
-                <textarea id="bulk-students-input" rows="4" placeholder="محمد أحمد الفيفي&#10;m.feefi@moe.gov.sa" class="w-full border border-slate-200 p-3 rounded-xl text-xs focus:outline-none focus:border-slate-500 mb-3 font-sans bg-white shadow-2xs"></textarea>
-                
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <button onclick="superSmartBulkAdd()" class="flex-1 bg-slate-700 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition text-xs cursor-pointer shadow-xs">حفظ القائمة العامة في السحابة 🚀</button>
-                    <button onclick="copyAllStudents()" class="bg-sky-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-sky-700 transition text-xs cursor-pointer shadow-xs">📋 نسخ الكل</button>
-                    <button onclick="deleteAllStudents()" class="bg-rose-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-rose-700 transition text-xs cursor-pointer shadow-xs">🗑️ حذف الكل</button>
-                </div>
+                <p class="text-xs text-slate-500">الأسماء مرتبطة تلقائياً بقائمة الطلاب المعتمدين (Allowed Students) في سحابنك الموحدة.</p>
             </div>
 
             <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
-                <h3 class="font-bold text-sm text-slate-800 mb-3">📋 القائمة العامة للطلاب المحفوظين بالسحابة</h3>
+                <h3 class="font-bold text-sm text-slate-800 mb-3">📋 عينة من الطلاب المسجلين بالسحابة</h3>
                 <div id="general-students-list-container" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
             </div>
         </div>
