@@ -7,7 +7,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
     
-    <!-- استخدام سحابة الأسماء الموحدة (allowed_students) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -56,7 +55,7 @@
                 header.className = `p-4 shadow-md border-b transition-all duration-500 ${selectedTheme.headerBg}`;
             }
             window.currentTheme = selectedTheme;
-            renderClassStudents(); // إعادة رسم الكروت لتتأثر بلون الثيم الجديد
+            renderClassStudents();
         }
 
         const defaultActions = [
@@ -71,7 +70,6 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل جميع الأسماء مرة واحدة وثابتة عند فتح الصفحة
         async function initFastLoad() {
             applyRandomTheme();
             customActions = defaultActions;
@@ -120,7 +118,7 @@
             renderView();
         };
 
-        // نظام البحث الفوري الذكي (يظهر النتائج في قائمة منسدلة فور الكتابة وبدون انتظار)
+        // البحث الفوري في القائمة المنسدلة
         window.searchGlobalStudents = function() {
             const query = document.getElementById('global-search-input').value.trim().toLowerCase();
             const resultsBox = document.getElementById('global-search-results');
@@ -613,10 +611,10 @@
                 <p class="text-xs opacity-90 mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="openSettingsModal('classes')" class="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition backdrop-blur-xs">
+                <button onclick="openSettingsModal('classes')" class="bg-white/25 hover:bg-white/35 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition backdrop-blur-xs">
                     🏫 الفصول
                 </button>
-                <button onclick="openSettingsModal('actions')" class="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition backdrop-blur-xs">
+                <button onclick="openSettingsModal('actions')" class="bg-white/25 hover:bg-white/35 px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer transition backdrop-blur-xs">
                     ⚙️ التقييمات
                 </button>
             </div>
@@ -636,19 +634,18 @@
         </div>
 
         <div id="class-view" class="hidden py-1">
-            <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-2xs border border-slate-200">
+            <div class="flex items-center justify-between mb-4 bg-white/90 p-3.5 rounded-2xl shadow-2xs border border-slate-200">
                 <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 transition cursor-pointer">⬅ الرئيسية</button>
                 <h2 class="text-base font-bold text-slate-700" id="class-title-header">الفصل</h2>
                 <div class="w-12"></div>
             </div>
 
-            <!-- مربع البحث الفوري الذي يفتح القائمة المنسدلة للنتائج بلمح البصر -->
+            <!-- مربع البحث الفوري الذي يفتح قائمة النتائج المنسدلة في لمح البصر -->
             <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 relative border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
                 <div class="flex items-center gap-2 px-1">
                     <span class="text-sm">🔍</span>
-                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب (تظهر القائمة المنسدلة الفورية فوراً)..." class="w-full border-none focus:outline-none text-xs font-semibold bg-transparent">
+                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب (تظهر القائمة الفورية فوراً)..." class="w-full border-none focus:outline-none text-xs font-semibold bg-transparent">
                 </div>
-                <!-- قائمة منسدلة فورية للنتائج -->
                 <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl rounded-2xl mt-1 border border-slate-200 max-h-60 overflow-y-auto z-50 divide-y divide-slate-100"></div>
             </div>
 
