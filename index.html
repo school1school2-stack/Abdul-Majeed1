@@ -37,6 +37,7 @@
         let classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
         let editingActionIndex = null;
         let editingClassIndex = null;
+        let isDataLoaded = false;
 
         const themes = [
             { name: "الذهب الأبيض", bg: "linear-gradient(135deg, #fdfbf7 0%, #eef2f3 100%)", headerBg: "bg-stone-800 text-amber-100 border-stone-700", btnPrimary: "bg-stone-800 hover:bg-stone-900 text-amber-100" },
@@ -70,13 +71,13 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // بدء جلب البيانات فوراً عند فتح الصفحة من سحابة الأسماء (allowed_students)
-        function initFastLoad() {
+        // تحميل جميع الأسماء مرة واحدة وثابتة عند فتح الصفحة (تماماً مثل كود الأسماء)
+        async function initFastLoad() {
             applyRandomTheme();
             customActions = defaultActions;
             
-            // جلب واستماع دائم للبيانات من سحابة الأسماء لتحديثها فور فتح الصفحة
-            db.collection("allowed_students").onSnapshot((snapshot) => {
+            try {
+                const snapshot = await db.collection("allowed_students").get();
                 allStudents = [];
                 snapshot.forEach(doc => {
                     const item = doc.data();
@@ -90,14 +91,20 @@
                         attendanceStats: item.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
                     });
                 });
+                isDataLoaded = true;
                 renderView();
                 renderCustomActionsUI();
                 renderSettingsActionsDropdown();
                 renderClassesListUI();
-                if(activeClass) renderClassStudents();
-            }, (e) => {
+                
+                // إظهار تنبيه بصري خفيف بأن البيانات تم تحميلها بالكامل
+                const statusEl = document.getElementById('loading-status-text');
+                if(statusEl) statusEl.innerText = `✅ تم تحميل جميع الأسماء بنجاح (${allStudents.length} طالب) وجاهزة للبحث الفوري.`;
+            } catch (e) {
                 console.error("خطأ بالتحميل:", e);
-            });
+                const statusEl = document.getElementById('loading-status-text');
+                if(statusEl) statusEl.innerText = `❌ حدث خطأ أثناء تحميل الأسماء.`;
+            }
         }
 
         window.openClass = function(className) {
@@ -316,25 +323,37 @@
             });
         }
 
+        // البحث الفوري المحلي (في لمح البصر من الذاكرة المخزنة مسبقاً)
         window.searchGlobalStudents = function() {
             const query = document.getElementById('global-search-input').value.trim().toLowerCase();
             const resultsBox = document.getElementById('global-search-results');
-            if(!query) { resultsBox.innerHTML = ''; resultsBox.classList.add('hidden'); return; }
+            
+            if(!query) { 
+                resultsBox.innerHTML = ''; 
+                resultsBox.classList.add('hidden'); 
+                return; 
+            }
+
             const matches = allStudents.filter(s => s.name.toLowerCase().includes(query) || (s.email && s.email.toLowerCase().includes(query)));
+            
             if(matches.length === 0) {
-                resultsBox.innerHTML = `<div class="p-2.5 text-xs text-slate-500">لا توجد نتائج مطابقة في سحابة الأسماء.</div>`;
+                resultsBox.innerHTML = `<div class="p-3 text-xs text-slate-500 text-center font-semibold">لا توجد نتائج مطابقة</div>`;
                 resultsBox.classList.remove('hidden');
                 return;
             }
+
             resultsBox.innerHTML = '';
             matches.forEach(student => {
+                const isAlreadyInClass = student.className === activeClass;
                 resultsBox.innerHTML += `
-                    <div class="p-2.5 hover:bg-slate-50 flex justify-between items-center border-b border-slate-100 text-xs">
+                    <div onclick="transferStudentToCurrentClass('${student.id}')" class="p-3 hover:bg-slate-100 flex justify-between items-center border-b border-slate-100 text-xs cursor-pointer transition">
                         <div>
-                            <span class="font-bold text-slate-700">${student.name}</span>
-                            <span class="text-[11px] text-slate-500 block">${student.email || ''} (الحالة: ${student.className})</span>
+                            <span class="font-bold text-slate-800 block">${student.name}</span>
+                            <span class="text-[11px] text-slate-500">${student.email || ''} | الفصل الحالي: <strong class="text-slate-700">${student.className}</strong></span>
                         </div>
-                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-md font-bold text-[11px]">➕ إضافة للفصل</button>
+                        <span class="${isAlreadyInClass ? 'bg-slate-200 text-slate-600' : 'bg-emerald-600 text-white'} px-3 py-1.5 rounded-lg font-bold text-[11px]">
+                            ${isAlreadyInClass ? 'مضاف بالأساس ✅' : '➕ إضافة للفصل'}
+                        </span>
                     </div>
                 `;
             });
@@ -447,7 +466,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث بالأعلى لاستدعاء الطلاب من سحابة الأسماء.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث بالأعلى لإضافة الطلاب فوراً.</p>`;
                 return;
             }
 
@@ -580,7 +599,6 @@
             document.getElementById('student-modal').classList.remove('flex');
         };
 
-        // يتم تشغيل الدالة فور تحميل الصفحة لجلب كل البيانات مباشرة
         window.onload = function() {
             initFastLoad();
         };
@@ -612,8 +630,8 @@
             
             <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
 
-            <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 text-center" style="background: rgba(255, 255, 255, 0.95);">
-                <p class="text-xs text-slate-600 font-bold">💡 يتم جلب ومزامنة أسماء الطلاب من سحابة الأسماء تلقائياً وفور فتح الصفحة.</p>
+            <div class="glass-card p-4 rounded-2xl shadow-sm border border-slate-200 text-center" style="background: rgba(255, 255, 255, 0.95);">
+                <p class="text-xs text-slate-700 font-bold" id="loading-status-text">⏳ جاري تحميل جميع أسماء الطلاب مرة واحدة...</p>
             </div>
         </div>
 
@@ -624,12 +642,14 @@
                 <div class="w-12"></div>
             </div>
 
+            <!-- مربع البحث والمنسدلة الفورية في لمح البصر -->
             <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 relative border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
                 <div class="flex items-center gap-2 px-1">
                     <span class="text-sm">🔍</span>
-                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب من سحابة الأسماء لإضافته لهذا الفصل..." class="w-full border-none focus:outline-none text-xs font-semibold bg-transparent">
+                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب (تظهر القائمة فوراً)..." class="w-full border-none focus:outline-none text-xs font-semibold bg-transparent">
                 </div>
-                <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-lg rounded-2xl mt-1 border border-slate-200 max-h-48 overflow-y-auto z-30 p-1"></div>
+                <!-- قائمة منسدلة فورية -->
+                <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-xl rounded-2xl mt-1 border border-slate-200 max-h-60 overflow-y-auto z-50 divide-y divide-slate-100"></div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
