@@ -14,6 +14,24 @@
         body { font-family: 'Tajawal', sans-serif; min-height: 100vh; transition: background 0.5s ease; }
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
         .glass-card { backdrop-filter: blur(10px); transition: all 0.5s ease; }
+        
+        /* تنسيق القائمة المنسدلة للخيارات بأسلوب الكود الثاني */
+        .action-select {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #1e293b;
+            cursor: pointer;
+            outline: none;
+            transition: 0.2s;
+        }
+        .action-select:hover {
+            border-color: #475569;
+            background-color: #ffffff;
+        }
     </style>
 
     <script>
@@ -78,9 +96,8 @@
             renderClassesListUI();
         }
 
-        // جلب البيانات من السحابة (allowed_students و pending_students)
+        // جلب البيانات ومراقبتها في الوقت الفعلي
         function fetchStudentsData() {
-            const approvedTbody = document.querySelector("#studentsTable tbody");
             const pendingTbody = document.querySelector("#pendingTable tbody");
             const pendingSection = document.getElementById("pendingSection");
 
@@ -100,8 +117,14 @@
                 });
 
                 document.getElementById('approvedCount').innerText = `الطلاب المعتمدين: ${allStudents.length}`;
+                const statusEl = document.getElementById('loading-status-text');
+                if(statusEl) statusEl.innerText = `✅ تم تحميل جميع الأسماء بنجاح (${allStudents.length} طالب).`;
+
                 renderView();
-                renderAllStudentsTable(allStudents);
+                searchStudents();
+            }, (err) => {
+                const statusEl = document.getElementById('loading-status-text');
+                if(statusEl) statusEl.innerText = `❌ حدث خطأ أثناء تحميل الأسماء.`;
             });
 
             db.collection("pending_students").orderBy("name").onSnapshot((snapshot) => {
@@ -118,8 +141,8 @@
                             <td class="p-2.5 font-bold">${data.name}</td>
                             <td class="p-2.5 font-mono">${email}</td>
                             <td class="p-2.5 flex justify-center gap-1.5">
-                                <button class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold cursor-pointer" onclick="approveStudent('${email}', '${data.name}')">✅ قبول</button>
-                                <button class="bg-rose-600 text-white px-2.5 py-1 rounded-lg font-bold cursor-pointer" onclick="deletePending('${email}')">❌ رفض</button>
+                                <button class="bg-emerald-600 text-white px-2.5 py-1 rounded-lg font-bold cursor-pointer hover:bg-emerald-700" onclick="approveStudent('${email}', '${data.name}')">✅ قبول</button>
+                                <button class="bg-rose-600 text-white px-2.5 py-1 rounded-lg font-bold cursor-pointer hover:bg-rose-700" onclick="deletePending('${email}')">❌ رفض</button>
                             </td>
                         </tr>`;
                 });
@@ -139,10 +162,10 @@
             document.getElementById('class-view').classList.add('hidden');
             document.getElementById('main-dashboard').classList.remove('hidden');
             renderView();
-            renderAllStudentsTable(allStudents);
+            searchStudents();
         };
 
-        // تصفية جدول الطلاب الشامل
+        // تصفية جدول الطلاب الشامل فوراً
         window.searchStudents = function() {
             let input = document.getElementById("searchInput");
             let filter = input.value.trim().toLowerCase();
@@ -154,7 +177,7 @@
             renderAllStudentsTable(filtered);
         };
 
-        // رسم جدول الطلاب الشامل مع القائمة المنسدلة لتوزيع الفصول
+        // رسم جدول الطلاب المعتمدين بالواجهة الرئيسية مع خيارات الإجراءات المنسدلة
         function renderAllStudentsTable(studentsList) {
             const tbody = document.querySelector("#studentsTable tbody");
             if(!tbody) return;
@@ -166,23 +189,35 @@
             }
 
             studentsList.forEach(student => {
-                let classOptionsHtml = `<option value="غير موزع">📁 غير موزع</option>`;
+                let classOptionsHtml = `<option value="غير موزع">📂 غير موزع</option>`;
                 classList.forEach(cls => {
                     const selected = student.className === cls ? 'selected' : '';
-                    classOptionsHtml += `<option value="${cls}" ${selected}>${cls}</option>`;
+                    classOptionsHtml += `<option value="${cls}" ${selected}>🏫 ${cls}</option>`;
                 });
 
                 tbody.innerHTML += `
-                    <tr class="border-b border-slate-100 hover:bg-amber-50/30 transition text-xs">
+                    <tr class="border-b border-slate-100 hover:bg-amber-50/40 transition text-xs">
                         <td class="p-3 text-right font-bold text-slate-800">
                             ${student.name}
-                            <span class="block text-[10px] text-amber-700 font-medium mt-0.5">الفصل الحالي: ${student.className || 'غير موزع'}</span>
+                            <span class="block text-[10px] text-amber-800 font-semibold mt-0.5">الفصل: ${student.className || 'غير موزع'}</span>
                         </td>
                         <td class="p-3 text-center text-slate-600 font-mono">${student.email || 'بدون إيميل'}</td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-1.5 flex-wrap">
-                                <select onchange="assignStudentClass('${student.id}', this.value)" class="border border-slate-200 bg-white px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 focus:outline-none cursor-pointer shadow-2xs">
-                                    ${classOptionsHtml}
+                                <select class="action-select" onchange="handleStudentAction(this, '${student.id}', '${student.name.replace(/'/g, "\\'")}')">
+                                    <option value="" disabled selected>⚙️ خيارات الإجراء</option>
+                                    <optgroup label="توزيع إلى فصل">
+                                        ${classOptionsHtml}
+                                    </optgroup>
+                                    <optgroup label="خيارات إضافية">
+                                        <option value="copy_email">📧 نسخ الإيميل</option>
+                                        <option value="edit_email">✏️ تعديل الإيميل</option>
+                                        <option value="copy_name">📋 نسخ الاسم</option>
+                                        <option value="edit_name">✏️ تعديل الاسم</option>
+                                        <option value="copy_both">📑 نسخ الاسم والإيميل</option>
+
+                                        <option value="delete">🗑️ حذف الطالب</option>
+                                    </optgroup>
                                 </select>
                                 <button onclick="openActionModal('${student.id}')" class="bg-slate-800 text-white px-2.5 py-1.5 rounded-xl font-bold hover:bg-black cursor-pointer shadow-2xs">📝 رصد</button>
                                 <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-2.5 py-1.5 rounded-xl font-bold hover:bg-emerald-700 cursor-pointer shadow-2xs">📊 التقرير</button>
@@ -193,7 +228,86 @@
             });
         }
 
-        // تحديث فصل الطالب سحابياً فوراً من القائمة المنسدلة للجدول
+        // معالجة خيارات الإجراءات من القائمة المنسدلة لكل طالب
+        window.handleStudentAction = async function(selectEl, email, currentName) {
+            const action = selectEl.value;
+            if(!action) return;
+
+            // إذا اخترنا فصلاً
+            if(classList.includes(action) || action === 'غير موزع') {
+                await assignStudentClass(email, action);
+                return;
+            }
+
+            selectEl.value = ""; // إعادة الصندوق للخيار الافتراضي
+
+            if (action === 'copy_email') copyText(email);
+            else if (action === 'copy_name') copyText(currentName);
+            else if (action === 'copy_both') copyText(`${currentName}\n${email}`);
+            else if (action === 'edit_name') editStudentName(email, currentName);
+            else if (action === 'edit_email') editStudentEmail(email, currentName);
+            else if (action === 'delete') deleteAllowed(email);
+        };
+
+        async function copyText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                alert("تم النسخ بنجاح! 📋");
+            } catch (err) {
+                alert("فشل النسخ تلقائياً.");
+            }
+        }
+
+        // دالة تعديل اسم الطالب
+        async function editStudentName(email, currentName) {
+            const newName = prompt("أدخل الاسم الجديد للطالب:", currentName);
+            if (newName === null) return;
+            const trimmedName = newName.trim();
+            if (!trimmedName) return alert("لا يمكن ترك الاسم فارغاً.");
+
+            try {
+                await db.collection("allowed_students").doc(email).update({ name: trimmedName });
+            } catch (error) {
+                alert("حدث خطأ أثناء تحديث الاسم.");
+            }
+        }
+
+        // دالة تعديل البريد الإلكتروني للطالب
+        async function editStudentEmail(currentEmail, currentName) {
+            const newEmailInput = prompt("أدخل البريد الإلكتروني الجديد للطالب:", currentEmail);
+            if (newEmailInput === null) return;
+            const newEmail = newEmailInput.trim().toLowerCase();
+
+            if (!newEmail || !newEmail.includes('@')) return alert("يرجى إدخال بريد إلكتروني صحيح.");
+            if (newEmail === currentEmail) return;
+
+            try {
+                const docCheck = await db.collection("allowed_students").doc(newEmail).get();
+                if (docCheck.exists) return alert("هذا البريد الإلكتروني موجود مسبقاً لطالب آخر!");
+
+                const oldDoc = await db.collection("allowed_students").doc(currentEmail).get();
+                const oldData = oldDoc.data() || {};
+
+                await db.collection("allowed_students").doc(newEmail).set({
+                    ...oldData,
+                    name: currentName,
+                    added_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                await db.collection("allowed_students").doc(currentEmail).delete();
+                alert("تم تعديل الإيميل بنجاح!");
+            } catch (error) {
+                alert("حدث خطأ أثناء تحديث الإيميل.");
+            }
+        }
+
+        async function deleteAllowed(email) {
+            if(confirm(`هل أنت متأكد من حذف ${email} من الطلاب المعتمدين؟`)) {
+                await db.collection("allowed_students").doc(email).delete();
+            }
+        }
+
+        // تحديث فصل الطالب سحابياً فوراً
         window.assignStudentClass = async function(studentId, newClass) {
             const student = allStudents.find(s => s.id === studentId);
             if(student) {
@@ -289,7 +403,7 @@
             });
         }
 
-        // عرض طلاب الفصل المحدد عند النقر عليه
+        // عرض طلاب الفصل المحدد عند النقر عليه (بدون حقل أو أيقونة بحث)
         function renderClassStudents() {
             if(!activeClass) return;
             const container = document.getElementById('class-students-container');
@@ -298,7 +412,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. يمكنك تعيينهم من الجدول الشامل بالأعلى.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. يمكنك توزيعهم من الواجهة الرئيسية.</p>`;
                 return;
             }
 
@@ -328,7 +442,7 @@
                         <div class="flex gap-1.5 items-center">
                             <button onclick="openActionModal('${student.id}')" class="${btnPrimaryClass} text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
                             <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
-                            <button onclick="assignStudentClass('${student.id}', 'غير موزع')" title="إزالة من الفصل" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
+                            <button onclick="assignStudentClass('${student.id}', 'غير موزام')" title="إزالة من الفصل" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -393,7 +507,7 @@
             classNameInput.value = '';
             renderClassesListUI();
             renderView();
-            renderAllStudentsTable(allStudents);
+            searchStudents();
         };
 
         window.editClassItem = function(index) {
@@ -414,7 +528,7 @@
                 });
                 renderClassesListUI();
                 renderView();
-                renderAllStudentsTable(allStudents);
+                searchStudents();
             }
         };
 
@@ -625,13 +739,21 @@
     <main class="container mx-auto p-3 max-w-4xl flex-grow my-3">
 
         <!-- لوحة الفصول والتحكم الرئيسية -->
-        <div id="main-dashboard" class="py-1 space-y-6">
+        <div id="main-dashboard" class="py-1 space-y-5">
             <h2 class="text-lg font-bold text-slate-800 text-center">الفصول الدراسية</h2>
             <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
 
+            <!-- بطاقة التأكيد وحالة جلب السحابة -->
+            <div class="glass-card p-3 rounded-2xl shadow-sm border border-slate-200 text-center" style="background: rgba(255, 255, 255, 0.95);">
+                <p class="text-xs text-slate-700 font-bold" id="loading-status-text">⏳ جاري تحميل جميع أسماء الطلاب مرة واحدة...</p>
+            </div>
+
             <!-- قسم الطلبات المعلقة (مدمج من الكود الثاني) -->
             <div id="pendingSection" class="bg-amber-50 border-2 border-amber-400 p-4 rounded-2xl shadow-sm hidden">
-                <h3 class="font-black text-rose-700 text-xs mb-3">🔔 طلبات تسجيل جديدة بانتظار المراجعة</h3>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-black text-rose-700 text-xs">🔔 طلبات تسجيل جديدة بانتظار المراجعة</h3>
+                    <span id="pendingCountBadge" class="text-xs font-bold bg-rose-100 text-rose-800 px-2 py-0.5 rounded-lg">الطلبات المعلقة: 0</span>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-right" id="pendingTable">
                         <thead>
@@ -649,7 +771,7 @@
             <!-- قسم الرفع الجماعي (مدمج من الكود الثاني) -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
                 <label class="font-bold text-xs text-slate-700 block">📥 الرفع الجماعي للطلاب (الصق القائمة هنا):</label>
-                <textarea id="bulkInput" placeholder="الصق هنا.. لا يهم إذا بدأ السطر بالاسم أو الإيميل" class="w-full h-28 p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-slate-400"></textarea>
+                <textarea id="bulkInput" placeholder="الصق هنا.. لا يهم إذا بدأ السطر بالاسم أو الإيميل" class="w-full h-24 p-3 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-slate-400"></textarea>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="superSmartBulkAdd()" class="bg-slate-800 text-amber-100 px-4 py-2 rounded-xl font-bold text-xs hover:bg-black cursor-pointer">بدء المعالجة والرفع 🚀</button>
                     <button onclick="copyAllStudents()" class="bg-sky-700 text-white px-4 py-2 rounded-xl font-bold text-xs hover:bg-sky-800 cursor-pointer">📋 نسخ الكل</button>
@@ -657,12 +779,12 @@
                 </div>
             </div>
 
-            <!-- جدول الطلاب الشامل تحت الفصول (للتوزيع الفوري) -->
+            <!-- شريط إحصائيات المعتمدين وجدول الطلاب الشامل مدمج تحت الفصول مباشرة -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 space-y-3">
                 <div class="flex flex-col sm:flex-row justify-between items-center gap-3 border-b border-slate-100 pb-3">
-                    <h3 class="font-black text-slate-800 text-xs" id="approvedCount">الطلاب المعتمدين: 0</h3>
+                    <h3 class="font-black text-slate-800 text-xs" id="approvedCount">🎓 قائمة الطلاب المعتمدين: 0</h3>
                     <div class="w-full sm:w-72">
-                        <input type="text" id="searchInput" onkeyup="searchStudents()" placeholder="🔍 ابحث عن اسم الطالب أو إيميله..." class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-slate-50 focus:outline-none">
+                        <input type="text" id="searchInput" onkeyup="searchStudents()" placeholder="🔍 ابحث عن اسم الطالب أو إيميله..." class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-slate-50 focus:outline-none focus:ring-1 focus:ring-slate-400">
                     </div>
                 </div>
 
@@ -670,9 +792,9 @@
                     <table class="w-full text-right border-collapse" id="studentsTable">
                         <thead>
                             <tr class="bg-slate-800 text-amber-100 text-xs">
-                                <th class="p-3 rounded-r-xl">الاسم والفصل الحالي</th>
+                                <th class="p-3 rounded-r-xl">الاسم</th>
                                 <th class="p-3 text-center">البريد الإلكتروني</th>
-                                <th class="p-3 text-center rounded-l-xl">توزيع الفصل والإجراءات</th>
+                                <th class="p-3 text-center rounded-l-xl">الإجراءات والخيارات</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -681,13 +803,15 @@
             </div>
         </div>
 
-        <!-- عرض داخل الفصل المختار -->
+        <!-- الواجهة المخصصة لعرض الفصل المحدد دون أي حقل أو أيقونة بحث -->
         <div id="class-view" class="hidden py-1">
             <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-2xs border border-slate-200">
                 <button onclick="backToHome()" class="bg-slate-100 text-slate-700 px-3.5 py-2 rounded-xl font-bold text-xs hover:bg-slate-200 transition cursor-pointer">⬅ الرئيسية</button>
                 <h2 class="text-base font-bold text-slate-700" id="class-title-header">الفصل</h2>
                 <div class="w-12"></div>
             </div>
+
+            <!-- عرض الطلاب المخصصين بالبطاقات المباشرة للرصد دون بحث -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
         </div>
 
@@ -697,7 +821,7 @@
         <p>جميع الحقوق محفوظة © 2026 | نظام متابعة الطلاب السحابي - ثانوية الأمير عبدالمجيد بالرياض</p>
     </footer>
 
-    <!-- نافذة الإعدادات -->
+    <!-- لوحة الإعدادات -->
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50 backdrop-blur-xs">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-600 w-8 h-8 rounded-full font-bold flex items-center justify-center hover:bg-slate-200 cursor-pointer">✕</button>
