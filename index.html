@@ -28,16 +28,16 @@
             border-color: var(--gold);
         }
 
-        /* تصميم بطاقة الطالب الاحترافية المتناسقة مع لوحة الإضافات */
-        .student-3d-card {
+        /* تصميم بطاقة الطالب الاحترافية المطابقة للصورة المطلوبة */
+        .student-row-card {
             background: linear-gradient(135deg, #ffffff 0%, #fafaf9 100%);
             border: 1px solid #e2e8f0;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
             transition: all 0.3s ease;
         }
-        .student-3d-card:hover {
+        .student-row-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
             border-color: #cbd5e1;
         }
         
@@ -503,34 +503,53 @@
 
             students.forEach(student => {
                 let totalScore = 0;
-                if(student.actions && Array.isArray(student.actions)) {
-                    student.actions.forEach(act => {
-                        totalScore += (parseFloat(act.score) || 0);
+                let actionsListHtml = '';
+                
+                if(student.actions && Array.isArray(student.actions) && student.actions.length > 0) {
+                    student.actions.slice(0, 4).forEach(act => {
+                        let badgeBg = "bg-emerald-500 text-white";
+                        if(act.score < 0) badgeBg = "bg-rose-500 text-white";
+                        if(act.score === 0) badgeBg = "bg-sky-500 text-white";
+                        
+                        actionsListHtml += `
+                            <div onclick="openActionModal('${student.id}')" class="relative cursor-pointer transition hover:scale-105" title="${act.title}">
+                                <div class="w-12 h-12 rounded-2xl bg-teal-400 text-white flex items-center justify-center text-xl shadow-xs">⚙️</div>
+                                <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full ${badgeBg} text-[10px] font-black flex items-center justify-center shadow-xs">${act.score}</span>
+                            </div>
+                        `;
                     });
+                } else {
+                    actionsListHtml = `
+                        <button onclick="openActionModal('${student.id}')" class="text-xs text-slate-400 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl font-bold transition cursor-pointer">
+                            ➕ اضغط للرصد
+                        </button>
+                    `;
                 }
 
-                let scoreBadgeBg = "bg-slate-100 text-slate-700 border-slate-200";
-                if(totalScore > 0) scoreBadgeBg = "bg-emerald-50 text-emerald-700 border-emerald-200";
-                if(totalScore < 0) scoreBadgeBg = "bg-rose-50 text-rose-700 border-rose-200";
-                const formattedScore = totalScore > 0 ? `+${totalScore}` : totalScore;
-
                 container.innerHTML += `
-                    <div class="student-3d-card p-5 rounded-2xl flex items-center justify-between transition">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200/50 border border-amber-300 text-amber-900 flex items-center justify-center text-xl font-black shadow-inner">👤</div>
+                    <div class="student-row-card p-4 rounded-2xl flex items-center justify-between transition gap-4 flex-wrap sm:flex-nowrap">
+                        
+                        <!-- يسار الكرت: أيقونة الاسم، الاسم، البريد (بالضغط عليه يفتح التقرير) -->
+                        <div class="flex items-center gap-3.5 cursor-pointer flex-grow" onclick="openModal('${student.id}')" title="اضغط لعرض التقرير المفصل">
+                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-xl font-black shadow-md shrink-0">👤</div>
                             <div>
-                                <div class="flex items-center gap-3">
-                                    <h3 class="font-black text-lg text-slate-900 tracking-wide">${student.name}</h3>
-                                    <span class="text-xs font-black px-2.5 py-1 rounded-xl border ${scoreBadgeBg}" title="مجموع التقييمات">⭐ ${formattedScore}</span>
-                                </div>
-                                <p class="text-xs text-slate-500 font-semibold mt-1">${student.email || 'بدون إيميل'}</p>
+                                <h3 class="font-black text-base text-slate-900 tracking-wide hover:text-blue-600 transition">${student.name}</h3>
+                                <p class="text-xs text-slate-400 font-semibold mt-0.5">${student.email || 'بدون إيميل'}</p>
                             </div>
                         </div>
-                        <div class="flex gap-2 items-center">
-                            <button onclick="openActionModal('${student.id}')" class="bg-gradient-to-l from-stone-700 to-stone-800 hover:from-stone-800 hover:to-stone-900 text-amber-100 px-4 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer transition">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-gradient-to-l from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md cursor-pointer transition">📊 التقرير</button>
-                            <button onclick="removeStudentFromClass('${student.id}')" title="إزالة الطالب من الفصل" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-2.5 rounded-xl text-xs font-bold transition">🗑️</button>
+
+                        <!-- وسط الكرت: التقييمات والأيقونات المسجلة -->
+                        <div class="flex items-center gap-3 overflow-x-auto py-1">
+                            ${actionsListHtml}
                         </div>
+
+                        <!-- يمين الكرت: أزرار التحكم السريع (رصد، تقرير، حذف) -->
+                        <div class="flex gap-2 items-center shrink-0">
+                            <button onclick="openActionModal('${student.id}')" class="bg-stone-800 hover:bg-stone-900 text-amber-100 px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition">📊 التقرير</button>
+                            <button onclick="removeStudentFromClass('${student.id}')" title="إزالة من الفصل" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-2 rounded-xl text-xs font-bold transition">🗑️</button>
+                        </div>
+
                     </div>
                 `;
             });
