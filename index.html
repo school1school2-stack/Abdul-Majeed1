@@ -70,7 +70,6 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // جلب الطلاب من سحابة الأسماء (allowed_students) بالاعتماد على البريد الإلكتروني كـ ID
         function initFastLoad() {
             applyRandomTheme();
             customActions = defaultActions;
@@ -80,7 +79,7 @@
                 snapshot.forEach(doc => {
                     const item = doc.data();
                     allStudents.push({
-                        id: doc.id, // الإيميل هو معرف الوثيقة في allowed_students
+                        id: doc.id,
                         name: item.name || 'بدون اسم',
                         email: doc.id,
                         className: item.className || 'غير موزع',
@@ -351,6 +350,18 @@
             }
         };
 
+        // دالة إزالة/حذف الطالب من الفصل
+        window.removeStudentFromClass = async function(id) {
+            const student = allStudents.find(s => s.id === id);
+            if(!student) return;
+            if(confirm(`هل أنت متأكد من إزالة الطالب (${student.name}) من هذا الفصل؟`)) {
+                student.className = 'غير موزع';
+                renderClassStudents();
+                renderView();
+                await db.collection("allowed_students").doc(id).update({ className: 'غير موزع' });
+            }
+        };
+
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -466,6 +477,7 @@
                         <div class="flex gap-1.5 items-center">
                             <button onclick="openActionModal('${student.id}')" class="${btnPrimaryClass} text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
                             <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
+                            <button onclick="removeStudentFromClass('${student.id}')" title="إزالة الطالب من الفصل" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-xl text-xs font-bold hover:bg-rose-100 cursor-pointer transition">🗑️</button>
                         </div>
                     </div>
                 `;
