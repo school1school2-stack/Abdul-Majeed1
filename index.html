@@ -543,10 +543,12 @@
 
             students.forEach(student => {
                 let actionsListHtml = '';
+                let totalStudentScore = 0;
                 
                 if(student.actions && Array.isArray(student.actions) && student.actions.length > 0) {
                     let actionCounts = {};
                     student.actions.forEach(act => {
+                        totalStudentScore += (act.score || 0);
                         let displayIcon = '⭐';
                         let matchedAct = customActions.find(ca => act.title.includes(ca.name));
                         if(matchedAct && matchedAct.icon) {
@@ -592,15 +594,22 @@
                     `;
                 }
 
+                // تنسيق عرض إجمالي النقاط (+ أو -)
+                let formattedScore = totalStudentScore > 0 ? `+${totalStudentScore}` : `${totalStudentScore}`;
+                let scoreBadgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
+                if(totalStudentScore < 0) scoreBadgeColor = "bg-rose-50 text-rose-700 border-rose-200";
+                if(totalStudentScore === 0) scoreBadgeColor = "bg-slate-50 text-slate-600 border-slate-200";
+
                 container.innerHTML += `
                     <div class="student-square-card p-5 rounded-2xl flex flex-col justify-between transition gap-3.5">
                         
-                        <!-- رأس البطاقة: الأيقونة، الاسم في مستطيل بيج بإطار أحمر خفيف، والبريد -->
+                        <!-- رأس البطاقة: الأيقونة، الاسم ومجموع النقاط في مستطيل بيج، والبريد -->
                         <div class="flex items-center gap-3.5 cursor-pointer" onclick="openModal('${student.id}')" title="اضغط لعرض التقرير المفصل">
                             <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-xl font-black shadow-md shrink-0">👤</div>
                             <div class="overflow-hidden flex-grow">
-                                <div class="bg-[#fdf8f0] border border-[#800000]/15 px-3 py-1.5 rounded-xl shadow-2xs">
+                                <div class="bg-[#fdf8f0] border border-[#800000]/15 px-3 py-1.5 rounded-xl shadow-2xs flex items-center justify-between gap-2">
                                     <h3 class="student-name-font text-slate-900 tracking-wide truncate hover:text-[#800000] transition">${student.name}</h3>
+                                    <span class="text-xs font-black px-2 py-0.5 rounded-lg border ${scoreBadgeColor} shrink-0">${formattedScore}</span>
                                 </div>
                                 <p class="text-[11px] text-slate-400 font-semibold truncate mt-1 px-1">${student.email || 'بدون إيميل'}</p>
                             </div>
