@@ -111,7 +111,9 @@
             document.getElementById('class-view').classList.remove('hidden');
             document.getElementById('class-title-header').innerText = `إدارة فصل: ${className}`;
             renderClassStudents();
-            populateClassDropdown();
+            // تفريغ حقل البحث عند فتح الفصل
+            document.getElementById('live-search-input').value = '';
+            document.getElementById('live-search-results').classList.add('hidden');
         };
 
         window.backToHome = function() {
@@ -121,29 +123,51 @@
             renderView();
         };
 
-        // تعبئة قائمة اختيار الطلاب المنسدلة وجعل السطر الأول فارغاً/للبحث
-        function populateClassDropdown() {
-            const selectEl = document.getElementById('class-student-select');
-            if(!selectEl) return;
-            selectEl.innerHTML = `<option value="">🔍 اضغط هنا لاختيار الطالب أو ابحث بالاسم...</option>`;
+        // نظام البحث الفوري والمنسدلة التفاعلية (يكتب الاسم فتظهر النتائج فوراً بالأسفل لاختيارها)
+        window.filterStudentsList = function() {
+            const query = document.getElementById('live-search-input').value.trim().toLowerCase();
+            const resultsBox = document.getElementById('live-search-results');
             
-            allStudents.forEach(student => {
-                const statusText = student.className && student.className !== 'غير موزع' ? ` (مضاف في: ${student.className})` : '';
-                selectEl.innerHTML += `<option value="${student.id}">${student.name}${statusText}</option>`;
+            if(!query) {
+                resultsBox.innerHTML = '';
+                resultsBox.classList.add('hidden');
+                return;
+            }
+
+            const matches = allStudents.filter(s => s.name.toLowerCase().includes(query) || (s.email && s.email.toLowerCase().includes(query)));
+            
+            if(matches.length === 0) {
+                resultsBox.innerHTML = `<div class="p-3 text-xs text-slate-500 text-center font-semibold">لا توجد نتائج مطابقة</div>`;
+                resultsBox.classList.remove('hidden');
+                return;
+            }
+
+            resultsBox.innerHTML = '';
+            matches.forEach(student => {
+                const isAlreadyInClass = student.className === activeClass;
+                resultsBox.innerHTML += `
+                    <div onclick="addStudentToCurrentClass('${student.id}')" class="p-3 hover:bg-slate-100 flex justify-between items-center border-b border-slate-100 text-xs cursor-pointer transition">
+                        <div>
+                            <span class="font-bold text-slate-800 block">${student.name}</span>
+                            <span class="text-[11px] text-slate-500">${student.email || ''} | الفصل الحالي: <strong class="text-slate-700">${student.className}</strong></span>
+                        </div>
+                        <span class="${isAlreadyInClass ? 'bg-slate-200 text-slate-600' : 'bg-emerald-600 text-white'} px-3 py-1.5 rounded-lg font-bold text-[11px]">
+                            ${isAlreadyInClass ? 'مضاف بالأساس ✅' : '➕ إضافة للفصل'}
+                        </span>
+                    </div>
+                `;
             });
-        }
+            resultsBox.classList.remove('hidden');
+        };
 
-        // إضافة الطالب مباشرة عند اختياره من القائمة المنسدلة
-        window.onSelectStudentToAdd = async function() {
-            const selectEl = document.getElementById('class-student-select');
-            const id = selectEl.value;
-            if(!id) return;
-
+        // إضافة الطالب للفصل مباشرة عند الضغط عليه من القائمة المنسدلة للبحث
+        window.addStudentToCurrentClass = async function(id) {
             const student = allStudents.find(s => s.id === id);
             if(student) {
                 student.className = activeClass;
                 renderClassStudents();
-                populateClassDropdown(); // إعادة تعيين القائمة
+                document.getElementById('live-search-input').value = '';
+                document.getElementById('live-search-results').classList.add('hidden');
                 await db.collection("allowed_students").doc(id).update({ className: activeClass });
             }
         };
@@ -355,7 +379,6 @@
             if(confirm(`هل أنت متأكد من إزالة الطالب (${student.name}) من هذا الفصل؟`)) {
                 student.className = 'غير موزع';
                 renderClassStudents();
-                populateClassDropdown();
                 renderView();
                 await db.collection("allowed_students").doc(id).update({ className: 'غير موزع' });
             }
@@ -446,7 +469,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. اختر طالباً من القائمة المنسدلة بالأعلى للإضافة.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث بالأعلى لإضافة الطلاب فوراً.</p>`;
                 return;
             }
 
@@ -623,14 +646,14 @@
                 <div class="w-12"></div>
             </div>
 
-            <!-- القائمة المنسدلة الدائمة مع جعل السطر الأول مخصصاً للبحث والاختيار -->
-            <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
-                <div class="flex items-center gap-2">
+            <!-- صندوق البحث الفوري الذي يفتح القائمة المنسدلة الذكية بمجرد الكتابة -->
+            <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 relative border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
+                <div class="flex items-center gap-2 px-1">
                     <span class="text-sm">🔍</span>
-                    <select id="class-student-select" onchange="onSelectStudentToAdd()" class="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-bold bg-white focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer">
-                        <option value="">🔍 اضغط هنا لاختيار الطالب أو ابحث بالاسم...</option>
-                    </select>
+                    <input type="text" id="live-search-input" oninput="filterStudentsList()" placeholder="اكتب اسم الطالب للبحث السريع (تظهر القائمة المنسدلة فوراً)..." class="w-full border-none focus:outline-none text-xs font-semibold bg-transparent">
                 </div>
+                <!-- القائمة المنسدلة التفاعلية لنتائج البحث -->
+                <div id="live-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-2xl rounded-2xl mt-1 border border-slate-200 max-h-60 overflow-y-auto z-50 divide-y divide-slate-100"></div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="class-students-container"></div>
