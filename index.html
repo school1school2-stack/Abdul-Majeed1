@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
     
-    <!-- مكتبات السحابة لنفس قاعدة البيانات المشتركة -->
+    <!-- استخدام سحابة الأسماء الموحدة (allowed_students) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
@@ -18,7 +18,6 @@
     </style>
 
     <script>
-        // إعدادات السحابة المشتركة من الكود الثاني
         const firebaseConfig = {
             apiKey: "AIzaSyBkCO7FDQXd89YDf843J4_AtvEFvzzt-R0",
             authDomain: "aztlg-494c3.firebaseapp.com",
@@ -32,7 +31,7 @@
         const db = firebase.firestore();
 
         let activeClass = null;
-        let currentStudentEmail = null;
+        let currentStudentId = null;
         let allStudents = [];
         let customActions = [];
         let classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
@@ -71,20 +70,19 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // جلب الأسماء مباشرة من جدولallowed_students المشترك بذكاء وسرعة
+        // جلب الطلاب من سحابة الأسماء (allowed_students) بالاعتماد على البريد الإلكتروني كـ ID
         function initFastLoad() {
             applyRandomTheme();
             customActions = defaultActions;
             
             db.collection("allowed_students").onSnapshot((snapshot) => {
                 allStudents = [];
-                snapshot.forEach((doc) => {
+                snapshot.forEach(doc => {
                     const item = doc.data();
-                    const email = doc.id; // البريد هو معرف المستند
                     allStudents.push({
-                        id: email, // استخدام الإيميل كمعرف فريد
+                        id: doc.id, // الإيميل هو معرف الوثيقة في allowed_students
                         name: item.name || 'بدون اسم',
-                        email: email,
+                        email: doc.id,
                         className: item.className || 'غير موزع',
                         phone: item.phone || '966566688614',
                         actions: item.actions || [],
@@ -95,6 +93,9 @@
                 renderCustomActionsUI();
                 renderSettingsActionsDropdown();
                 renderClassesListUI();
+                if(activeClass) renderClassStudents();
+            }, (e) => {
+                console.error("خطأ بالتحميل:", e);
             });
         }
 
@@ -155,8 +156,11 @@
             if(editingClassIndex !== null) {
                 const oldName = classList[editingClassIndex];
                 classList[editingClassIndex] = name;
-                allStudents.forEach(stu => {
-                    if(stu.className === oldName) stu.className = name;
+                allStudents.forEach(async stu => {
+                    if(stu.className === oldName) {
+                        stu.className = name;
+                        await db.collection("allowed_students").doc(stu.id).update({ className: name });
+                    }
                 });
                 editingClassIndex = null;
                 document.getElementById('save-class-btn').innerText = "إضافة ➕";
@@ -180,8 +184,11 @@
             if(confirm('هل أنت متأكد من حذف هذا الفصل؟')) {
                 const removedName = classList[index];
                 classList.splice(index, 1);
-                allStudents.forEach(stu => {
-                    if(stu.className === removedName) stu.className = 'غير موزع';
+                allStudents.forEach(async stu => {
+                    if(stu.className === removedName) {
+                        stu.className = 'غير موزع';
+                        await db.collection("allowed_students").doc(stu.id).update({ className: 'غير موزع' });
+                    }
                 });
                 renderClassesListUI();
                 renderView();
@@ -314,7 +321,7 @@
             if(!query) { resultsBox.innerHTML = ''; resultsBox.classList.add('hidden'); return; }
             const matches = allStudents.filter(s => s.name.toLowerCase().includes(query) || (s.email && s.email.toLowerCase().includes(query)));
             if(matches.length === 0) {
-                resultsBox.innerHTML = `<div class="p-2.5 text-xs text-slate-500">لا توجد نتائج مطابقة.</div>`;
+                resultsBox.innerHTML = `<div class="p-2.5 text-xs text-slate-500">لا توجد نتائج مطابقة في سحابة الأسماء.</div>`;
                 resultsBox.classList.remove('hidden');
                 return;
             }
@@ -324,31 +331,31 @@
                     <div class="p-2.5 hover:bg-slate-50 flex justify-between items-center border-b border-slate-100 text-xs">
                         <div>
                             <span class="font-bold text-slate-700">${student.name}</span>
-                            <span class="text-[11px] text-slate-500 block">${student.email} (الحالة: ${student.className})</span>
+                            <span class="text-[11px] text-slate-500 block">${student.email || ''} (الحالة: ${student.className})</span>
                         </div>
-                        <button onclick="transferStudentToCurrentClass('${student.email}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-md font-bold text-[11px] cursor-pointer">➕ إضافة</button>
+                        <button onclick="transferStudentToCurrentClass('${student.id}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded-md font-bold text-[11px]">➕ إضافة للفصل</button>
                     </div>
                 `;
             });
             resultsBox.classList.remove('hidden');
         };
 
-        window.transferStudentToCurrentClass = async function(email) {
-            const student = allStudents.find(s => s.id === email);
+        window.transferStudentToCurrentClass = async function(id) {
+            const student = allStudents.find(s => s.id === id);
             if(student) {
                 student.className = activeClass;
                 renderClassStudents();
                 document.getElementById('global-search-input').value = '';
                 document.getElementById('global-search-results').classList.add('hidden');
-                await db.collection("allowed_students").doc(email).update({ className: activeClass });
+                await db.collection("allowed_students").doc(id).update({ className: activeClass });
             }
         };
 
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
-            if(!currentStudentEmail) return;
+            if(!currentStudentId) return;
             closeActionModal();
 
-            const student = allStudents.find(s => s.id === currentStudentEmail);
+            const student = allStudents.find(s => s.id === currentStudentId);
             if(student) {
                 const now = new Date();
                 const dayName = now.toLocaleDateString('ar-SA', { weekday: 'long' });
@@ -368,7 +375,7 @@
 
                 renderClassStudents();
 
-                await db.collection("allowed_students").doc(currentStudentEmail).update({
+                await db.collection("allowed_students").doc(currentStudentId).update({
                     actions: student.actions,
                     attendanceStats: attendanceStats
                 });
@@ -376,27 +383,27 @@
         };
 
         window.deleteStudentAction = async function(actionIndex) {
-            if(!currentStudentEmail) return;
-            const student = allStudents.find(s => s.id === currentStudentEmail);
+            if(!currentStudentId) return;
+            const student = allStudents.find(s => s.id === currentStudentId);
             if(student && student.actions) {
                 student.actions.splice(actionIndex, 1);
-                openModal(currentStudentEmail);
+                openModal(currentStudentId);
                 renderClassStudents();
-                await db.collection("allowed_students").doc(currentStudentEmail).update({ actions: student.actions });
+                await db.collection("allowed_students").doc(currentStudentId).update({ actions: student.actions });
             }
         };
 
         window.adjustAttendance = async function(type, delta) {
-            if(!currentStudentEmail) return;
-            const student = allStudents.find(s => s.id === currentStudentEmail);
+            if(!currentStudentId) return;
+            const student = allStudents.find(s => s.id === currentStudentId);
             if(student) {
                 let att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
                 if(type === 'absents') att.absents = Math.max(0, (att.absents || 0) + delta);
                 if(type === 'lates') att.lates = Math.max(0, (att.lates || 0) + delta);
                 if(type === 'excuses') att.excuses = Math.max(0, (att.excuses || 0) + delta);
 
-                openModal(currentStudentEmail);
-                await db.collection("allowed_students").doc(currentStudentEmail).update({ attendanceStats: att });
+                openModal(currentStudentId);
+                await db.collection("allowed_students").doc(currentStudentId).update({ attendanceStats: att });
             }
         };
 
@@ -418,30 +425,6 @@
                     </div>
                 `;
             });
-
-            const totalCountBadge = document.getElementById('total-cloud-count');
-            if(totalCountBadge) {
-                totalCountBadge.innerText = `إجمالي القائمة العامة (Allowed Students): ${allStudents.length} طالب`;
-            }
-
-            const globalContainer = document.getElementById('general-students-list-container');
-            if(globalContainer) {
-                globalContainer.innerHTML = '';
-                const limitStudents = allStudents.slice(0, 50); // عرض أول 50 طالباً لضمان السرعة الفائقة
-                limitStudents.forEach(student => {
-                    globalContainer.innerHTML += `
-                        <div class="bg-white p-3 rounded-xl border border-slate-200 flex justify-between items-center shadow-2xs text-xs">
-                            <div>
-                                <span class="font-bold text-slate-800">${student.name}</span>
-                                <span class="text-[11px] text-slate-500 block">${student.email} | الفصل: <strong class="text-slate-700">${student.className}</strong></span>
-                            </div>
-                        </div>
-                    `;
-                });
-                if(allStudents.length > 50) {
-                    globalContainer.innerHTML += `<p class="text-center text-[10px] text-slate-400 py-1">يتم عرض أول 50 طالباً لتسريع الأداء. استخدم خانة البحث في الفصول للوصول لأي طالب.</p>`;
-                }
-            }
         }
 
         function renderClassStudents() {
@@ -452,7 +435,7 @@
             const students = allStudents.filter(s => s.className === activeClass);
 
             if(students.length === 0) {
-                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث بالأعلى.</p>`;
+                container.innerHTML = `<p class="text-slate-500 col-span-2 text-center py-8 font-semibold bg-white rounded-2xl shadow-2xs text-xs">لا توجد طلاب مخصصين في هذا الفصل حالياً. استخدم خانة البحث بالأعلى لاستدعاء الطلاب من سحابة الأسماء.</p>`;
                 return;
             }
 
@@ -478,20 +461,20 @@
                                 <h3 class="font-bold text-sm text-slate-800">${student.name}</h3>
                                 <span class="text-[11px] font-black px-2 py-0.5 rounded-lg border ${scoreBadgeBg}" title="مجموع التقييمات">⭐ ${formattedScore}</span>
                             </div>
-                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">${student.email}</p>
+                            <p class="text-[11px] text-slate-500 font-medium mt-0.5">${student.email || 'بدون إيميل'}</p>
                         </div>
                         <div class="flex gap-1.5 items-center">
-                            <button onclick="openActionModal('${student.email}')" class="${btnPrimaryClass} text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
-                            <button onclick="openModal('${student.email}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
+                            <button onclick="openActionModal('${student.id}')" class="${btnPrimaryClass} text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs cursor-pointer transition">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs hover:bg-emerald-700 cursor-pointer transition">📊 التقرير</button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        window.openActionModal = function(email) {
-            currentStudentEmail = email;
-            const student = allStudents.find(s => s.id === email);
+        window.openActionModal = function(id) {
+            currentStudentId = id;
+            const student = allStudents.find(s => s.id === id);
             if(student) document.getElementById('action-student-name').innerText = student.name;
             document.getElementById('action-modal').classList.remove('hidden');
             document.getElementById('action-modal').classList.add('flex');
@@ -502,9 +485,9 @@
             document.getElementById('action-modal').classList.remove('flex');
         };
 
-        window.openModal = function(email) {
-            currentStudentEmail = email;
-            const student = allStudents.find(s => s.id === email);
+        window.openModal = function(id) {
+            currentStudentId = id;
+            const student = allStudents.find(s => s.id === id);
             if(!student) return;
 
             const att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
@@ -516,7 +499,7 @@
                 <div class="text-center mb-6">
                     <div class="w-20 h-20 ${btnPrimaryClass} text-white rounded-full flex items-center justify-center text-3xl font-bold mx-auto mb-3 shadow-lg">👤</div>
                     <h2 class="text-2xl font-black text-slate-800">${student.name}</h2>
-                    <p class="text-sm font-bold text-slate-500 mt-1">${student.className} | ${student.email}</p>
+                    <p class="text-sm font-bold text-slate-500 mt-1">${student.className}</p>
                 </div>
 
                 <div class="bg-slate-50 p-5 rounded-2xl mb-6 border border-slate-200 shadow-2xs">
@@ -615,17 +598,8 @@
             
             <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
 
-            <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 mb-6" style="background: rgba(255, 255, 255, 0.95);">
-                <div class="flex flex-col sm:flex-row justify-between items-center mb-2 gap-1.5">
-                    <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">📌 حالة مزامنة الطلاب</h3>
-                    <span class="text-[11px] bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-full" id="total-cloud-count">إجمالي القائمة العامة: 0 طالب</span>
-                </div>
-                <p class="text-xs text-slate-500">الأسماء مرتبطة تلقائياً بقائمة الطلاب المعتمدين (Allowed Students) في سحابنك الموحدة.</p>
-            </div>
-
-            <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
-                <h3 class="font-bold text-sm text-slate-800 mb-3">📋 عينة من الطلاب المسجلين بالسحابة</h3>
-                <div id="general-students-list-container" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+            <div class="glass-card p-5 rounded-2xl shadow-sm border border-slate-200 text-center" style="background: rgba(255, 255, 255, 0.95);">
+                <p class="text-xs text-slate-600 font-bold">💡 يتم جلب وإدارة أسماء الطلاب بشكل سحابي مباشر من لوحة الإدارة (كود الأسماء).</p>
             </div>
         </div>
 
@@ -639,7 +613,7 @@
             <div class="glass-card p-3 rounded-2xl shadow-sm mb-4 relative border border-slate-200" style="background: rgba(255, 255, 255, 0.95);">
                 <div class="flex items-center gap-2 px-1">
                     <span class="text-sm">🔍</span>
-                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب من القائمة العامة لإضافته لهذا الفصل..." class="w-full border-none focus:outline-none text-xs font-semibold bg-transparent">
+                    <input type="text" id="global-search-input" oninput="searchGlobalStudents()" placeholder="ابحث باسم الطالب من سحابة الأسماء لإضافته لهذا الفصل..." class="w-full border-none focus:outline-none text-xs font-semibold bg-transparent">
                 </div>
                 <div id="global-search-results" class="hidden absolute top-full left-0 right-0 bg-white shadow-lg rounded-2xl mt-1 border border-slate-200 max-h-48 overflow-y-auto z-30 p-1"></div>
             </div>
