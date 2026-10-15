@@ -38,6 +38,7 @@
         let editingActionIndex = null;
         let editingClassIndex = null;
 
+        // القائمة الكاملة المستخرجة من صورك بدقة تامة
         const defaultActions = [
             { icon: '✅', name: 'إجابة صحيحة', score: 1.0, color: '#28a745' },
             { icon: '❌', name: 'إجابة خاطئة', score: -1.0, color: '#dc3545' },
@@ -211,13 +212,13 @@
             });
         }
 
-        // إدارة التقييمات عبر القائمة المنسدلة (اختيار، تعديل، إضافة، حفظ)
+        // إعدادات التقييمات عبر القائمة المنسدلة الذكية
         window.renderSettingsActionsDropdown = function() {
             const selectEl = document.getElementById('actions-dropdown-select');
             if(!selectEl) return;
             selectEl.innerHTML = `<option value="">-- اختر تقييماً للتعديل أو أضف جديداً --</option>`;
             customActions.forEach((act, index) => {
-                selectEl.innerHTML += `<option value="${index}">${act.icon || '⭐'} ${act.name} (${act.score})</option>`;
+                selectEl.innerHTML += `<option value="${index}">${act.icon || '⭐'} ${act.name} (${act.score > 0 ? '+' + act.score : act.score})</option>`;
             });
         };
 
@@ -284,7 +285,7 @@
             document.getElementById('delete-action-btn').classList.add('hidden');
         };
 
-        // عرض شبكة التقييمات في نافذة رصد الطالب
+        // عرض شبكة التقييمات الكاملة داخل نافذة رصد الطالب
         function renderCustomActionsUI() {
             const container = document.getElementById('custom-actions-container');
             if(!container) return;
@@ -717,12 +718,11 @@
                 </div>
             </div>
 
-            <!-- محتوى تبويب التقييمات (بالقائمة المنسدلة المطلوبة) -->
+            <!-- محتوى تبويب التقييمات (بالقائمة المنسدلة) -->
             <div id="actions-tab-content" class="space-y-4 hidden">
                 <div class="bg-gray-50 p-5 rounded-3xl border space-y-3">
                     <h4 class="font-black text-sm text-gray-800">📌 اختر تقييماً للتعديل أو أضف تقييماً جديداً</h4>
                     
-                    <!-- القائمة المنسدلة للاختيار -->
                     <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border p-3 rounded-2xl text-sm font-bold bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner cursor-pointer">
                         <option value="">-- اختر تقييماً للتعديل أو أضف جديداً --</option>
                     </select>
@@ -773,7 +773,7 @@
                     </div>
 
                     <div class="flex gap-2 pt-2">
-                        <button id="save-action-btn" onclick="saveCustomActionFromDropdown()" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 transition cursor-pointer shadow">حفظ كتقييم جديد 🚀</button>
+                        <button id="save-action-btn" onclick="saveCustomActionFromDropdown()" class="flex-1 bg-indigo-600 text-white py-3 rounded-2xl font-black text-sm hover:bg-indigo-700 transition cursor-pointer shadow">حفظ التقييم 🚀</button>
                         <button id="delete-action-btn" onclick="deleteSelectedAction()" class="hidden bg-rose-600 text-white px-4 py-3 rounded-2xl font-black text-sm hover:bg-rose-700 transition cursor-pointer shadow">حذف 🗑️</button>
                         <button onclick="resetActionForm()" class="bg-gray-300 text-gray-700 px-4 py-3 rounded-2xl font-black text-sm hover:bg-gray-400 cursor-pointer shadow">إلغاء</button>
                     </div>
