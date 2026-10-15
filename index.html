@@ -606,13 +606,14 @@
                         actionCounts[key].totalScore += act.score;
                     });
 
-                    Object.values(actionCounts).slice(0, 3).forEach(item => {
+                    // تم إزالة قيد .slice لعرض جميع الأنشطة والسلوكيات مع تفعيل التمرير الأفقي السليم
+                    Object.values(actionCounts).forEach(item => {
                         let badgeBg = "bg-sky-500 text-white";
                         if(item.totalScore > 0) badgeBg = "bg-emerald-500 text-white";
                         if(item.totalScore < 0) badgeBg = "bg-rose-500 text-white";
 
                         actionsListHtml += `
-                            <div onclick="openActionModal('${student.id}')" class="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl cursor-pointer transition hover:bg-slate-50 shrink-0 shadow-2xs" title="${item.title}">
+                            <div onclick="openActionModal('${student.id}')" class="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl cursor-pointer transition hover:bg-slate-50 shrink-0 shadow-2xs whitespace-nowrap" title="${item.title}">
                                 <span class="text-base">${item.icon}</span>
                                 <span class="text-xs font-bold text-slate-800">${item.title}</span>
                                 <span class="w-4 h-4 rounded-full ${badgeBg} text-[9px] font-black flex items-center justify-center shadow-xs ml-0.5">${item.count > 1 ? item.count : item.totalScore}</span>
@@ -645,7 +646,8 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 overflow-x-auto py-1.5 bg-slate-50/70 px-2 rounded-xl min-h-[46px] scrollbar-thin">
+                        <!-- الحاوية مع تعديل خصائص التمرير الأفقي ومنع انكماش العناصر -->
+                        <div class="flex items-center gap-2 overflow-x-auto py-1.5 bg-slate-50/70 px-2 rounded-xl min-h-[46px] w-full" style="scrollbar-width: thin; -webkit-overflow-scrolling: touch;">
                             ${actionsListHtml}
                         </div>
 
@@ -878,7 +880,6 @@
             }
         };
 
-        // دالة رصد الأنشطة والحضور المعدلة بحيث تستبدل حالة الحضور/الغياب لنفس اليوم
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -898,7 +899,6 @@
                 if(attendanceType) {
                     const attendanceKeywords = ['حاضر', 'غائب', 'غائب بعذر', 'مستأذن', 'متأخر', 'عن بعد', 'هارب'];
                     
-                    // تصفية وحذف سجلات الحضور/الغياب السابقة لنفس اليوم لمنع التكرار واستبدالها
                     actionsList = actionsList.filter(act => {
                         let isSameDay = act.timestamp.includes(todayDateOnly);
                         let isPreviousAttendance = attendanceKeywords.some(keyword => act.title.includes(keyword));
@@ -1164,7 +1164,7 @@
             <div id="classes-tab-content" class="space-y-3">
                 <div class="flex gap-2">
                     <input type="text" id="new-class-name" placeholder="اسم الفصل..." class="flex-1 border p-2.5 rounded-xl text-xs font-bold">
-                    <button id="save-class-btn" onclick="saveClassItem()" class="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-black">إضافة ➕</button>
+                    <button id="save-class-btn" onclick="saveClassItem()" class="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:black">إضافة ➕</button>
                 </div>
                 <div id="settings-classes-list" class="space-y-1.5 max-h-44 overflow-y-auto"></div>
             </div>
@@ -1244,7 +1244,7 @@
                         <span class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-base shadow-2xs">👤</span>
                         <span class="font-bold text-sm text-indigo-900">غائب بعذر</span>
                     </button>
-                    <button onclick="recordAction('مستأذن', 0, 'مستأذن')" class="flex items-center gap-3 bg-sky-50 border border-sky-300 hover:bg-sky-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                    <button onclick="recordBoxAction('مستأذن', 0, 'مستأذن')" class="flex items-center gap-3 bg-sky-50 border border-sky-300 hover:bg-sky-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
                         <span class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center text-base shadow-2xs">🔵</span>
                         <span class="font-bold text-sm text-sky-900">مستأذن</span>
                     </button>
