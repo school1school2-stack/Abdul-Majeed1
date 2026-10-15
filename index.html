@@ -80,7 +80,6 @@
                     });
                 }
 
-                // التحقق من صحة وقوة جلب التقييمات ومعالجة أي شكل سحابي سابق
                 if (settingsSnap.exists()) {
                     const rawData = settingsSnap.val();
                     if (Array.isArray(rawData)) {
@@ -155,7 +154,7 @@
                 actionsTabContent.classList.remove('hidden');
                 btnActions.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-indigo-600 text-white shadow transition-all cursor-pointer";
                 btnClasses.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-gray-200 text-gray-700 transition-all cursor-pointer";
-                renderSettingsActionsDropdown(); // ضمان تعبئة القائمة بالكامل عند فتح التبويب
+                renderSettingsActionsDropdown();
             }
         };
 
@@ -225,7 +224,6 @@
             });
         }
 
-        // دالة تعبئة القائمة المنسدلة للتقييمات بدقة تامة لضمان ظهور العناصر والأيقونات
         window.renderSettingsActionsDropdown = function() {
             const selectEl = document.getElementById('actions-dropdown-select');
             if(!selectEl) return;
@@ -302,6 +300,7 @@
             document.getElementById('delete-action-btn').classList.add('hidden');
         };
 
+        // عرض التقييمات بألوان خلفية هادئة وحدود واضحة تبرز الفيس والأيقونة
         function renderCustomActionsUI() {
             const container = document.getElementById('custom-actions-container');
             if(!container) return;
@@ -309,10 +308,14 @@
             
             customActions.forEach(act => {
                 const fullName = `${act.icon || ''} ${act.name}`.trim();
+                const actColor = act.color || '#28a745';
+                
                 container.innerHTML += `
-                    <div class="bg-white p-3 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm hover:shadow transition">
+                    <div class="bg-white p-2.5 rounded-2xl border border-gray-100 flex items-center justify-between shadow-sm hover:shadow transition">
                         <button onclick="recordAction('${fullName}', ${act.score}, null)" class="flex items-center gap-2.5 flex-grow text-right cursor-pointer">
-                            <span class="w-8 h-8 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm" style="background-color: ${act.color};">${act.icon || '⭐'}</span>
+                            <span class="w-9 h-9 rounded-xl flex items-center justify-center text-base border" style="background-color: ${actColor}20; border-color: ${actColor}50;">
+                                ${act.icon || '⭐'}
+                            </span>
                             <span class="font-bold text-xs text-gray-800">${act.name}</span>
                         </button>
                         <span class="text-[11px] font-black px-2 py-1 rounded-xl bg-gray-100 text-gray-700">${act.score > 0 ? '+' + act.score : act.score}</span>
