@@ -477,7 +477,6 @@
                 const count = allStudents.filter(s => s.className === cls).length;
                 const gradientStyle = classGradients[idx % classGradients.length];
                 
-                // تم تكبير الخطوط واسم الفصل، وعدد الطلاب أصبح باللون الأحمر الفاقع والبارز
                 classesContainer.innerHTML += `
                     <div onclick="openClass('${cls}')" class="class-3d-card ${gradientStyle} p-7 rounded-2xl cursor-pointer transition flex items-center justify-between border shadow-md">
                         <div>
@@ -536,15 +535,14 @@
                     });
                 } else {
                     actionsListHtml = `
-                        <button onclick="openActionModal('${student.id}')" class="text-xs text-slate-400 bg-slate-100 hover:bg-slate-200 px-3 py-2 rounded-xl font-bold transition cursor-pointer">
-                            ➕ اضغط للرصد
-                        </button>
+                        <span class="text-xs text-slate-300 font-semibold px-2">لا توجد تقييمات</span>
                     `;
                 }
 
                 container.innerHTML += `
                     <div class="student-row-card p-4 rounded-2xl flex items-center justify-between transition gap-4 flex-wrap sm:flex-nowrap">
                         
+                        <!-- يسار الكرت: أيقونة الاسم، الاسم، البريد (بالضغط عليه يفتح التقرير) -->
                         <div class="flex items-center gap-3.5 cursor-pointer flex-grow" onclick="openModal('${student.id}')" title="اضغط لعرض التقرير المفصل">
                             <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-400 to-blue-600 text-white flex items-center justify-center text-xl font-black shadow-md shrink-0">👤</div>
                             <div>
@@ -553,14 +551,16 @@
                             </div>
                         </div>
 
+                        <!-- وسط الكرت: الفيسات والتقييمات الشفافة -->
                         <div class="flex items-center gap-3 overflow-x-auto py-1">
                             ${actionsListHtml}
                         </div>
 
+                        <!-- يمين الكرت: الأزرار الثلاثة المطلوبة (رصد، التقرير، حذف) -->
                         <div class="flex gap-2 items-center shrink-0">
-                            <button onclick="openActionModal('${student.id}')" class="bg-stone-800 hover:bg-stone-900 text-amber-100 px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition">📝 رصد</button>
-                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition">📊 التقرير</button>
-                            <button onclick="removeStudentFromClass('${student.id}')" title="إزالة من الفصل" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-2 rounded-xl text-xs font-bold transition">🗑️</button>
+                            <button onclick="openActionModal('${student.id}')" class="bg-stone-800 hover:bg-stone-900 text-amber-100 px-3 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition">📝 رصد</button>
+                            <button onclick="openModal('${student.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition">📊 التقرير</button>
+                            <button onclick="removeStudentFromClass('${student.id}')" class="bg-rose-500 hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-xs cursor-pointer transition">🗑️ حذف</button>
                         </div>
 
                     </div>
@@ -597,7 +597,7 @@
                 classesTabContent.classList.add('hidden');
                 actionsTabContent.classList.remove('hidden');
                 btnActions.className = `flex-1 py-2.5 rounded-xl font-bold text-xs ${activeColorClass} text-white shadow transition-all cursor-pointer`;
-                btnClasses.className = "flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-600 transition-all cursor-pointer";
+                btnClasses.className = "flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-700 transition-all cursor-pointer";
                 renderSettingsActionsDropdown();
             }
         };
