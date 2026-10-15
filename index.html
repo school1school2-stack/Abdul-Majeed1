@@ -38,7 +38,6 @@
         let editingActionIndex = null;
         let editingClassIndex = null;
 
-        // القائمة الكاملة المستخرجة من صورك بدقة تامة
         const defaultActions = [
             { icon: '✅', name: 'إجابة صحيحة', score: 1.0, color: '#28a745' },
             { icon: '❌', name: 'إجابة خاطئة', score: -1.0, color: '#dc3545' },
@@ -58,7 +57,13 @@
         window.initFastLoad = async function() {
             const dbRef = ref(db);
             try {
-                const studentsSnap = await get(child(dbRef, 'fifi_students_tracker'));
+                // تسريع التحميل عبر جلب البيانات بالتوازي
+                const [studentsSnap, settingsSnap, classesSnap] = await Promise.all([
+                    get(child(dbRef, 'fifi_students_tracker')),
+                    get(child(dbRef, 'fifi_custom_actions')),
+                    get(child(dbRef, 'fifi_classes_list'))
+                ]);
+
                 if (studentsSnap.exists()) {
                     allStudents = [];
                     const data = studentsSnap.val();
@@ -76,7 +81,6 @@
                     });
                 }
 
-                const settingsSnap = await get(child(dbRef, 'fifi_custom_actions'));
                 if (settingsSnap.exists()) {
                     customActions = settingsSnap.val();
                 } else {
@@ -84,7 +88,6 @@
                     set(ref(db, 'fifi_custom_actions'), defaultActions);
                 }
 
-                const classesSnap = await get(child(dbRef, 'fifi_classes_list'));
                 if (classesSnap.exists()) {
                     classList = classesSnap.val();
                 }
@@ -117,6 +120,9 @@
             document.getElementById('settings-modal').classList.remove('hidden');
             document.getElementById('settings-modal').classList.add('flex');
             switchSettingsTab(tabName);
+            if(tabName === 'actions') {
+                renderSettingsActionsDropdown();
+            }
         };
 
         window.closeSettingsModal = function() {
@@ -142,10 +148,10 @@
                 actionsTabContent.classList.remove('hidden');
                 btnActions.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-indigo-600 text-white shadow transition-all cursor-pointer";
                 btnClasses.className = "flex-1 py-2.5 rounded-2xl font-black text-xs bg-gray-200 text-gray-700 transition-all cursor-pointer";
+                renderSettingsActionsDropdown();
             }
         };
 
-        // إدارة الفصول
         window.saveClassItem = function() {
             const classNameInput = document.getElementById('new-class-name');
             const name = classNameInput.value.trim();
@@ -212,7 +218,6 @@
             });
         }
 
-        // إعدادات التقييمات عبر القائمة المنسدلة الذكية
         window.renderSettingsActionsDropdown = function() {
             const selectEl = document.getElementById('actions-dropdown-select');
             if(!selectEl) return;
@@ -277,7 +282,8 @@
 
         window.resetActionForm = function() {
             editingActionIndex = null;
-            document.getElementById('actions-dropdown-select').value = "";
+            const selectEl = document.getElementById('actions-dropdown-select');
+            if(selectEl) selectEl.value = "";
             document.getElementById('new-action-name').value = '';
             document.getElementById('new-action-score').value = '';
             document.getElementById('new-action-icon').value = '⭐';
@@ -285,7 +291,6 @@
             document.getElementById('delete-action-btn').classList.add('hidden');
         };
 
-        // عرض شبكة التقييمات الكاملة داخل نافذة رصد الطالب
         function renderCustomActionsUI() {
             const container = document.getElementById('custom-actions-container');
             if(!container) return;
