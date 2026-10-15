@@ -606,6 +606,7 @@
                         actionCounts[key].totalScore += act.score;
                     });
 
+                    // تجميع وعرض جميع السلوكيات بدون قيد أو حذف
                     Object.values(actionCounts).forEach(item => {
                         let badgeBg = "bg-sky-500 text-white";
                         if(item.totalScore > 0) badgeBg = "bg-emerald-500 text-white";
@@ -645,6 +646,7 @@
                             </div>
                         </div>
 
+                        <!-- شريط التمرير الأفقي الفعال بالكامل لجميع السلوكيات -->
                         <div class="flex items-center gap-2 overflow-x-auto py-1.5 bg-slate-50/70 px-2 rounded-xl min-h-[46px] w-full" style="scrollbar-width: thin; -webkit-overflow-scrolling: touch;">
                             ${actionsListHtml}
                         </div>
@@ -878,6 +880,7 @@
             }
         };
 
+        // دالة رصد السلوكيات والأنشطة (تم إزالة حذف السابقة تماماً لتتراكم الحالات الجديدة مع القديمة)
         window.recordAction = async function(actionName, scoreChange = 0, attendanceType = null) {
             if(!currentStudentId) return;
             closeActionModal();
@@ -889,27 +892,12 @@
                 const dateFormatted = now.toLocaleDateString('ar-SA', { year: 'numeric', month: '2-digit', day: '2-digit' });
                 const timeFormatted = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
                 const formattedTime = `${dayName} | ${dateFormatted} - ${timeFormatted}`;
-                const todayDateOnly = dateFormatted;
 
                 let attendanceStats = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
                 let actionsList = student.actions || [];
                 
+                // تحديث العدادات الإحصائية عند رصد أزرار الحضور والغياب (مع الاحتفاظ بالسجلات كاملة)
                 if(attendanceType) {
-                    const attendanceKeywords = ['حاضر', 'غائب', 'غائب بعذر', 'مستأذن', 'متأخر', 'عن بعد', 'هارب'];
-                    
-                    actionsList = actionsList.filter(act => {
-                        let isSameDay = act.timestamp.includes(todayDateOnly);
-                        let isPreviousAttendance = attendanceKeywords.some(keyword => act.title.includes(keyword));
-                        
-                        if (isSameDay && isPreviousAttendance) {
-                            if (act.title.includes('غائب') && attendanceStats.absents > 0) attendanceStats.absents--;
-                            if (act.title.includes('متأخر') && attendanceStats.lates > 0) attendanceStats.lates--;
-                            if (act.title.includes('مستأذن') && attendanceStats.excuses > 0) attendanceStats.excuses--;
-                            return false;
-                        }
-                        return true;
-                    });
-
                     if (attendanceType.includes('غائب')) {
                         attendanceStats.absents++;
                     } else if (attendanceType === 'متأخر') {
@@ -919,6 +907,7 @@
                     }
                 }
                 
+                // إضافة السلوك أو الرصد الجديد بجانب السطور السابقة دون حذف أي شيء
                 const newRecord = { title: actionName, score: scoreChange, timestamp: formattedTime };
                 student.actions = [newRecord, ...actionsList];
 
@@ -1170,7 +1159,6 @@
                 <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border p-2.5 rounded-xl text-xs font-bold"></select>
                 <div class="grid grid-cols-3 gap-2">
                     <select id="new-action-icon" class="border border-slate-200 p-2.5 rounded-xl text-base font-bold bg-white">
-                        <!-- رموز السلبيات والتنبيهات المضافة -->
                         <option value="⚠️">⚠️ تنبيه هامة</option>
                         <option value="🛑">🛑 إيقاف / منع</option>
                         <option value="❌">❌ خطأ / سلبي</option>
@@ -1180,7 +1168,6 @@
                         <option value="📉">📉 انخفاض مستوى</option>
                         <option value="🔴">🔴 نقطة سلبية حمراء</option>
                         
-                        <!-- رموز الإيجابيات والتميز المضافة -->
                         <option value="✍️">✍️ كتابة / تدوين</option>
                         <option value="📝">📝 اختبار / تحضير</option>
                         <option value="✅">✅ صح / إنجاز</option>
@@ -1189,7 +1176,6 @@
                         <option value="🌟">🌟 تميز ساطع</option>
                         <option value="👍">👍 تأييد / أحسنت</option>
                         
-                        <!-- رموز إضافية ذات دلالة عالية -->
                         <option value="🏆">🏆 كأس تفوق</option>
                         <option value="💡">💡 فكرة إبداعية / مشاركة</option>
                         <option value="📘">📘 حل الواجب</option>
