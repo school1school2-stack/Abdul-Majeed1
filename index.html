@@ -14,7 +14,7 @@
     <!-- استيراد مكتبات Firebase (Realtime Database) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push, remove, update, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, push, remove, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAVrIIm7aXjg0hGrMk0qVrXT8gaRIpHoBk",
@@ -78,7 +78,7 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        // تحميل محسن: قراءة من الذاكرة المحلية أولاً ثم مزامنة ذكية وهادئة في الخلفية
+        // تحسين سرعة الإقلاع: عرض فوري من الذاكرة المحلية ثم تحديث صامت من السحابة
         window.initFastLoad = async function() {
             applyRandomTheme();
 
@@ -95,71 +95,73 @@
             renderSettingsActionsDropdown();
             renderClassesListUI();
 
-            const dbRef = ref(db);
-            try {
-                const [studentsSnap, settingsSnap, classesSnap] = await Promise.all([
-                    get(child(dbRef, 'fifi_students_tracker')),
-                    get(child(dbRef, 'fifi_custom_actions')),
-                    get(child(dbRef, 'fifi_classes_list'))
-                ]);
+            // جلب البيانات من السحابة في الخلفية دون تجميد الواجهة
+            setTimeout(async () => {
+                try {
+                    const [studentsSnap, settingsSnap, classesSnap] = await Promise.all([
+                        get(ref(db, 'fifi_students_tracker')),
+                        get(ref(db, 'fifi_custom_actions')),
+                        get(ref(db, 'fifi_classes_list'))
+                    ]);
 
-                let needsUIRender = false;
+                    let needsUIRender = false;
 
-                if (studentsSnap.exists()) {
-                    const newStudents = [];
-                    const data = studentsSnap.val();
-                    Object.keys(data).forEach((key) => {
-                        const studentItem = data[key];
-                        newStudents.push({ 
-                            id: key, 
-                            name: studentItem.name || 'بدون اسم',
-                            email: studentItem.email || 'بدون إيميل',
-                            className: studentItem.className || 'غير موزع',
-                            phone: studentItem.phone || '966566688614',
-                            actions: studentItem.actions || [],
-                            attendanceStats: studentItem.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
+                    if (studentsSnap.exists()) {
+                        const newStudents = [];
+                        const data = studentsSnap.val();
+                        Object.keys(data).forEach((key) => {
+                            const studentItem = data[key];
+                            newStudents.push({ 
+                                id: key, 
+                                name: studentItem.name || 'بدون اسم',
+                                email: studentItem.email || 'بدون إيميل',
+                                className: studentItem.className || 'غير موزع',
+                                phone: studentItem.phone || '966566688614',
+                                actions: studentItem.actions || [],
+                                attendanceStats: studentItem.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
+                            });
                         });
-                    });
-                    if (JSON.stringify(newStudents) !== JSON.stringify(allStudents)) {
-                        allStudents = newStudents;
-                        localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
-                        needsUIRender = true;
+                        if (JSON.stringify(newStudents) !== JSON.stringify(allStudents)) {
+                            allStudents = newStudents;
+                            localStorage.setItem('fifi_cached_students', JSON.stringify(allStudents));
+                            needsUIRender = true;
+                        }
                     }
-                }
 
-                if (settingsSnap.exists()) {
-                    const rawData = settingsSnap.val();
-                    const fetchedActions = Array.isArray(rawData) ? rawData : Object.values(rawData);
-                    if (JSON.stringify(fetchedActions) !== JSON.stringify(customActions)) {
-                        customActions = fetchedActions;
-                        localStorage.setItem('fifi_cached_actions', JSON.stringify(customActions));
-                        needsUIRender = true;
+                    if (settingsSnap.exists()) {
+                        const rawData = settingsSnap.val();
+                        const fetchedActions = Array.isArray(rawData) ? rawData : Object.values(rawData);
+                        if (JSON.stringify(fetchedActions) !== JSON.stringify(customActions)) {
+                            customActions = fetchedActions;
+                            localStorage.setItem('fifi_cached_actions', JSON.stringify(customActions));
+                            needsUIRender = true;
+                        }
+                    } else {
+                        set(ref(db, 'fifi_custom_actions'), defaultActions);
                     }
-                } else {
-                    customActions = defaultActions;
-                    set(ref(db, 'fifi_custom_actions'), defaultActions);
-                }
 
-                if (classesSnap.exists()) {
-                    const fetchedClasses = classesSnap.val();
-                    if (JSON.stringify(fetchedClasses) !== JSON.stringify(classList)) {
-                        classList = fetchedClasses;
-                        localStorage.setItem('fifi_cached_classes', JSON.stringify(classList));
-                        needsUIRender = true;
+                    if (classesSnap.exists()) {
+                        const fetchedClasses = classesSnap.val();
+                        if (JSON.stringify(fetchedClasses) !== JSON.stringify(classList)) {
+                            classList = fetchedClasses;
+                            localStorage.setItem('fifi_cached_classes', JSON.stringify(classList));
+                            needsUIRender = true;
+                        }
+                    } else {
+                        set(ref(db, 'fifi_classes_list'), classList);
                     }
-                } else {
-                    set(ref(db, 'fifi_classes_list'), classList);
-                }
 
-                if (needsUIRender) {
-                    renderView();
-                    renderCustomActionsUI();
-                    renderSettingsActionsDropdown();
-                    renderClassesListUI();
+                    if (needsUIRender) {
+                        renderView();
+                        renderCustomActionsUI();
+                        renderSettingsActionsDropdown();
+                        renderClassesListUI();
+                        if(activeClass) renderClassStudents();
+                    }
+                } catch (error) {
+                    console.error("خطأ في المزامنة الخلفية: ", error);
                 }
-            } catch (error) {
-                console.error("خطأ في المزامنة الخلفية: ", error);
-            }
+            }, 50);
         };
 
         window.openClass = function(className) {
