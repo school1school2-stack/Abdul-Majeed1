@@ -1013,6 +1013,7 @@
             let positiveCountToday = 0;
             let positiveCountTotal = 0;
             let totalPositiveScore = 0;
+            let totalScore = 0;
 
             let negativeList = [];
             let homeworkList = [];
@@ -1023,6 +1024,8 @@
                 const score = act.score || 0;
                 const title = act.title || '';
                 const isToday = act.timestamp && act.timestamp.includes(todayStr);
+
+                totalScore += score;
 
                 if (score > 0) {
                     positiveCountTotal++;
@@ -1046,6 +1049,7 @@
             return {
                 att,
                 actions,
+                totalScore,
                 positiveCountToday,
                 positiveCountTotal,
                 totalPositiveScore,
@@ -1335,85 +1339,86 @@
             window.open(reportBlobUrl, '_blank');
         };
 
-        // --- ميزات تقرير الفصل الكامل المفصل للإدارة ---
+        // --- التقرير الفردي المتسلسل لكل طالب داخل تقرير الفصل للإدارة ---
         window.openClassReportPreview = function(className) {
             const students = allStudents.filter(s => s.className === className);
             
-            let totalAbsentsClass = 0;
-            let totalLatesClass = 0;
-            let totalExcusesClass = 0;
-
-            let studentsRowsHtml = students.map((st, idx) => {
+            let studentsCardsHtml = students.map((st, idx) => {
                 const sum = calculateStudentSummaryData(st);
-                totalAbsentsClass += sum.att.absents || 0;
-                totalLatesClass += sum.att.lates || 0;
-                totalExcusesClass += sum.att.excuses || 0;
+                const { att } = sum;
 
-                let totalScore = 0;
-                st.actions.forEach(a => totalScore += (a.score || 0));
+                let negativeHtml = sum.negativeList.length === 0 ? 
+                    '<p class="text-emerald-600 font-semibold mt-1">لا توجد ملاحظات سلبية مسجلة (سلوك ممتاز) ✨</p>' : 
+                    `<ul class="list-disc list-inside text-rose-700 space-y-1 mt-1">
+                        ${sum.negativeList.map(item => `<li>${item.title} (${item.timestamp})</li>`).join('')}
+                    </ul>`;
 
-                let homeworkText = sum.homeworkList.length > 0 ? sum.homeworkList.map(h => h.title).join('، ') : 'منتظم';
-                let portfolioText = sum.portfolioList.length > 0 ? sum.portfolioList.map(p => p.title).join('، ') : 'مكتمل';
-                let negativeText = sum.negativeList.length > 0 ? sum.negativeList.map(n => n.title).join('، ') : 'لا يوجد';
+                let attendanceHtml = sum.attendanceEventsList.length === 0 ?
+                    '<p class="text-emerald-700 font-semibold mt-1">منتظم بالحضور والدوام ✨</p>' :
+                    `<ul class="list-disc list-inside text-slate-700 space-y-1 mt-1">
+                        ${sum.attendanceEventsList.map(item => `<li><span class="font-bold text-rose-800">${item.title}</span> - <span class="text-[11px] text-slate-500">${item.timestamp}</span></li>`).join('')}
+                    </ul>`;
 
                 return `
-                    <tr class="border-b">
-                        <td class="p-2 font-bold">${idx + 1}</td>
-                        <td class="p-2 font-bold text-slate-900">${st.name}</td>
-                        <td class="p-2 text-center text-rose-600 font-bold">${sum.att.absents || 0}</td>
-                        <td class="p-2 text-center text-amber-600 font-bold">${sum.att.lates || 0}</td>
-                        <td class="p-2 text-center text-sky-600 font-bold">${sum.att.excuses || 0}</td>
-                        <td class="p-2 text-center font-black ${totalScore >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${totalScore > 0 ? '+' + totalScore : totalScore}</td>
-                        <td class="p-2 text-xs text-emerald-700 font-semibold">+${sum.totalPositiveScore} (${sum.positiveCountTotal} مشاركة)</td>
-                        <td class="p-2 text-xs text-rose-700 font-semibold">${negativeText}</td>
-                        <td class="p-2 text-xs text-slate-700">${homeworkText} / ${portfolioText}</td>
-                    </tr>
+                    <div class="bg-amber-50/40 border-2 border-amber-200 p-5 rounded-3xl mb-6 text-right shadow-sm">
+                        <div class="flex items-center justify-between border-b border-amber-200 pb-3 mb-4">
+                            <div>
+                                <h4 class="student-name-font text-2xl text-amber-950">🎓 ${idx + 1}. الطالب: ${st.name}</h4>
+                                <p class="text-xs font-bold text-slate-600 mt-0.5">البريد: ${st.email || 'بدون إيميل'}</p>
+                            </div>
+                            <div class="bg-white px-3.5 py-1.5 rounded-2xl border border-amber-200 text-center shadow-2xs">
+                                <span class="block text-[10px] text-slate-500 font-bold">النقاط الكلية</span>
+                                <span class="text-base font-black ${sum.totalScore >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${sum.totalScore > 0 ? '+' + sum.totalScore : sum.totalScore}</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs font-bold text-slate-800">
+                            
+                            <div class="bg-white p-3.5 rounded-2xl border border-amber-100 shadow-2xs">
+                                <span class="text-slate-900 font-black text-sm block mb-1">📌 سجل الحضور والغياب:</span>
+                                <div class="flex gap-4 text-slate-700 my-1 pb-2 border-b border-slate-100">
+                                    <span>🔴 الغياب: <strong class="text-rose-600">${att.absents || 0}</strong></span>
+                                    <span>⏰ التأخر: <strong class="text-amber-600">${att.lates || 0}</strong></span>
+                                    <span>🔵 الاستئذان: <strong class="text-sky-600">${att.excuses || 0}</strong></span>
+                                </div>
+                                ${attendanceHtml}
+                            </div>
+
+                            <div class="bg-white p-3.5 rounded-2xl border border-amber-100 shadow-2xs">
+                                <span class="text-slate-900 font-black text-sm block mb-1">💡 التفاعل والمشاركات الإيجابية:</span>
+                                <p class="text-slate-600 mt-1">مشاركات اليوم: <span class="text-emerald-600 font-black">${sum.positiveCountToday}</span></p>
+                                <p class="text-slate-600">إجمالي النقاط الإيجابية: <span class="text-emerald-600 font-black">+${sum.totalPositiveScore}</span></p>
+                            </div>
+
+                            <div class="bg-white p-3.5 rounded-2xl border border-amber-100 shadow-2xs">
+                                <span class="text-slate-900 font-black text-sm block mb-1">⚠️ الملاحظات والسلوكيات السلبية:</span>
+                                ${negativeHtml}
+                            </div>
+
+                            <div class="bg-white p-3.5 rounded-2xl border border-amber-100 shadow-2xs">
+                                <span class="text-slate-900 font-black text-sm block mb-1">📘 الواجبات والملفات المدرسية:</span>
+                                <div class="space-y-1 text-slate-700 mt-1">
+                                    <p>متابعة الواجبات: ${sum.homeworkList.length > 0 ? sum.homeworkList.map(h => `${h.title} (${h.timestamp})`).join('، ') : 'منتظم'}</p>
+                                    <p>الملف المدرسي: ${sum.portfolioList.length > 0 ? sum.portfolioList.map(p => `${p.title} (${p.timestamp})`).join('، ') : 'مكتمل'}</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
                 `;
             }).join('');
 
             const previewContainer = document.getElementById('preview-modal-content');
             previewContainer.innerHTML = `
                 <div class="bg-white border-2 border-amber-200 p-6 rounded-3xl mb-5 text-right max-h-[80vh] overflow-y-auto">
-                    <div class="text-center border-b border-amber-200 pb-3 mb-4">
-                        <h3 class="student-name-font text-2xl text-slate-900">📊 التقرير الشامل والمفصل لفصل: ${className}</h3>
-                        <p class="text-xs font-bold text-amber-800 mt-1">إجمالي الطلاب: ${students.length} طالب | الكفايات اللغوية</p>
+                    <div class="text-center border-b border-amber-200 pb-3 mb-6 sticky top-0 bg-white z-10 py-2">
+                        <h3 class="student-name-font text-2xl text-slate-900">📊 التقرير الفردي المتسلسل لفصل: ${className}</h3>
+                        <p class="text-xs font-bold text-amber-800 mt-1">إجمالي الطلاب: ${students.length} طالب | كل طالب بتقريره المستقل</p>
                         <p class="text-[11px] text-slate-500 font-semibold mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد 👨‍🏫</p>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-2 text-center mb-4 text-xs font-bold">
-                        <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200">
-                            <span class="text-rose-800 block">إجمالي الغياب</span>
-                            <span class="text-lg font-black text-rose-600">${totalAbsentsClass}</span>
-                        </div>
-                        <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200">
-                            <span class="text-amber-800 block">إجمالي التأخر</span>
-                            <span class="text-lg font-black text-amber-600">${totalLatesClass}</span>
-                        </div>
-                        <div class="bg-sky-50 p-2.5 rounded-xl border border-sky-200">
-                            <span class="text-sky-800 block">إجمالي الاستئذان</span>
-                            <span class="text-lg font-black text-sky-600">${totalExcusesClass}</span>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto border rounded-xl">
-                        <table class="w-full text-xs text-right whitespace-nowrap">
-                            <thead class="bg-amber-900 text-amber-50">
-                                <tr>
-                                    <th class="p-2.5">#</th>
-                                    <th class="p-2.5">اسم الطالب</th>
-                                    <th class="p-2.5 text-center">غياب</th>
-                                    <th class="p-2.5 text-center">تأخر</th>
-                                    <th class="p-2.5 text-center">استئذان</th>
-                                    <th class="p-2.5 text-center">النقاط</th>
-                                    <th class="p-2.5">المشاركات الإيجابية</th>
-                                    <th class="p-2.5">الملاحظات السلبية</th>
-                                    <th class="p-2.5">الواجبات والملفات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${students.length === 0 ? '<tr><td colspan="9" class="text-center p-4 text-slate-400">لا توجد طلاب مسجلين في هذا الفصل</td></tr>' : studentsRowsHtml}
-                            </tbody>
-                        </table>
+                    <div>
+                        ${students.length === 0 ? '<p class="text-center p-6 text-slate-400 font-bold">لا توجد طلاب مسجلين في هذا الفصل</p>' : studentsCardsHtml}
                     </div>
                 </div>
 
@@ -1430,35 +1435,66 @@
         window.shareClassReportLink = function(className) {
             const students = allStudents.filter(s => s.className === className);
             
-            let totalAbsentsClass = 0;
-            let totalLatesClass = 0;
-            let totalExcusesClass = 0;
-
-            let studentsRowsHtml = students.map((st, idx) => {
+            let studentsCardsHtml = students.map((st, idx) => {
                 const sum = calculateStudentSummaryData(st);
-                totalAbsentsClass += sum.att.absents || 0;
-                totalLatesClass += sum.att.lates || 0;
-                totalExcusesClass += sum.att.excuses || 0;
+                const { att } = sum;
 
-                let totalScore = 0;
-                st.actions.forEach(a => totalScore += (a.score || 0));
+                let negativeHtml = sum.negativeList.length === 0 ? 
+                    '<p style="color: #059669; font-weight: 600; margin-top: 4px;">لا توجد ملاحظات سلبية مسجلة (سلوك ممتاز) ✨</p>' : 
+                    `<ul style="list-style-type: disc; margin-right: 18px; color: #b91c1c; margin-top: 4px; space-y: 2px;">
+                        ${sum.negativeList.map(item => `<li>${item.title} (${item.timestamp})</li>`).join('')}
+                    </ul>`;
 
-                let homeworkText = sum.homeworkList.length > 0 ? sum.homeworkList.map(h => h.title).join('، ') : 'منتظم';
-                let portfolioText = sum.portfolioList.length > 0 ? sum.portfolioList.map(p => p.title).join('، ') : 'مكتمل';
-                let negativeText = sum.negativeList.length > 0 ? sum.negativeList.map(n => n.title).join('، ') : 'لا يوجد';
+                let attendanceHtml = sum.attendanceEventsList.length === 0 ?
+                    '<p style="color: #047857; font-weight: 600; margin-top: 4px;">منتظم بالحضور والدوام ✨</p>' :
+                    `<ul style="list-style-type: disc; margin-right: 18px; color: #334155; margin-top: 4px;">
+                        ${sum.attendanceEventsList.map(item => `<li><strong style="color: #b91c1c;">${item.title}</strong> - <span style="font-size: 11px; color: #64748b;">${item.timestamp}</span></li>`).join('')}
+                    </ul>`;
 
                 return `
-                    <tr style="border-bottom: 1px solid #e2e8f0;">
-                        <td style="padding: 10px; font-weight: bold;">${idx + 1}</td>
-                        <td style="padding: 10px; font-weight: bold; color: #1e293b;">${st.name}</td>
-                        <td style="padding: 10px; text-align: center; color: #dc2626; font-weight: bold;">${sum.att.absents || 0}</td>
-                        <td style="padding: 10px; text-align: center; color: #d97706; font-weight: bold;">${sum.att.lates || 0}</td>
-                        <td style="padding: 10px; text-align: center; color: #0284c7; font-weight: bold;">${sum.att.excuses || 0}</td>
-                        <td style="padding: 10px; text-align: center; font-weight: 900; color: ${totalScore >= 0 ? '#059669' : '#dc2626'};">${totalScore > 0 ? '+' + totalScore : totalScore}</td>
-                        <td style="padding: 10px; font-size: 11px; color: #047857; font-weight: bold;">+${sum.totalPositiveScore} (${sum.positiveCountTotal} مشاركة)</td>
-                        <td style="padding: 10px; font-size: 11px; color: #b91c1c; font-weight: bold;">${negativeText}</td>
-                        <td style="padding: 10px; font-size: 11px; color: #334155;">${homeworkText} / ${portfolioText}</td>
-                    </tr>
+                    <div style="background-color: #fffdfa; border: 2px solid #fde68a; padding: 20px; border-radius: 20px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #fde68a; padding-bottom: 12px; margin-bottom: 15px;">
+                            <div>
+                                <h3 style="font-family: 'Amiri', serif; font-size: 1.5rem; color: #78350f; margin: 0;">🎓 ${idx + 1}. الطالب: ${st.name}</h3>
+                                <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">البريد: ${st.email || 'بدون إيميل'}</p>
+                            </div>
+                            <div style="background: white; padding: 8px 14px; border-radius: 14px; border: 1px solid #fde68a; text-align: center;">
+                                <span style="display: block; font-size: 10px; color: #64748b; font-weight: bold;">النقاط الكلية</span>
+                                <span style="font-size: 1.1rem; font-weight: 900; color: ${sum.totalScore >= 0 ? '#059669' : '#dc2626'};">${sum.totalScore > 0 ? '+' + sum.totalScore : sum.totalScore}</span>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px; color: #1e293b;">
+                            
+                            <div style="background: white; padding: 14px; border-radius: 14px; border: 1px solid #fef3c7;">
+                                <strong style="display: block; margin-bottom: 6px; font-size: 13px;">📌 سجل الحضور والغياب:</strong>
+                                <div style="display: flex; gap: 15px; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #f8fafc;">
+                                    <span>🔴 الغياب: <strong style="color: #dc2626;">${att.absents || 0}</strong></span>
+                                    <span>⏰ التأخر: <strong style="color: #d97706;">${att.lates || 0}</strong></span>
+                                    <span>🔵 الاستئذان: <strong style="color: #0284c7;">${att.excuses || 0}</strong></span>
+                                </div>
+                                ${attendanceHtml}
+                            </div>
+
+                            <div style="background: white; padding: 14px; border-radius: 14px; border: 1px solid #fef3c7;">
+                                <strong style="display: block; margin-bottom: 6px; font-size: 13px;">💡 التفاعل والمشاركات الإيجابية:</strong>
+                                <p style="margin: 4px 0; color: #475569;">مشاركات اليوم: <strong style="color: #059669;">${sum.positiveCountToday}</strong></p>
+                                <p style="margin: 4px 0; color: #475569;">إجمالي النقاط الإيجابية: <strong style="color: #059669;">+${sum.totalPositiveScore}</strong></p>
+                            </div>
+
+                            <div style="background: white; padding: 14px; border-radius: 14px; border: 1px solid #fef3c7;">
+                                <strong style="display: block; margin-bottom: 6px; font-size: 13px;">⚠️ الملاحظات والسلوكيات السلبية:</strong>
+                                ${negativeHtml}
+                            </div>
+
+                            <div style="background: white; padding: 14px; border-radius: 14px; border: 1px solid #fef3c7;">
+                                <strong style="display: block; margin-bottom: 6px; font-size: 13px;">📘 الواجبات والملفات المدرسية:</strong>
+                                <p style="margin: 4px 0; color: #475569;">متابعة الواجبات: ${sum.homeworkList.length > 0 ? sum.homeworkList.map(h => `${h.title} (${h.timestamp})`).join('، ') : 'منتظم'}</p>
+                                <p style="margin: 4px 0; color: #475569;">الملف المدرسي: ${sum.portfolioList.length > 0 ? sum.portfolioList.map(p => `${p.title} (${p.timestamp})`).join('، ') : 'مكتمل'}</p>
+                            </div>
+
+                        </div>
+                    </div>
                 `;
             }).join('');
 
@@ -1468,7 +1504,7 @@
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>التقرير المفصل لفصل: ${className}</title>
+                    <title>التقرير الفردي الشامل لفصل: ${className}</title>
                     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"><\/script>
                     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
                     <style>
@@ -1477,49 +1513,17 @@
                     </style>
                 </head>
                 <body class="p-4 md:p-8 flex justify-center items-center min-h-screen">
-                    <div class="max-w-6xl w-full bg-white border-2 border-amber-200 p-6 md:p-8 rounded-3xl shadow-2xl">
+                    <div class="max-w-4xl w-full bg-white border-2 border-amber-200 p-6 md:p-8 rounded-3xl shadow-2xl">
                         
                         <div class="text-center border-b border-amber-200 pb-4 mb-6">
                             <span class="text-5xl mb-2 inline-block">🏫</span>
-                            <h1 class="class-title text-3xl font-bold text-slate-900">التقرير الشامل والمفصل لفصل: ${className}</h1>
-                            <p class="text-sm font-bold text-amber-800 mt-1">إجمالي الطلاب المسجلين: ${students.length} طالب</p>
+                            <h1 class="class-title text-3xl font-bold text-slate-900">التقرير الفردي الشامل لفصل: ${className}</h1>
+                            <p class="text-sm font-bold text-amber-800 mt-1">إجمالي الطلاب: ${students.length} طالب (كل طالب بتقريره المستقل)</p>
                             <p class="text-xs text-slate-500 mt-1 font-semibold">إعداد أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد 👨‍🏫</p>
                         </div>
 
-                        <div class="grid grid-cols-3 gap-3 text-center mb-6 text-xs font-bold">
-                            <div class="bg-rose-50 p-3 rounded-2xl border border-rose-200 shadow-xs">
-                                <span class="text-rose-800 block text-sm">إجمالي الغياب بالفصل</span>
-                                <span class="text-xl font-black text-rose-600">${totalAbsentsClass}</span>
-                            </div>
-                            <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 shadow-xs">
-                                <span class="text-amber-800 block text-sm">إجمالي التأخر بالفصل</span>
-                                <span class="text-xl font-black text-amber-600">${totalLatesClass}</span>
-                            </div>
-                            <div class="bg-sky-50 p-3 rounded-2xl border border-sky-200 shadow-xs">
-                                <span class="text-sky-800 block text-sm">إجمالي الاستئذان بالفصل</span>
-                                <span class="text-xl font-black text-sky-600">${totalExcusesClass}</span>
-                            </div>
-                        </div>
-
-                        <div class="overflow-x-auto border rounded-2xl shadow-xs">
-                            <table class="w-full text-xs text-right border-collapse whitespace-nowrap">
-                                <thead style="background-color: #800000; color: #d4af37;">
-                                    <tr>
-                                        <th style="padding: 12px;">#</th>
-                                        <th style="padding: 12px;">اسم الطالب</th>
-                                        <th style="padding: 12px; text-align: center;">غياب</th>
-                                        <th style="padding: 12px; text-align: center;">تأخر</th>
-                                        <th style="padding: 12px; text-align: center;">استئذان</th>
-                                        <th style="padding: 12px; text-align: center;">النقاط</th>
-                                        <th style="padding: 12px;">المشاركات الإيجابية</th>
-                                        <th style="padding: 12px;">الملاحظات السلبية</th>
-                                        <th style="padding: 12px;">الواجبات والملفات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${students.length === 0 ? '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #94a3b8;">لا توجد طلاب مسجلين في هذا الفصل</td></tr>' : studentsRowsHtml}
-                                </tbody>
-                            </table>
+                        <div>
+                            ${students.length === 0 ? '<p style="text-align: center; padding: 30px; color: #94a3b8; font-weight: bold;">لا توجد طلاب مسجلين في هذا الفصل</p>' : studentsCardsHtml}
                         </div>
 
                         <div class="mt-8 text-center border-t pt-4 text-xs font-bold text-slate-500 flex justify-between">
@@ -1781,7 +1785,7 @@
     </div>
 
     <div id="preview-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
-        <div class="bg-white rounded-3xl w-[95%] md:max-w-5xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="bg-white rounded-3xl w-[95%] md:max-w-4xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button onclick="closePreviewSummaryModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-700 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200">✕</button>
             <div id="preview-modal-content"></div>
         </div>
