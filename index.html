@@ -1318,8 +1318,8 @@
                     created_at: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // ⚠️ مهم جداً: استبدل الرابط أدناه برابط مستودعك الأصلي على GitHub Pages لكي يعمل على الأجهزة الأخرى بدون خطأ 404
-                const currentBaseURL = "https://aztlg-494c3.web.app/"; 
+                // يأخذ رابط موقعك الحالي تلقائياً ويضيف له رقم التقرير فقط
+                const currentBaseURL = window.location.origin + window.location.pathname;
                 
                 return `${currentBaseURL}?reportId=${reportDocRef.id}`;
             } catch (err) {
@@ -1842,7 +1842,7 @@
                 <button onclick="checkPasscode()" class="w-full bg-[#800000] hover:bg-[#660000] text-[#d4af37] py-3.5 rounded-2xl font-black text-sm shadow-md transition cursor-pointer">دخول النظام 🚀</button>
             </div>
             <div class="border-t border-amber-100 pt-4 text-[11px] font-bold text-slate-400">
-                أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد 👨‍🏫
+                أ/ عبدالعزيز الفيفي ثانوية الأمير عبدالمجيد مع فيس تعبيري 👨‍🏫
             </div>
         </div>
     </div>
