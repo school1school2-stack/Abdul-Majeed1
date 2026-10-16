@@ -39,13 +39,13 @@
         }
 
         .class-3d-card {
-            border: 1.5px solid rgba(212, 175, 55, 0.3);
-            box-shadow: 0 6px 20px -4px rgba(128, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.02);
+            border: 2px solid rgba(212, 175, 55, 0.4);
+            box-shadow: 0 8px 24px -4px rgba(128, 0, 0, 0.08), 0 3px 8px -2px rgba(0, 0, 0, 0.03);
             transition: all 0.3s ease;
         }
         .class-3d-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px -5px rgba(128, 0, 0, 0.12);
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 14px 35px -5px rgba(128, 0, 0, 0.15);
             border-color: var(--maroon);
         }
 
@@ -62,33 +62,41 @@
             border-color: #94a3b8;
         }
         
-        .admin-card { background: white; max-width: 1100px; margin: auto; border-radius: 16px; padding: 30px; box-shadow: 0 6px 25px rgba(0,0,0,0.1); border-top: 8px solid var(--maroon); }
-        .header { text-align: center; border-bottom: 2px solid var(--gold); margin-bottom: 25px; padding-bottom: 12px; }
-        .bulk-section { background: #f4f4f4; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1.5px dashed var(--maroon); }
-        textarea { width: 100%; height: 140px; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-family: sans-serif; font-size: 0.95rem; resize: vertical; box-sizing: border-box; }
-        .controls { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: 0.3s; }
+        /* تصغير حجم لوحة التحكم لتنسجم مع تصميم التقسيم */
+        .admin-card { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 18px; 
+            box-shadow: 0 4px 18px rgba(0,0,0,0.06); 
+            border-top: 6px solid var(--maroon); 
+            font-size: 0.85rem;
+        }
+        .header { text-align: center; border-bottom: 2px solid var(--gold); margin-bottom: 15px; padding-bottom: 8px; }
+        .bulk-section { background: #fdfbf7; padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1.5px dashed var(--maroon); }
+        textarea { width: 100%; height: 90px; padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.85rem; resize: vertical; box-sizing: border-box; }
+        .controls { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: 0.3s; }
         .btn-upload { background: var(--maroon); color: var(--gold); }
         .btn-copy { background: var(--info); color: white; }
         .btn-delete-all { background: var(--danger); color: white; }
         
-        .pending-section { background: #fff8e1; border: 2px solid #ffc107; padding: 18px; border-radius: 12px; margin-bottom: 25px; display: none; }
-        .pending-section h3 { color: #d32f2f; margin-top: 0; font-size: 1.15rem; }
+        .pending-section { background: #fff8e1; border: 1.5px solid #ffc107; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: none; }
+        .pending-section h3 { color: #d32f2f; margin-top: 0; font-size: 1rem; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; font-size: 1rem; }
-        th { background: var(--maroon); color: var(--gold); padding: 14px; font-size: 1.05rem; }
-        td { border-bottom: 1px solid #eee; padding: 12px; text-align: right; vertical-align: middle; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; font-size: 0.85rem; }
+        th { background: var(--maroon); color: var(--gold); padding: 10px; font-size: 0.9rem; }
+        td { border-bottom: 1px solid #eee; padding: 8px; text-align: right; vertical-align: middle; }
         
-        .btn-approve { background: var(--success); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
-        .btn-reject { background: var(--danger); color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+        .btn-approve { background: var(--success); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+        .btn-reject { background: var(--danger); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
         
         .action-select {
-            padding: 8px 14px;
-            border-radius: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
             border: 1px solid #b0bec5;
             background-color: #f8f9fa;
             font-family: inherit;
-            font-size: 0.95rem;
+            font-size: 0.8rem;
             font-weight: bold;
             color: var(--maroon);
             cursor: pointer;
@@ -97,10 +105,10 @@
         }
         .action-select:hover { border-color: var(--maroon); background-color: #fff; }
 
-        .stats-bar { display: flex; justify-content: space-between; background: #e9ecef; padding: 15px 20px; border-radius: 10px; font-weight: bold; color: var(--maroon); font-size: 1.1rem; margin-bottom: 20px; }
-        .search-container { display: flex; justify-content: space-between; align-items: center; margin-top: 25px; flex-wrap: wrap; gap: 12px; }
-        .search-container h3 { margin: 0; font-size: 1.15rem; color: var(--maroon); }
-        .search-box { padding: 10px 15px; width: 100%; max-width: 320px; border-radius: 8px; border: 1px solid #ccc; font-size: 0.95rem; outline: none; transition: 0.3s; }
+        .stats-bar { display: flex; justify-content: space-between; background: #f1f5f9; padding: 10px 14px; border-radius: 8px; font-weight: bold; color: var(--maroon); font-size: 0.95rem; margin-bottom: 15px; }
+        .search-container { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; flex-wrap: wrap; gap: 8px; }
+        .search-container h3 { margin: 0; font-size: 0.95rem; color: var(--maroon); }
+        .search-box { padding: 8px 12px; width: 100%; max-width: 250px; border-radius: 6px; border: 1px solid #ccc; font-size: 0.85rem; outline: none; transition: 0.3s; }
         .search-box:focus { border-color: var(--maroon); box-shadow: 0 0 6px rgba(128,0,0,0.2); }
     </style>
 
@@ -263,11 +271,11 @@
                         classOptionsHtml += `<option value="class_غير موزع">❌ إزالة من الفصل</option>`;
 
                         tr.innerHTML = `
-                            <td style="text-align: right; font-weight: bold; font-size: 1.05rem; color: #1e293b;">
+                            <td style="text-align: right; font-weight: bold; font-size: 0.9rem; color: #1e293b;">
                                 ${name}
-                                <div style="font-size: 0.8rem; color: #800000; margin-top: 3px;">الفصل: ${data.className || 'غير موزع'}</div>
+                                <div style="font-size: 0.75rem; color: #800000; margin-top: 2px;">الفصل: ${data.className || 'غير موزع'}</div>
                             </td>
-                            <td style="font-size: 0.95rem; color: #475569;">${email}</td>
+                            <td style="font-size: 0.8rem; color: #475569;">${email}</td>
                             <td>
                                 <select class="action-select" onchange="handleAction(this, '${email}', '${name.replace(/'/g, "\\'")}', '${doc.id}')">
                                     <option value="" disabled selected>⚙️ خيارات الإجراء</option>
@@ -512,6 +520,7 @@
             { bg: "bg-gradient-to-br from-cyan-50/90 via-white to-sky-50/40", text: "text-stone-900" }
         ];
 
+        // تكبير أيقونات وبطاقات الفصول لتصبح ذات حضور بصري قوي
         function renderView() {
             const classesContainer = document.getElementById('dynamic-classes-grid');
             if(!classesContainer) return;
@@ -522,15 +531,15 @@
                 const theme = classSoftThemes[idx % classSoftThemes.length];
                 
                 classesContainer.innerHTML += `
-                    <div onclick="openClass('${cls}')" class="class-3d-card ${theme.bg} p-7 rounded-3xl cursor-pointer transition flex items-center justify-between border shadow-sm">
-                        <div class="flex items-center gap-5">
-                            <span class="text-4xl p-4 rounded-2xl bg-white/95 shadow-xs border border-amber-100 flex items-center justify-center">📚</span>
+                    <div onclick="openClass('${cls}')" class="class-3d-card ${theme.bg} p-8 rounded-3xl cursor-pointer transition flex items-center justify-between border shadow-md hover:shadow-xl">
+                        <div class="flex items-center gap-6">
+                            <span class="text-6xl p-5 rounded-3xl bg-white/95 shadow-sm border border-amber-200/60 flex items-center justify-center shrink-0">🏫</span>
                             <div>
-                                <h3 class="class-title-font text-xl tracking-wide ${theme.text}">${cls}</h3>
-                                <p class="text-xs mt-1.5 font-bold px-3 py-1 rounded-lg inline-block bg-[#800000]/10 text-[#800000] border border-[#800000]/20">${count} طلاب مخصصين</p>
+                                <h3 class="class-title-font text-2xl tracking-wide ${theme.text}">${cls}</h3>
+                                <p class="text-sm mt-2 font-bold px-3.5 py-1 rounded-xl inline-block bg-[#800000]/10 text-[#800000] border border-[#800000]/20">${count} طلاب مخصصين</p>
                             </div>
                         </div>
-                        <span class="bg-white/95 backdrop-blur-xs w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl text-[#800000] shadow-xs border border-amber-200">➔</span>
+                        <span class="bg-white/95 backdrop-blur-xs w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl text-[#800000] shadow-sm border border-amber-200 shrink-0">➔</span>
                     </div>
                 `;
             });
@@ -1168,7 +1177,6 @@
             document.getElementById('preview-modal').classList.remove('flex');
         };
 
-        // دالة تحويل التقرير إلى صفحة موقع مستقلة بفريد البيانات
         window.shareStudentReportLink = function(id) {
             const student = allStudents.find(s => s.id === id);
             if (!student) return;
@@ -1262,7 +1270,7 @@
 
     <!-- 1. الترويسة العلوية الثابتة (Header) -->
     <header id="main-header" class="p-4 shadow-sm border-b shrink-0 z-30 transition-all duration-500">
-        <div class="container mx-auto max-w-5xl flex flex-col sm:flex-row justify-between items-center gap-3">
+        <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
                 <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
                 <p class="text-xs opacity-90 mt-0.5 font-bold">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
@@ -1275,63 +1283,77 @@
     </header>
 
     <!-- 2. منطقة المحتوى الوسطى القابلة للتمرير فقط (Main Scroll Container) -->
-    <main id="main-scroll-container" class="flex-1 overflow-y-auto p-4 container mx-auto max-w-5xl w-full">
+    <main id="main-scroll-container" class="flex-1 overflow-y-auto p-4 container mx-auto max-w-6xl w-full">
 
-        <div id="main-dashboard" class="py-1 space-y-4">
-            <h2 class="text-xl font-black text-slate-900 text-center tracking-wider mb-3">الفصول الدراسية</h2>
-            <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
-
-            <div class="admin-card">
-                <div class="header">
-                    <h2>لوحة التحكم الشاملة  🔒</h2>
-                    <p>إدارة الطلاب المعتمدين ومراجعة طلبات التسجيل الجديدة</p>
+        <!-- واجهة الشاشة القابلة للتقسيم: الفصول بحجم أكبر + لوحة التحكم بأسلوب مدمج مصغر -->
+        <div id="main-dashboard" class="py-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- قسم الفصول الدراسية بأيقونات وحجم بارز وأكبر (7 أعمدة في الشاشات الكبيرة) -->
+            <div class="lg:col-span-7 space-y-4">
+                <div class="flex items-center justify-between border-b pb-2">
+                    <h2 class="text-2xl font-black text-slate-900 tracking-wider">🏫 الفصول الدراسية</h2>
+                    <span class="text-xs font-bold text-slate-500 bg-white px-3 py-1 rounded-full border">اختر الفصل للبدء</span>
                 </div>
+                <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+            </div>
 
-                <div class="pending-section" id="pendingSection">
-                    <h3>🔔 طلبات تسجيل جديدة بانتظار المراجعة</h3>
-                    <table id="pendingTable">
-                        <thead>
-                            <tr>
-                                <th>الاسم</th>
-                                <th>البريد الإلكتروني</th>
-                                <th>الإجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+            <!-- لوحة التحكم المدمجة والمصغرة (5 أعمدة) -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="admin-card">
+                    <div class="header">
+                        <h2 class="text-base font-black text-slate-900">🔒 لوحة التحكم المدمجة</h2>
+                        <p class="text-xs text-slate-500">إدارة الطلاب والموافقة السريعة</p>
+                    </div>
 
-                <div class="bulk-section">
-                    <label><strong>لصق القائمة هنا (سيتم اعتمادهم مباشرة للمعتمدين):</strong></label>
-                    <textarea id="bulkInput" placeholder="الصق هنا.. لا يهم إذا بدأ السطر بالاسم أو الإيميل"></textarea>
-                    <div class="controls">
-                        <button class="btn btn-upload" onclick="superSmartBulkAdd()">بدء المعالجة والرفع 🚀</button>
-                        <button class="btn btn-copy" onclick="copyAllStudents()">📋 نسخ الكل (الاسم والإيميل سطر بسطر)</button>
-                        <button class="btn btn-delete-all" onclick="deleteAllStudents()">حذف الكل (المعتمدين) 🗑️</button>
+                    <div class="pending-section" id="pendingSection">
+                        <h3>🔔 طلبات جديدة للمراجعة</h3>
+                        <table id="pendingTable">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد</th>
+                                    <th>الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="bulk-section">
+                        <label class="block mb-1 text-xs font-bold"><strong>لصق القائمة للاعتماد المباشر:</strong></label>
+                        <textarea id="bulkInput" placeholder="الصق الاسم والإيميل هنا.."></textarea>
+                        <div class="controls">
+                            <button class="btn btn-upload" onclick="superSmartBulkAdd()">رفع واعتماد 🚀</button>
+                            <button class="btn btn-copy" onclick="copyAllStudents()">📋 نسخ الكل</button>
+                            <button class="btn btn-delete-all" onclick="deleteAllStudents()">مسح الكل 🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="stats-bar">
+                        <span id="approvedCount">الطلاب: 0</span>
+                        <span id="pendingCountBadge" style="color: #d32f2f;">المعلقة: 0</span>
+                    </div>
+
+                    <div class="search-container">
+                        <h3 class="text-xs font-bold">🎓 الطلاب المعتمدين</h3>
+                        <input type="text" id="searchInput" class="search-box" onkeyup="searchStudents()" placeholder="🔍 ابحث...">
+                    </div>
+
+                    <div class="max-h-60 overflow-y-auto mt-2">
+                        <table id="studentsTable">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الإيميل</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
-
-                <div class="stats-bar">
-                    <span id="approvedCount">الطلاب المعتمدين: 0</span>
-                    <span id="pendingCountBadge" style="color: #d32f2f;">الطلبات المعلقة: 0</span>
-                </div>
-
-                <div class="search-container">
-                    <h3>🎓 قائمة الطلاب المعتمدين (المصرح لهم بالاختبار)</h3>
-                    <input type="text" id="searchInput" class="search-box" onkeyup="searchStudents()" placeholder="🔍 ابحث عن اسم الطالب أو إيميله...">
-                </div>
-
-                <table id="studentsTable">
-                    <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>البريد الإلكتروني</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
             </div>
+
         </div>
 
         <div id="class-view" class="hidden py-1">
@@ -1348,7 +1370,7 @@
 
     <!-- 3. التذييل السفلي الثابت كإطار (Footer) -->
     <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-30 transition-all duration-500">
-        <div class="container mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
+        <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
             <div>إعداد أ/ عبدالعزيز الفيفي</div>
             <div>الحقوق محفوظة 2026</div>
             <div>ثانوية الأمير عبدالمجيد</div>
