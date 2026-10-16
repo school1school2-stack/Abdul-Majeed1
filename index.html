@@ -134,6 +134,15 @@
         let editingActionIndex = null;
         let editingClassIndex = null;
 
+        const motivationalQuotes = [
+            "✨ \"التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم.\"",
+            "💡 \"النجاح ليس عدم تحقيق الأخطاء، بل هو عدم تكرار الأخطاء.\"",
+            "🌟 \"قمة المجد ليست في عدم السقوط أبداً، بل في القيام بعد كل سقوط.\"",
+            "📚 \"العلم نور والجهل ظلام.. والمواظبة هي طريق التميز والنجاح.\"",
+            "🚀 \"طريق الألف ميل يبدأ بفرصة وحصة دراسية واحدة، اجعل يومك مثمراً.\"",
+            "🏆 \"من فتح باب مدرسة، أغلق باب سجن.. تحية لكل طالب يطلب العلم بشغف.\""
+        ];
+
         const themes = [
             { name: "العاجي الفاخر", bg: "linear-gradient(135deg, #fffdfa 0%, #f7f3eb 100%)", headerBg: "bg-amber-50 text-amber-950 border-amber-200/80", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50" },
             { name: "اللؤلؤ النقي", bg: "linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)", headerBg: "bg-slate-100 text-slate-900 border-slate-200", btnPrimary: "bg-slate-800 hover:bg-slate-900 text-white" },
@@ -157,6 +166,13 @@
             const footer = document.getElementById('main-footer');
             if(footer) {
                 footer.className = `py-3 px-6 border-t shrink-0 z-30 transition-all duration-500 ${selectedTheme.headerBg}`;
+            }
+
+            // تحديث عبارة تحفيزية عشوائية
+            const quoteEl = document.getElementById('quote-text');
+            if (quoteEl) {
+                const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+                quoteEl.innerText = randomQuote;
             }
 
             window.currentTheme = selectedTheme;
@@ -251,7 +267,7 @@
                         id: doc.id,
                         name: name,
                         email: email,
-                        className: data.className || 'غير موزع',
+                        className: data.className || 'غير موزاد',
                         phone: data.phone || '966566688614',
                         actions: data.actions || [],
                         attendanceStats: data.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
@@ -552,17 +568,18 @@
                 `;
             });
 
-            // 2. إضافة بطاقة لوحة التحكم المدمجة كإحدى البطاقات الأنيقة في القائمة
+            // 2. إضافة بطاقة لوحة التحكم المدمجة بنغمة لونية فاتحة ومطابقة تماماً للفصول
+            const adminTheme = classSoftThemes[classList.length % classSoftThemes.length];
             classesContainer.innerHTML += `
-                <div onclick="openAdminControlPanel()" class="class-3d-card bg-gradient-to-br from-red-900 via-rose-950 to-stone-900 p-6 sm:p-8 rounded-3xl cursor-pointer transition flex items-center justify-between border-2 border-amber-400 shadow-xl hover:shadow-2xl">
+                <div onclick="openAdminControlPanel()" class="class-3d-card ${adminTheme.bg} p-6 sm:p-8 rounded-3xl cursor-pointer transition flex items-center justify-between border shadow-md hover:shadow-xl">
                     <div class="flex items-center gap-5 sm:gap-6">
-                        <span class="text-5xl sm:text-6xl p-4 sm:p-5 rounded-3xl bg-amber-400/20 shadow-sm border border-amber-400/50 flex items-center justify-center shrink-0">🔒</span>
+                        <span class="text-5xl sm:text-6xl p-4 sm:p-5 rounded-3xl bg-white/95 shadow-sm border border-amber-200/60 flex items-center justify-center shrink-0">🔒</span>
                         <div>
-                            <h3 class="class-title-font text-xl sm:text-2xl tracking-wide text-amber-300">لوحة التحكم المدمجة</h3>
-                            <p class="text-xs sm:text-sm mt-2 font-bold px-3 py-1 rounded-xl inline-block bg-white/10 text-amber-200 border border-amber-400/30">إدارة الطلاب والاعتمادات</p>
+                            <h3 class="class-title-font text-xl sm:text-2xl tracking-wide ${adminTheme.text}">لوحة التحكم المدمجة</h3>
+                            <p class="text-xs sm:text-sm mt-2 font-bold px-3 py-1 rounded-xl inline-block bg-[#800000]/10 text-[#800000] border border-[#800000]/20">إدارة الطلاب والاعتمادات</p>
                         </div>
                     </div>
-                    <span class="bg-amber-400 text-stone-950 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center font-black text-xl sm:text-2xl shadow-md shrink-0">⚙️</span>
+                    <span class="bg-white/95 backdrop-blur-xs w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center font-black text-xl sm:text-2xl text-[#800000] shadow-sm border border-amber-200 shrink-0">⚙️</span>
                 </div>
             `;
         }
@@ -725,7 +742,7 @@
         window.saveClassItem = async function() {
             const classNameInput = document.getElementById('new-class-name');
             const name = classNameInput.value.trim();
-            if(!name) return alert('الرجاء إدخال اسم الفصل');
+            if(!name) return alert('الرجاء إدخل اسم الفصل');
 
             if(editingClassIndex !== null) {
                 const oldName = classList[editingClassIndex];
@@ -1348,7 +1365,7 @@
     <main id="main-scroll-container" class="flex-1 overflow-y-auto p-4 sm:p-6 container mx-auto max-w-6xl w-full">
 
         <!-- 1. الواجهة الرئيسية: شبكة الفصول ولائحة التحكم معاً بشكل كامل ومتناسق -->
-        <div id="main-dashboard" class="py-2 space-y-4">
+        <div id="main-dashboard" class="py-2 space-y-6">
             <div class="flex items-center justify-between border-b pb-3">
                 <h2 class="text-2xl font-black text-slate-900 tracking-wider">🏫 القائمة الرئيسية</h2>
                 <span class="text-xs font-bold text-slate-500 bg-white px-3.5 py-1.5 rounded-full border shadow-2xs">اختر الفصل أو اللوحة للبدء</span>
@@ -1356,6 +1373,14 @@
             
             <!-- شبكة البطاقات الموحدة (عرض وتناسق كامل للشاشة) -->
             <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 sm:gap-6"></div>
+
+            <!-- شريط العبارات التحفيزية الأنيق في أسفل الصفحة (يملأ المكان الشاغر بأناقة دون تقطيع الشاشة) -->
+            <div class="bg-white/80 backdrop-blur-xs border-2 border-amber-200/80 p-5 rounded-3xl shadow-sm text-center my-4 transition hover:shadow-md">
+                <p id="quote-text" class="student-name-font text-lg text-amber-950 leading-relaxed">
+                    ✨ "التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم."
+                </p>
+                <span class="text-[11px] font-bold text-amber-800/60 block mt-1">حكمة اليوم للمعلم والطالب 🌿</span>
+            </div>
         </div>
 
         <!-- 2. واجهة لوحة التحكم المدمجة (تنفتح بشكل مستقل كصفحة كاملة مثل الفصول) -->
