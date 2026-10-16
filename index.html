@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,16 +15,14 @@
         
         html, body { 
             font-family: 'Tajawal', sans-serif; 
-            min-height: 100vh; 
+            height: 100%; 
             width: 100%;
             background: var(--bg); 
             margin: 0; 
             padding: 0; 
             font-size: 1rem; 
             transition: background 0.5s ease; 
-            display: flex; 
-            flex-direction: column; 
-            overflow-x: hidden;
+            overflow: hidden; /* لمنع شريط التمرير الخارجي كلياً */
         }
 
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
@@ -149,12 +147,12 @@
             
             const header = document.getElementById('main-header');
             if(header) {
-                header.className = `p-4 shadow-md border-b transition-all duration-500 shrink-0 ${selectedTheme.headerBg}`;
+                header.className = `p-4 shadow-md border-b shrink-0 z-30 ${selectedTheme.headerBg}`;
             }
 
             const footer = document.getElementById('main-footer');
             if(footer) {
-                footer.className = `py-3 px-6 border-t shrink-0 z-20 transition-all duration-500 ${selectedTheme.headerBg}`;
+                footer.className = `py-3 px-6 border-t shrink-0 z-30 ${selectedTheme.headerBg}`;
             }
 
             window.currentTheme = selectedTheme;
@@ -189,16 +187,18 @@
             let touchstartY = 0;
             const mainContainer = document.getElementById('main-scroll-container');
 
-            window.addEventListener('touchstart', e => {
-                touchstartY = e.touches[0].clientY;
-            }, { passive: true });
+            if (mainContainer) {
+                mainContainer.addEventListener('touchstart', e => {
+                    touchstartY = e.touches[0].clientY;
+                }, { passive: true });
 
-            window.addEventListener('touchend', e => {
-                let touchendY = e.changedTouches[0].clientY;
-                if (mainContainer && mainContainer.scrollTop === 0 && touchendY - touchstartY > 120) {
-                    location.reload();
-                }
-            }, { passive: true });
+                mainContainer.addEventListener('touchend', e => {
+                    let touchendY = e.changedTouches[0].clientY;
+                    if (mainContainer.scrollTop === 0 && touchendY - touchstartY > 120) {
+                        location.reload();
+                    }
+                }, { passive: true });
+            }
         }
 
         async function fetchClassesAndStudents() {
@@ -1178,7 +1178,6 @@
             const summary = calculateStudentSummaryData(student);
             const { att } = summary;
 
-            // إنشاء رابط مباشر لصفحة التقرير
             const currentUrl = window.location.href.split('?')[0];
             const studentReportUrl = `${currentUrl}?student=${encodeURIComponent(id)}`;
 
@@ -1236,9 +1235,10 @@ ${studentReportUrl}
         };
     </script>
 </head>
-<body class="text-slate-900 min-h-screen flex flex-col justify-between text-sm">
+<body class="text-slate-900 h-full flex flex-col justify-between text-sm overflow-hidden">
 
-    <header id="main-header" class="p-4 shadow-md border-b shrink-0 z-20">
+    <!-- 1. الترويسة العلوية الثابتة (Header) -->
+    <header id="main-header" class="p-4 shadow-md border-b shrink-0 z-30">
         <div class="container mx-auto max-w-5xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
                 <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
@@ -1251,7 +1251,8 @@ ${studentReportUrl}
         </div>
     </header>
 
-    <main id="main-scroll-container" class="container mx-auto p-4 max-w-5xl flex-grow my-2">
+    <!-- 2. منطقة المحتوى الوسطى القابلة للتمرير فقط (Main Scroll Container) -->
+    <main id="main-scroll-container" class="flex-1 overflow-y-auto p-4 container mx-auto max-w-5xl w-full">
 
         <div id="main-dashboard" class="py-1 space-y-4">
             <h2 class="text-xl font-black text-slate-900 text-center tracking-wider mb-3">الفصول الدراسية</h2>
@@ -1322,8 +1323,8 @@ ${studentReportUrl}
 
     </main>
 
-    <!-- التذييل السفلي الثابت المنسق -->
-    <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-20">
+    <!-- 3. التذييل السفلي الثابت كإطار (Footer) -->
+    <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-30">
         <div class="container mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
             <div>إعداد أ/ عبدالعزيز الفيفي</div>
             <div>الحقوق محفوظة 2026</div>
@@ -1331,6 +1332,7 @@ ${studentReportUrl}
         </div>
     </footer>
 
+    <!-- النوافذ المنبثقة (Modals) -->
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-700 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200">✕</button>
@@ -1442,7 +1444,6 @@ ${studentReportUrl}
         </div>
     </div>
 
-    <!-- نافذة التقرير المفصل الرئيسية -->
     <div id="student-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-3xl w-[95%] md:max-w-3xl p-6 md:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-700 w-9 h-9 rounded-full font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200">✕</button>
@@ -1450,7 +1451,6 @@ ${studentReportUrl}
         </div>
     </div>
 
-    <!-- نافذة معاينة الملخص المفصل والمنسق -->
     <div id="preview-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-3xl w-[95%] md:max-w-2xl p-6 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button onclick="closePreviewSummaryModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-700 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200">✕</button>
