@@ -132,7 +132,6 @@
         let allStudents = [];
         let customActions = [];
         let classList = [];
-        let iconSizeClass = 'text-5xl sm:text-6xl'; // الحجم الافتراضي للأيقونات
         let editingActionIndex = null;
         let editingClassIndex = null;
 
@@ -225,17 +224,11 @@
         async function fetchClassesAndStudents() {
             try {
                 const classDoc = await db.collection("system_settings").doc("classes_config").get();
-                if (classDoc.exists) {
-                    const data = classDoc.data();
-                    if (data.classList) classList = data.classList;
-                    if (data.iconSizeClass) {
-                        iconSizeClass = data.iconSizeClass;
-                        const slider = document.getElementById('class-icon-size-slider');
-                        if (slider) slider.value = iconSizeClass;
-                    }
+                if (classDoc.exists && classDoc.data().classList) {
+                    classList = classDoc.data().classList;
                 } else {
                     classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
-                    await db.collection("system_settings").doc("classes_config").set({ classList: classList, iconSizeClass: iconSizeClass });
+                    await db.collection("system_settings").doc("classes_config").set({ classList: classList });
                 }
             } catch (e) {
                 classList = ['الفصل الأول', 'الفصل الثاني', 'الفصل الثالث', 'الفصل الرابع'];
@@ -247,28 +240,11 @@
 
         async function saveClassesToCloud() {
             try {
-                await db.collection("system_settings").doc("classes_config").set({ 
-                    classList: classList, 
-                    iconSizeClass: iconSizeClass 
-                });
+                await db.collection("system_settings").doc("classes_config").set({ classList: classList });
             } catch (e) {
                 console.error("خطأ في حفظ الفصول بالسحاب", e);
             }
         }
-
-        window.updateClassIconSize = async function(sizeVal) {
-            // تحويل قيمة السلايدر إلى كلاسات Tailwind المناسبة للحجم
-            switch(sizeVal) {
-                case '1': iconSizeClass = 'text-3xl sm:text-4xl'; break;
-                case '2': iconSizeClass = 'text-4xl sm:text-5xl'; break;
-                case '3': iconSizeClass = 'text-5xl sm:text-6xl'; break;
-                case '4': iconSizeClass = 'text-6xl sm:text-7xl'; break;
-                case '5': iconSizeClass = 'text-7xl sm:text-8xl'; break;
-                default: iconSizeClass = 'text-5xl sm:text-6xl';
-            }
-            renderView();
-            await saveClassesToCloud();
-        };
 
         function fetchStudents() {
             const approvedTbody = document.querySelector("#studentsTable tbody");
@@ -580,7 +556,7 @@
                 classesContainer.innerHTML += `
                     <div onclick="openClass('${cls}')" class="class-3d-card ${theme.bg} p-6 sm:p-8 rounded-3xl cursor-pointer transition flex items-center justify-between border shadow-md hover:shadow-xl">
                         <div class="flex items-center gap-5 sm:gap-6">
-                            <span class="${iconSizeClass} p-4 sm:p-5 rounded-3xl bg-white/95 shadow-sm border border-amber-200/60 flex items-center justify-center shrink-0">🏫</span>
+                            <span class="text-5xl sm:text-6xl p-4 sm:p-5 rounded-3xl bg-white/95 shadow-sm border border-amber-200/60 flex items-center justify-center shrink-0">🏫</span>
                             <div>
                                 <h3 class="class-title-font text-xl sm:text-2xl tracking-wide ${theme.text}">${cls}</h3>
                                 <p class="text-xs sm:text-sm mt-2 font-bold px-3 py-1 rounded-xl inline-block bg-[#800000]/10 text-[#800000] border border-[#800000]/20">${count} طلاب مخصصين</p>
@@ -595,7 +571,7 @@
             classesContainer.innerHTML += `
                 <div onclick="openAdminControlPanel()" class="class-3d-card ${adminTheme.bg} p-6 sm:p-8 rounded-3xl cursor-pointer transition flex items-center justify-between border shadow-md hover:shadow-xl">
                     <div class="flex items-center gap-5 sm:gap-6">
-                        <span class="${iconSizeClass} p-4 sm:p-5 rounded-3xl bg-white/95 shadow-sm border border-amber-200/60 flex items-center justify-center shrink-0">🔒</span>
+                        <span class="text-5xl sm:text-6xl p-4 sm:p-5 rounded-3xl bg-white/95 shadow-sm border border-amber-200/60 flex items-center justify-center shrink-0">🔒</span>
                         <div>
                             <h3 class="class-title-font text-xl sm:text-2xl tracking-wide ${adminTheme.text}">لوحة التحكم المدمجة</h3>
                             <p class="text-xs sm:text-sm mt-2 font-bold px-3 py-1 rounded-xl inline-block bg-[#800000]/10 text-[#800000] border border-[#800000]/20">إدارة الطلاب والاعتمادات</p>
@@ -1370,7 +1346,7 @@
         <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
                 <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
-                <p class="text-xs opacity-90 mt-0.5 font-bold">المعلم: أ/ عبدالعزيز الفيفي ثانوية الأمير عبدالمجيد مع فيس تعبيري 👨‍🏫 | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
+                <p class="text-xs opacity-90 mt-0.5 font-bold">المعلم: أ/ عبدالعزيز الفيفي 👨‍🏫 | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="openSettingsModal('classes')" class="bg-black/5 hover:bg-black/10 text-slate-800 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer border border-black/10 transition">🏫 الفصول</button>
@@ -1382,15 +1358,17 @@
     <!-- 2. منطقة المحتوى الوسطى القابلة للتمرير (Main Scroll Container) -->
     <main id="main-scroll-container" class="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 container mx-auto max-w-6xl w-full">
 
-        <!-- 1. الواجهة الرئيسية -->
+        <!-- 1. الواجهة الرئيسية: شبكة الفصول ولائحة التحكم معاً بشكل كامل ومتناسق -->
         <div id="main-dashboard" class="py-2 space-y-6">
             <div class="flex items-center justify-between border-b pb-3">
                 <h2 class="text-2xl font-black text-slate-900 tracking-wider">🏫 القائمة الرئيسية</h2>
                 <span class="text-xs font-bold text-slate-500 bg-white px-3.5 py-1.5 rounded-full border shadow-2xs">اختر الفصل أو اللوحة للبدء</span>
             </div>
             
+            <!-- شبكة البطاقات الموحدة (عرض وتناسق كامل للشاشة مع منع التمرير الأفقي) -->
             <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 sm:gap-6 w-full max-w-full overflow-hidden"></div>
 
+            <!-- شريط العبارات التحفيزية الأنيق في أسفل الصفحة -->
             <div class="bg-white/80 backdrop-blur-xs border-2 border-amber-200/80 p-5 rounded-3xl shadow-sm text-center my-4 transition hover:shadow-md">
                 <p id="quote-text" class="student-name-font text-lg text-amber-950 leading-relaxed">
                     ✨ "التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم."
@@ -1478,7 +1456,7 @@
     <!-- 3. التذييل السفلي الثابت (Footer) -->
     <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-30 transition-all duration-500">
         <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
-            <div>إعداد أ/ عبدالعزيز الفيفي ثانوية الأمير عبدالمجيد مع فيس تعبيري 👨‍🏫</div>
+            <div>إعداد أ/ عبدالعزيز الفيفي 👨‍🏫</div>
             <div>الحقوق محفوظة 2026</div>
             <div>ثانوية الأمير عبدالمجيد</div>
         </div>
@@ -1493,27 +1471,13 @@
                 <button id="btn-tab-classes" onclick="switchSettingsTab('classes')" class="flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-800 text-white shadow">🏫 الفصول</button>
                 <button id="btn-tab-actions" onclick="switchSettingsTab('actions')" class="flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 text-slate-700">⭐ التقييمات</button>
             </div>
-            
-            <!-- تبويب إعدادات الفصول (يحتوي الآن على أداة التحكم بحجم أيقونات الفصول) -->
-            <div id="classes-tab-content" class="space-y-4">
-                <div class="bg-amber-50/70 p-3 rounded-2xl border border-amber-200">
-                    <label class="block text-xs font-bold text-amber-950 mb-2">🔍 التحكم بحجم أيقونات الفصول:</label>
-                    <input type="range" id="class-icon-size-slider" min="1" max="5" value="3" step="1" oninput="updateClassIconSize(this.value)" class="w-full accent-[#800000] cursor-pointer">
-                    <div class="flex justify-between text-[10px] text-amber-900 font-bold mt-1">
-                        <span>صغيرة</span>
-                        <span>متوسطة (افتراضي)</span>
-                        <span>كبيرة جداً</span>
-                    </div>
-                </div>
-
+            <div id="classes-tab-content" class="space-y-3">
                 <div class="flex gap-2">
                     <input type="text" id="new-class-name" placeholder="اسم الفصل..." class="flex-1 border p-2.5 rounded-xl text-xs font-bold">
                     <button id="save-class-btn" onclick="saveClassItem()" class="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-black">إضافة ➕</button>
                 </div>
-                <div id="settings-classes-list" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
+                <div id="settings-classes-list" class="space-y-1.5 max-h-44 overflow-y-auto"></div>
             </div>
-
-            <!-- تبويب التقييمات -->
             <div id="actions-tab-content" class="space-y-3 hidden">
                 <select id="actions-dropdown-select" onchange="onSelectActionToEdit()" class="w-full border p-2.5 rounded-xl text-xs font-bold"></select>
                 <div class="grid grid-cols-3 gap-2">
