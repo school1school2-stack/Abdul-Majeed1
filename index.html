@@ -870,7 +870,7 @@
                 
                 for(let stu of allStudents) {
                     if(stu.className === removedName) {
-                        stu.className = 'غير موزع';
+                        stu.className = 'غير موزاد';
                         await db.collection("allowed_students").doc(stu.id).update({ className: 'غير موزع' });
                     }
                 }
@@ -1318,8 +1318,12 @@
                     created_at: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // يأخذ رابط موقعك الحالي تلقائياً ويضيف له رقم التقرير فقط
-                const currentBaseURL = window.location.origin + window.location.pathname;
+                // استخراج الرابط النظيف للمستودع وتجنب أخطاء 404
+                let currentBaseURL = window.location.origin + window.location.pathname;
+                currentBaseURL = currentBaseURL.split('?')[0].split('#')[0];
+                if (!currentBaseURL.endsWith('/')) {
+                    currentBaseURL += '/';
+                }
                 
                 return `${currentBaseURL}?reportId=${reportDocRef.id}`;
             } catch (err) {
