@@ -1317,7 +1317,10 @@
                     title: titleText,
                     created_at: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                const currentBaseURL = window.location.origin + window.location.pathname;
+                
+                // ⚠️ مهم جداً: استبدل الرابط أدناه برابط مستودعك الأصلي على GitHub Pages لكي يعمل على الأجهزة الأخرى بدون خطأ 404
+                const currentBaseURL = "https://aztlg-494c3.web.app/"; 
+                
                 return `${currentBaseURL}?reportId=${reportDocRef.id}`;
             } catch (err) {
                 console.error("خطأ أثناء رفع التقرير إلى Firebase:", err);
@@ -2119,7 +2122,7 @@
                         <span class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shadow-2xs">⏰</span>
                         <span class="font-bold text-sm text-amber-900">متأخر</span>
                     </button>
-                    <button onclick="recordAction('عن بعد', 0, 'عن بعد')" class="flex items-center gap-3 bg-[#6f42c1] border border-purple-300 hover:bg-purple-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                    <button onclick="recordAction('عن بعد', 0, 'عن بعد')" class="flex items-center gap-3 bg-purple-50 border border-purple-300 hover:bg-purple-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
                         <span class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base shadow-2xs">💻</span>
                         <span class="font-bold text-sm text-purple-900">عن بعد</span>
                     </button>
