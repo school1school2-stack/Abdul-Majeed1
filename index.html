@@ -127,6 +127,27 @@
         }
         const db = firebase.firestore();
 
+        // 👈 فحص الرابط مباشرة وإظهار التقرير فوراً إن وجد لمنع وميض شاشة الدخول
+        (async function earlySharedCheck() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const reportId = urlParams.get('reportId');
+            if (reportId) {
+                try {
+                    const doc = await db.collection("shared_reports").doc(reportId).get();
+                    if (doc.exists) {
+                        const htmlContent = doc.data().html;
+                        document.open();
+                        document.write(htmlContent);
+                        document.close();
+                    } else {
+                        alert("عذراً، لم يتم العثور على التقرير أو تم حذفه.");
+                    }
+                } catch (e) {
+                    console.error("خطأ في جلب التقرير:", e);
+                }
+            }
+        })();
+
         let activeClass = null;
         let currentStudentId = null;
         let allStudents = [];
@@ -234,31 +255,9 @@
             { icon: '🎁', name: 'هدية', score: 5.0, color: '#e17055' }
         ];
 
-        async function checkSharedReportInURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const reportId = urlParams.get('reportId');
-            if (reportId) {
-                try {
-                    const doc = await db.collection("shared_reports").doc(reportId).get();
-                    if (doc.exists) {
-                        const htmlContent = doc.data().html;
-                        document.open();
-                        document.write(htmlContent);
-                        document.close();
-                        return true;
-                    } else {
-                        alert("عذراً، لم يتم العثور على التقرير أو تم حذفه.");
-                    }
-                } catch (e) {
-                    console.error("خطأ في جلب التقرير:", e);
-                }
-            }
-            return false;
-        }
-
         async function initSystem() {
-            const isShared = await checkSharedReportInURL();
-            if(isShared) return;
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('reportId')) return;
 
             if (sessionStorage.getItem('authenticated_user') === 'true') {
                 document.getElementById('login-modal').classList.add('hidden');
@@ -870,7 +869,7 @@
                 
                 for(let stu of allStudents) {
                     if(stu.className === removedName) {
-                        stu.className = 'غير موزاد';
+                        stu.className = 'غير موزع';
                         await db.collection("allowed_students").doc(stu.id).update({ className: 'غير موزع' });
                     }
                 }
@@ -1318,7 +1317,6 @@
                     created_at: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // استخراج الرابط النظيف للمستودع وتجنب أخطاء 404
                 let currentBaseURL = window.location.origin + window.location.pathname;
                 currentBaseURL = currentBaseURL.split('?')[0].split('#')[0];
                 if (!currentBaseURL.endsWith('/')) {
