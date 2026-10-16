@@ -127,7 +127,7 @@
         }
         const db = firebase.firestore();
 
-        // 👈 فحص فوري للتقرير لمنع وميض شاشة الدخول نهائياً
+        // فحص فوري للتقرير قبل تحميل واجهة النظام
         (async function earlySharedCheck() {
             const urlParams = new URLSearchParams(window.location.search);
             const reportId = urlParams.get('reportId');
@@ -139,7 +139,6 @@
                         document.open();
                         document.write(htmlContent);
                         document.close();
-                        return; // الخروج الفوري لمنع تنفيذ أي منطق آخر
                     } else {
                         alert("عذراً، لم يتم العثور على التقرير أو تم حذفه.");
                     }
@@ -258,13 +257,18 @@
 
         async function initSystem() {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('reportId')) return;
+            
+            // إذا كان الرابط يحتوي على reportId لا نظهر شاشة الدخول إطلاقاً
+            if (urlParams.get('reportId')) {
+                document.getElementById('login-modal').classList.add('hidden');
+                return;
+            }
 
+            // التحقق من حالة تسجيل الدخول للمستخدم
             if (sessionStorage.getItem('authenticated_user') === 'true') {
                 document.getElementById('login-modal').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
             } else {
-                // إظهار شاشة الدخول فقط إذا لم يكن رابط تقرير
                 document.getElementById('login-modal').classList.remove('hidden');
                 document.getElementById('app-container').classList.add('hidden');
             }
@@ -871,7 +875,7 @@
                 
                 for(let stu of allStudents) {
                     if(stu.className === removedName) {
-                        stu.className = 'غير موزاد';
+                        stu.className = 'غير موزع';
                         await db.collection("allowed_students").doc(stu.id).update({ className: 'غير موزع' });
                     }
                 }
@@ -1830,7 +1834,7 @@
 </head>
 <body class="text-slate-900 h-full flex flex-col justify-between text-sm overflow-x-hidden">
 
-    <!-- 0. شاشة تسجيل الدخول بالرقم السري (مخفية افتراضياً لمنع الوميض) -->
+    <!-- 0. شاشة تسجيل الدخول بالرقم السري -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#fdfaf1] hidden">
         <div class="max-w-md w-full bg-white border-2 border-amber-200/80 p-8 rounded-3xl shadow-2xl text-center space-y-6">
             <div class="w-20 h-20 bg-[#800000] text-[#d4af37] rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-md border border-amber-200/60">
