@@ -154,7 +154,7 @@
 
             const footer = document.getElementById('main-footer');
             if(footer) {
-                footer.className = `py-3 text-center text-xs font-bold border-t shrink-0 z-20 transition-all duration-500 ${selectedTheme.headerBg}`;
+                footer.className = `py-3 px-6 border-t shrink-0 z-20 transition-all duration-500 ${selectedTheme.headerBg}`;
             }
 
             window.currentTheme = selectedTheme;
@@ -350,7 +350,7 @@
         }
 
         async function copyText(text) {
-            try { await navigator.clipboard.writeText(text); alert("تم النسخ بنجاح!"); } 
+            try { await navigator.clipboard.writeText(text); alert("تم نسخ النص/الرابط بنجاح!"); } 
             catch (err) { alert("فشل النسخ تلقائياً."); }
         }
 
@@ -956,7 +956,6 @@
             document.getElementById('action-modal').classList.remove('flex');
         };
 
-        // دالة المساعدة لتحليل الإحصائيات المفصلة للتقرير والملخص
         function calculateStudentSummaryData(student) {
             const att = student.attendanceStats || { absents: 0, lates: 0, excuses: 0 };
             const actions = student.actions || [];
@@ -1096,7 +1095,7 @@
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
                     <button onclick="openPreviewSummaryModal('${student.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-xs cursor-pointer shadow-md text-center flex items-center justify-center gap-1">👁️ معاينة الملخص</button>
-                    <button onclick="shareStudentSummaryText('${student.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-xs cursor-pointer shadow-md text-center flex items-center justify-center gap-1">📲 مشاركة الملخص</button>
+                    <button onclick="shareStudentReportLink('${student.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold text-xs cursor-pointer shadow-md text-center flex items-center justify-center gap-1">🔗 مشاركة رابط/تقرير</button>
                     <button onclick="window.print()" class="${btnPrimaryClass} text-white py-3 rounded-xl font-bold text-xs cursor-pointer shadow-md text-center flex items-center justify-center gap-1">🖨️ طباعة</button>
                     <button onclick="closeModal()" class="bg-slate-200 text-slate-800 py-3 rounded-xl font-bold text-xs hover:bg-slate-300 cursor-pointer shadow-md text-center">إغلاق</button>
                 </div>
@@ -1158,7 +1157,7 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button onclick="shareStudentSummaryText('${student.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl text-xs font-bold shadow-md cursor-pointer text-center">📲 إرسال ومشاركة التقرير</button>
+                    <button onclick="shareStudentReportLink('${student.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-2xl text-xs font-bold shadow-md cursor-pointer text-center">🔗 مشاركة الرابط والتقرير</button>
                     <button onclick="closePreviewSummaryModal()" class="bg-slate-200 text-slate-800 px-6 py-3 rounded-2xl text-xs font-bold hover:bg-slate-300 cursor-pointer shadow-md">إغلاق</button>
                 </div>
             `;
@@ -1172,12 +1171,16 @@
             document.getElementById('preview-modal').classList.remove('flex');
         };
 
-        window.shareStudentSummaryText = async function(id) {
+        window.shareStudentReportLink = async function(id) {
             const student = allStudents.find(s => s.id === id);
             if (!student) return;
 
             const summary = calculateStudentSummaryData(student);
             const { att } = summary;
+
+            // إنشاء رابط مباشر لصفحة التقرير
+            const currentUrl = window.location.href.split('?')[0];
+            const studentReportUrl = `${currentUrl}?student=${encodeURIComponent(id)}`;
 
             let negativeDetailsText = summary.negativeList.length === 0 
                 ? 'لا توجد ملاحظات سلبية (سلوك ممتاز) ✨' 
@@ -1203,9 +1206,8 @@
 ⚠️ *السلوكيات والملاحظات:*
 ${negativeDetailsText}
 
-📘 *الواجبات والملفات:*
-- الواجبات المنزلية: ${summary.homeworkList.length > 0 ? summary.homeworkList.map(h => h.title).join('، ') : 'مكتملة ومتابعة'}
-- الملف المدرسي: ${summary.portfolioList.length > 0 ? summary.portfolioList.map(p => p.title).join('، ') : 'منجز'}
+🔗 *رابط التقرير المباشر:*
+${studentReportUrl}
 ----------------------------------
 تحيات إدارة المتابعة والتعليم.`;
 
@@ -1213,7 +1215,8 @@ ${negativeDetailsText}
                 try {
                     await navigator.share({
                         title: `تقرير الطالب: ${student.name}`,
-                        text: reportText
+                        text: reportText,
+                        url: studentReportUrl
                     });
                 } catch (err) {
                     copyText(reportText);
@@ -1319,8 +1322,13 @@ ${negativeDetailsText}
 
     </main>
 
-    <footer id="main-footer" class="py-3 text-center text-xs font-bold border-t shrink-0 z-20">
-        <p>إعداد أ/ عبدالعزيز الفيفي | الحقوق محفوظة 2026 | ثانوية الأمير عبدالمجيد</p>
+    <!-- التذييل السفلي الثابت المنسق -->
+    <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-20">
+        <div class="container mx-auto max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
+            <div>إعداد أ/ عبدالعزيز الفيفي</div>
+            <div>الحقوق محفوظة 2026</div>
+            <div>ثانوية الأمير عبدالمجيد</div>
+        </div>
     </footer>
 
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
@@ -1434,7 +1442,7 @@ ${negativeDetailsText}
         </div>
     </div>
 
-    <!-- نافذة التقرير المفصل الرئيسية (تم تكبيرها بشكل مريح جداً) -->
+    <!-- نافذة التقرير المفصل الرئيسية -->
     <div id="student-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-3xl w-[95%] md:max-w-3xl p-6 md:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-700 w-9 h-9 rounded-full font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200">✕</button>
