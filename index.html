@@ -134,6 +134,15 @@
         let editingActionIndex = null;
         let editingClassIndex = null;
 
+        const motivationalQuotes = [
+            "✨ \"التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم.\"",
+            "💡 \"النجاح ليس عدم تحقيق الأخطاء، بل هو عدم تكرار الأخطاء.\"",
+            "🌟 \"قمة المجد ليست في عدم السقوط أبداً، بل في القيام بعد كل سقوط.\"",
+            "📚 \"العلم نور والجهل ظلام.. والمواظبة هي طريق التميز والنجاح.\"",
+            "🚀 \"طريق الألف ميل يبدأ بفرصة وحصة دراسية واحدة، اجعل يومك مثمراً.\"",
+            "🏆 \"من فتح باب مدرسة، أغلق باب سجن.. تحية لكل طالب يطلب العلم بشغف.\""
+        ];
+
         const themes = [
             { name: "العاجي الفاخر", bg: "linear-gradient(135deg, #fffdfa 0%, #f7f3eb 100%)", headerBg: "bg-amber-50 text-amber-950 border-amber-200/80", btnPrimary: "bg-amber-900 hover:bg-amber-950 text-amber-50" },
             { name: "اللؤلؤ النقي", bg: "linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)", headerBg: "bg-slate-100 text-slate-900 border-slate-200", btnPrimary: "bg-slate-800 hover:bg-slate-900 text-white" },
@@ -157,6 +166,12 @@
             const footer = document.getElementById('main-footer');
             if(footer) {
                 footer.className = `py-3 px-6 border-t shrink-0 z-30 transition-all duration-500 ${selectedTheme.headerBg}`;
+            }
+
+            const quoteEl = document.getElementById('quote-text');
+            if (quoteEl) {
+                const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+                quoteEl.innerText = randomQuote;
             }
 
             window.currentTheme = selectedTheme;
@@ -552,17 +567,18 @@
                 `;
             });
 
-            // 2. إضافة بطاقة لوحة التحكم المدمجة بلون سماوي فاتح مع إطار مميز وأنيق
+            // 2. إضافة بطاقة لوحة التحكم المدمجة بنمط ألوان وتصميم الفصول تماماً
+            const adminTheme = classSoftThemes[classList.length % classSoftThemes.length];
             classesContainer.innerHTML += `
-                <div onclick="openAdminControlPanel()" class="class-3d-card bg-gradient-to-br from-sky-50 via-cyan-50 to-blue-50 p-6 sm:p-8 rounded-3xl cursor-pointer transition flex items-center justify-between border-2 border-sky-300 shadow-md hover:shadow-xl">
+                <div onclick="openAdminControlPanel()" class="class-3d-card ${adminTheme.bg} p-6 sm:p-8 rounded-3xl cursor-pointer transition flex items-center justify-between border shadow-md hover:shadow-xl">
                     <div class="flex items-center gap-5 sm:gap-6">
-                        <span class="text-5xl sm:text-6xl p-4 sm:p-5 rounded-3xl bg-white/95 shadow-sm border border-sky-200 flex items-center justify-center shrink-0">🔒</span>
+                        <span class="text-5xl sm:text-6xl p-4 sm:p-5 rounded-3xl bg-white/95 shadow-sm border border-amber-200/60 flex items-center justify-center shrink-0">🔒</span>
                         <div>
-                            <h3 class="class-title-font text-xl sm:text-2xl tracking-wide text-sky-950">لوحة التحكم المدمجة</h3>
-                            <p class="text-xs sm:text-sm mt-2 font-bold px-3 py-1 rounded-xl inline-block bg-sky-600/10 text-sky-900 border border-sky-300">إدارة الطلاب والاعتمادات</p>
+                            <h3 class="class-title-font text-xl sm:text-2xl tracking-wide ${adminTheme.text}">لوحة التحكم المدمجة</h3>
+                            <p class="text-xs sm:text-sm mt-2 font-bold px-3 py-1 rounded-xl inline-block bg-[#800000]/10 text-[#800000] border border-[#800000]/20">إدارة الطلاب والاعتمادات</p>
                         </div>
                     </div>
-                    <span class="bg-white/95 backdrop-blur-xs w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center font-black text-xl sm:text-2xl text-sky-700 shadow-sm border border-sky-300 shrink-0">⚙️</span>
+                    <span class="bg-white/95 backdrop-blur-xs w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center font-black text-xl sm:text-2xl text-[#800000] shadow-sm border border-amber-200 shrink-0">⚙️</span>
                 </div>
             `;
         }
@@ -1356,6 +1372,14 @@
             
             <!-- شبكة البطاقات الموحدة والمتناسقة على العرضين الطولي والأفقي -->
             <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 sm:gap-6"></div>
+
+            <!-- شريط العبارات التشجيعية (باللون السماوي الفاتح والأنيق وقريب من الأيقونات دون تأثير عمودي مزعج) -->
+            <div class="bg-gradient-to-r from-sky-50 via-cyan-50 to-blue-50 border-2 border-sky-300/80 p-4 rounded-2xl shadow-sm text-center my-3 transition hover:shadow-md">
+                <p id="quote-text" class="student-name-font text-base text-sky-950 leading-relaxed">
+                    ✨ "التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم."
+                </p>
+                <span class="text-[10px] font-bold text-sky-800/70 block mt-0.5">حكمة اليوم للمعلم والطالب 🌿</span>
+            </div>
         </div>
 
         <!-- 2. واجهة لوحة التحكم المدمجة (تنفتح بشكل مستقل كصفحة كاملة مثل الفصول) -->
@@ -1437,7 +1461,7 @@
     <!-- 3. التذييل السفلي الثابت كإطار (Footer) -->
     <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-30 transition-all duration-500">
         <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
-            <div>إعداد أ/ عبدالعزيز الفيفي</div>
+            <div>إعداد أ/ عبدالعزيز الفيفي (ثانوية الأمير عبدالمجيد ثانوية الأمير عبدالمجيد مع فيس تعبيري 😊)</div>
             <div>الحقوق محفوظة 2026</div>
             <div>ثانوية الأمير عبدالمجيد</div>
         </div>
