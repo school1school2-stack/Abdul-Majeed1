@@ -168,7 +168,6 @@
                 footer.className = `py-3 px-6 border-t shrink-0 z-30 transition-all duration-500 ${selectedTheme.headerBg}`;
             }
 
-            // تحديث عبارة تحفيزية عشوائية
             const quoteEl = document.getElementById('quote-text');
             if (quoteEl) {
                 const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
@@ -267,7 +266,7 @@
                         id: doc.id,
                         name: name,
                         email: email,
-                        className: data.className || 'غير موزاد',
+                        className: data.className || 'غير موزع',
                         phone: data.phone || '966566688614',
                         actions: data.actions || [],
                         attendanceStats: data.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
@@ -568,7 +567,7 @@
                 `;
             });
 
-            // 2. إضافة بطاقة لوحة التحكم المدمجة بنغمة لونية فاتحة ومطابقة تماماً للفصول
+            // 2. إضافة بطاقة لوحة التحكم المدمجة
             const adminTheme = classSoftThemes[classList.length % classSoftThemes.length];
             classesContainer.innerHTML += `
                 <div onclick="openAdminControlPanel()" class="class-3d-card ${adminTheme.bg} p-6 sm:p-8 rounded-3xl cursor-pointer transition flex items-center justify-between border shadow-md hover:shadow-xl">
@@ -742,7 +741,7 @@
         window.saveClassItem = async function() {
             const classNameInput = document.getElementById('new-class-name');
             const name = classNameInput.value.trim();
-            if(!name) return alert('الرجاء إدخل اسم الفصل');
+            if(!name) return alert('الرجاء إدخال اسم الفصل');
 
             if(editingClassIndex !== null) {
                 const oldName = classList[editingClassIndex];
@@ -1251,7 +1250,7 @@
 
                         <div class="space-y-4 text-xs font-bold text-slate-800">
                             
-                            <!-- 1. سجل الحضور والغياب (مع إظهار التواريخ والأوقات) -->
+                            <!-- 1. سجل الحضور والغياب -->
                             <div class="bg-amber-50/60 p-4 rounded-2xl border border-amber-200 shadow-xs">
                                 <span class="text-amber-950 font-black text-sm block mb-1">📌 سجل الحضور والغياب التفصيلي:</span>
                                 <div class="flex justify-between text-slate-700 my-2 px-2 border-b border-amber-200 pb-2">
@@ -1267,7 +1266,7 @@
                                 }
                             </div>
 
-                            <!-- 2. التفاعل والمشاركات الإيجابية (بدون تواريخ - أرقام وإحصاء فقط) -->
+                            <!-- 2. التفاعل والمشاركات الإيجابية -->
                             <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 shadow-xs">
                                 <span class="text-emerald-950 font-black text-sm block mb-1">💡 التفاعل والمشاركات الإيجابية:</span>
                                 <div class="grid grid-cols-2 gap-2 text-center mt-2">
@@ -1282,7 +1281,7 @@
                                 </div>
                             </div>
 
-                            <!-- 3. الملاحظات والسلوكيات (مع إظهار التواريخ والأوقات) -->
+                            <!-- 3. الملاحظات والسلوكيات -->
                             <div class="bg-rose-50/60 p-4 rounded-2xl border border-rose-200 shadow-xs">
                                 <span class="text-rose-950 font-black text-sm block mb-1">⚠️ الملاحظات والسلوكيات:</span>
                                 ${summary.negativeList.length === 0 ? 
@@ -1293,7 +1292,7 @@
                                 }
                             </div>
 
-                            <!-- 4. الواجبات والملفات (مع إظهار التواريخ والأوقات) -->
+                            <!-- 4. الواجبات والملفات -->
                             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-xs">
                                 <span class="text-slate-900 font-black text-sm block mb-1">📘 الواجبات والملفات:</span>
                                 <div class="space-y-2 text-slate-700 mt-2">
@@ -1365,17 +1364,17 @@
     <main id="main-scroll-container" class="flex-1 overflow-y-auto p-4 sm:p-6 container mx-auto max-w-6xl w-full">
 
         <!-- 1. الواجهة الرئيسية: شبكة الفصول ولائحة التحكم معاً بشكل كامل ومتناسق -->
-        <div id="main-dashboard" class="py-2 space-y-6">
-            <div class="flex items-center justify-between border-b pb-3">
+        <div id="main-dashboard" class="py-2">
+            <div class="flex items-center justify-between border-b pb-3 mb-6">
                 <h2 class="text-2xl font-black text-slate-900 tracking-wider">🏫 القائمة الرئيسية</h2>
                 <span class="text-xs font-bold text-slate-500 bg-white px-3.5 py-1.5 rounded-full border shadow-2xs">اختر الفصل أو اللوحة للبدء</span>
             </div>
             
-            <!-- شبكة البطاقات الموحدة (عرض وتناسق كامل للشاشة) -->
+            <!-- شبكة البطاقات الموحدة -->
             <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 sm:gap-6"></div>
 
-            <!-- شريط العبارات التحفيزية الأنيق في أسفل الصفحة (يملأ المكان الشاغر بأناقة دون تقطيع الشاشة) -->
-            <div class="bg-white/80 backdrop-blur-xs border-2 border-amber-200/80 p-5 rounded-3xl shadow-sm text-center my-4 transition hover:shadow-md">
+            <!-- شريط العبارات التحفيزية المتوسط والمتناسق بمسافة واسعة وأنيقة مع الأيقونات أعلاه -->
+            <div class="mt-10 sm:mt-12 max-w-2xl mx-auto bg-white/80 backdrop-blur-xs border-2 border-amber-200/80 p-5 rounded-3xl shadow-sm text-center transition hover:shadow-md">
                 <p id="quote-text" class="student-name-font text-lg text-amber-950 leading-relaxed">
                     ✨ "التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم."
                 </p>
@@ -1383,7 +1382,7 @@
             </div>
         </div>
 
-        <!-- 2. واجهة لوحة التحكم المدمجة (تنفتح بشكل مستقل كصفحة كاملة مثل الفصول) -->
+        <!-- 2. واجهة لوحة التحكم المدمجة -->
         <div id="admin-control-view" class="hidden py-2 space-y-4">
             <div class="flex items-center justify-between mb-2 bg-white p-3.5 rounded-2xl shadow-sm border">
                 <button onclick="backToHome()" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">⬅ الرئيسية</button>
