@@ -635,7 +635,7 @@
                         
                         <div class="flex items-center gap-4 cursor-pointer relative" onclick="openModal('${student.id}')" title="اضغط لعرض التقرير المفصل">
                             ${totalActionsCount > 0 ? `<div class="absolute -top-3 -right-2 bg-emerald-500 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-md border-2 border-white">${totalActionsCount}+</div>` : ''}
-                            <div class="w-16 h-16 rounded-2xl bg-[#fdf8f0] border-2 border-[#800000]/20 text-[#800000] flex items-center justify-center text-3xl font-black shadow-xs shrink-0">👤</div>
+                            <div class="w-16 h-16 text-[#800000] flex items-center justify-center text-4xl font-black shrink-0">👤</div>
                             <div class="overflow-hidden flex-grow">
                                 <div class="bg-[#fdf8f0] border-2 border-[#800000]/20 px-4 py-2 rounded-2xl shadow-xs flex items-center justify-between gap-3">
                                     <h3 class="student-name-font text-slate-900 tracking-wide truncate hover:text-[#800000] transition">${student.name}</h3>
@@ -871,7 +871,7 @@
             const student = allStudents.find(s => s.id === id);
             if(!student) return;
             if(confirm(`هل أنت متأكد من إزالة الطالب (${student.name}) من هذا الفصل؟`)) {
-                student.className = 'غير موزع';
+                student.className = 'غير موزاد';
                 renderClassStudents();
                 renderView();
                 await db.collection("allowed_students").doc(id).update({ className: 'غير موزع' });
