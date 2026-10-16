@@ -324,7 +324,7 @@
                 const pendingBadge = document.getElementById("pendingCountBadge");
                 if(pendingBadge) pendingBadge.innerText = `الطلبات المعلقة: ${pendingCount}`;
                 if(pendingSection) pendingSection.style.display = pendingCount > 0 ? "block" : "none";
-                renderView(); // لتحديث بادج التنبيهات على بطاقة اللوحة الرئيسية
+                renderView();
 
                 snapshot.forEach((doc) => {
                     const data = doc.data();
@@ -578,7 +578,6 @@
                 `;
             });
 
-            // بطاقة لوحة التحكم المدمجة كأيقونة/بطانة متناسقة مع الفصول
             const adminTheme = classSoftThemes[classList.length % classSoftThemes.length];
             const approvedTotalCount = allStudents.length;
             classesContainer.innerHTML += `
@@ -1548,15 +1547,15 @@
             window.open(URL.createObjectURL(blob), '_blank');
         }
 
+        // --- جدول الفصل الشامل (مع استبدال عمود الاستئذان بعمود التأخر) ---
         function openTableClassReportPreview(className) {
             const students = allStudents.filter(s => s.className === className);
-            let totalAbsentsClass = 0, totalLatesClass = 0, totalExcusesClass = 0;
+            let totalAbsentsClass = 0, totalLatesClass = 0;
 
             let studentsRowsHtml = students.map((st, idx) => {
                 const sum = calculateStudentSummaryData(st);
                 totalAbsentsClass += sum.att.absents || 0;
                 totalLatesClass += sum.att.lates || 0;
-                totalExcusesClass += sum.att.excuses || 0;
 
                 let homeworkText = sum.homeworkList.length > 0 ? sum.homeworkList.map(h => h.title).join('، ') : 'منتظم';
                 let portfolioText = sum.portfolioList.length > 0 ? sum.portfolioList.map(p => p.title).join('، ') : 'مكتمل';
@@ -1568,7 +1567,6 @@
                         <td class="p-2 font-bold text-slate-900">${st.name}</td>
                         <td class="p-2 text-center text-rose-600 font-bold">${sum.att.absents || 0}</td>
                         <td class="p-2 text-center text-amber-600 font-bold">${sum.att.lates || 0}</td>
-                        <td class="p-2 text-center text-sky-600 font-bold">${sum.att.excuses || 0}</td>
                         <td class="p-2 text-center font-black ${sum.totalScore >= 0 ? 'text-emerald-600' : 'text-rose-600'}">${sum.totalScore > 0 ? '+' + sum.totalScore : sum.totalScore}</td>
                         <td class="p-2 text-xs text-emerald-700 font-semibold">+${sum.totalPositiveScore} (${sum.positiveCountTotal} مشاركة)</td>
                         <td class="p-2 text-xs text-rose-700 font-semibold">${negativeText}</td>
@@ -1586,18 +1584,14 @@
                         <p class="text-[11px] text-slate-500 font-semibold mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد 👨‍🏫</p>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-2 text-center mb-4 text-xs font-bold">
-                        <div class="bg-rose-50 p-2.5 rounded-xl border border-rose-200">
-                            <span class="text-rose-800 block">إجمالي الغياب</span>
-                            <span class="text-lg font-black text-rose-600">${totalAbsentsClass}</span>
+                    <div class="grid grid-cols-2 gap-3 text-center mb-4 text-xs font-bold">
+                        <div class="bg-rose-50 p-3 rounded-xl border border-rose-200">
+                            <span class="text-rose-800 block">إجمالي الغياب بالفصل</span>
+                            <span class="text-xl font-black text-rose-600">${totalAbsentsClass}</span>
                         </div>
-                        <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200">
-                            <span class="text-amber-800 block">إجمالي التأخر</span>
-                            <span class="text-lg font-black text-amber-600">${totalLatesClass}</span>
-                        </div>
-                        <div class="bg-sky-50 p-2.5 rounded-xl border border-sky-200">
-                            <span class="text-sky-800 block">إجمالي الاستئذان</span>
-                            <span class="text-lg font-black text-sky-600">${totalExcusesClass}</span>
+                        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200">
+                            <span class="text-amber-800 block">إجمالي التأخر بالفصل</span>
+                            <span class="text-xl font-black text-amber-600">${totalLatesClass}</span>
                         </div>
                     </div>
 
@@ -1609,14 +1603,13 @@
                                     <th class="p-2.5">اسم الطالب</th>
                                     <th class="p-2.5 text-center">غياب</th>
                                     <th class="p-2.5 text-center">تأخر</th>
-                                    <th class="p-2.5 text-center">استئذان</th>
                                     <th class="p-2.5 text-center">النقاط</th>
                                     <th class="p-2.5">المشاركات الإيجابية</th>
                                     <th class="p-2.5">الملاحظات السلبية</th>
                                     <th class="p-2.5">الواجبات والملفات</th>
                                 </tr>
                             </thead>
-                            <tbody>${students.length === 0 ? '<tr><td colspan="9" class="text-center p-4 text-slate-400">لا توجد طلاب مسجلين في هذا الفصل</td></tr>' : studentsRowsHtml}</tbody>
+                            <tbody>${students.length === 0 ? '<tr><td colspan="8" class="text-center p-4 text-slate-400">لا توجد طلاب مسجلين في هذا الفصل</td></tr>' : studentsRowsHtml}</tbody>
                         </table>
                     </div>
                 </div>
@@ -1633,13 +1626,12 @@
 
         function shareTableClassReportLink(className) {
             const students = allStudents.filter(s => s.className === className);
-            let totalAbsentsClass = 0, totalLatesClass = 0, totalExcusesClass = 0;
+            let totalAbsentsClass = 0, totalLatesClass = 0;
 
             let studentsRowsHtml = students.map((st, idx) => {
                 const sum = calculateStudentSummaryData(st);
                 totalAbsentsClass += sum.att.absents || 0;
                 totalLatesClass += sum.att.lates || 0;
-                totalExcusesClass += sum.att.excuses || 0;
 
                 let homeworkText = sum.homeworkList.length > 0 ? sum.homeworkList.map(h => h.title).join('، ') : 'منتظم';
                 let portfolioText = sum.portfolioList.length > 0 ? sum.portfolioList.map(p => p.title).join('، ') : 'مكتمل';
@@ -1651,7 +1643,6 @@
                         <td style="padding: 10px; font-weight: bold; color: #1e293b;">${st.name}</td>
                         <td style="padding: 10px; text-align: center; color: #dc2626; font-weight: bold;">${sum.att.absents || 0}</td>
                         <td style="padding: 10px; text-align: center; color: #d97706; font-weight: bold;">${sum.att.lates || 0}</td>
-                        <td style="padding: 10px; text-align: center; color: #0284c7; font-weight: bold;">${sum.att.excuses || 0}</td>
                         <td style="padding: 10px; text-align: center; font-weight: 900; color: ${sum.totalScore >= 0 ? '#059669' : '#dc2626'};">${sum.totalScore > 0 ? '+' + sum.totalScore : sum.totalScore}</td>
                         <td style="padding: 10px; font-size: 11px; color: #047857; font-weight: bold;">+${sum.totalPositiveScore} (${sum.positiveCountTotal} مشاركة)</td>
                         <td style="padding: 10px; font-size: 11px; color: #b91c1c; font-weight: bold;">${negativeText}</td>
@@ -1682,19 +1673,18 @@
                             <p class="text-sm font-bold text-amber-800 mt-1">إجمالي الطلاب المسجلين: ${students.length} طالب</p>
                             <p class="text-xs text-slate-500 mt-1 font-semibold">إعداد أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد 👨‍🏫</p>
                         </div>
-                        <div class="grid grid-cols-3 gap-3 text-center mb-6 text-xs font-bold">
+                        <div class="grid grid-cols-2 gap-3 text-center mb-6 text-xs font-bold">
                             <div class="bg-rose-50 p-3 rounded-2xl border border-rose-200 shadow-xs"><span class="text-rose-800 block text-sm">إجمالي الغياب بالفصل</span><span class="text-xl font-black text-rose-600">${totalAbsentsClass}</span></div>
                             <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200 shadow-xs"><span class="text-amber-800 block text-sm">إجمالي التأخر بالفصل</span><span class="text-xl font-black text-amber-600">${totalLatesClass}</span></div>
-                            <div class="bg-sky-50 p-3 rounded-2xl border border-sky-200 shadow-xs"><span class="text-sky-800 block text-sm">إجمالي الاستئذان بالفصل</span><span class="text-xl font-black text-sky-600">${totalExcusesClass}</span></div>
                         </div>
                         <div class="overflow-x-auto border rounded-2xl shadow-xs">
                             <table class="w-full text-xs text-right border-collapse whitespace-nowrap">
                                 <thead style="background-color: #800000; color: #d4af37;">
                                     <tr>
-                                        <th style="padding: 12px;">#</th><th style="padding: 12px;">اسم الطالب</th><th style="padding: 12px; text-align: center;">غياب</th><th style="padding: 12px; text-align: center;">تأخر</th><th style="padding: 12px; text-align: center;">استئذان</th><th style="padding: 12px; text-align: center;">النقاط</th><th style="padding: 12px;">المشاركات الإيجابية</th><th style="padding: 12px;">الملاحظات السلبية</th><th style="padding: 12px;">الواجبات والملفات</th>
+                                        <th style="padding: 12px;">#</th><th style="padding: 12px;">اسم الطالب</th><th style="padding: 12px; text-align: center;">غياب</th><th style="padding: 12px; text-align: center;">تأخر</th><th style="padding: 12px; text-align: center;">النقاط</th><th style="padding: 12px;">المشاركات الإيجابية</th><th style="padding: 12px;">الملاحظات السلبية</th><th style="padding: 12px;">الواجبات والملفات</th>
                                     </tr>
                                 </thead>
-                                <tbody>${students.length === 0 ? '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #94a3b8;">لا توجد طلاب مسجلين في هذا الفصل</td></tr>' : studentsRowsHtml}</tbody>
+                                <tbody>${students.length === 0 ? '<tr><td colspan="8" style="text-align: center; padding: 20px; color: #94a3b8;">لا توجد طلاب مسجلين في هذا الفصل</td></tr>' : studentsRowsHtml}</tbody>
                             </table>
                         </div>
                         <div class="mt-8 text-center border-t pt-4 text-xs font-bold text-slate-500 flex justify-between">
