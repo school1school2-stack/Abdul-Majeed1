@@ -136,6 +136,8 @@
         let editingClassIndex = null;
         let pendingCountGlobal = 0;
 
+        const SECRET_PASSCODE = "Aztlg1512";
+
         const motivationalQuotes = [
             "✨ \"التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم.\"",
             "💡 \"النجاح ليس عدم تحقيق الأخطاء، بل هو عدم تكرار الأخطاء.\"",
@@ -178,6 +180,19 @@
             { name: "اللافندر الرقيق", bg: "linear-gradient(135deg, #fcfaff 0%, #f0ebf8 100%)", headerBg: "bg-purple-50 text-purple-950 border-purple-200", btnPrimary: "bg-purple-900 hover:bg-purple-950 text-white" },
             { name: "المرجان المشرق", bg: "linear-gradient(135deg, #fffaf9 0%, #fcefeD 100%)", headerBg: "bg-rose-50 text-rose-950 border-rose-200", btnPrimary: "bg-rose-800 hover:bg-rose-900 text-white" }
         ];
+
+        function checkPasscode() {
+            const inputVal = document.getElementById('passcode-input').value.trim();
+            const errorEl = document.getElementById('login-error');
+            
+            if(inputVal === SECRET_PASSCODE) {
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                sessionStorage.setItem('authenticated_user', 'true');
+            } else {
+                errorEl.classList.remove('hidden');
+            }
+        }
 
         function applyRandomTheme() {
             const randomIndex = Math.floor(Math.random() * themes.length);
@@ -244,6 +259,14 @@
         async function initSystem() {
             const isShared = await checkSharedReportInURL();
             if(isShared) return;
+
+            if (sessionStorage.getItem('authenticated_user') === 'true') {
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+            } else {
+                document.getElementById('login-modal').classList.remove('hidden');
+                document.getElementById('app-container').classList.add('hidden');
+            }
 
             applyRandomTheme();
             customActions = defaultActions;
@@ -1800,126 +1823,152 @@
 </head>
 <body class="text-slate-900 h-full flex flex-col justify-between text-sm overflow-x-hidden">
 
-    <!-- 1. الترويسة العلوية الثابتة (Header) -->
-    <header id="main-header" class="p-4 shadow-sm border-b shrink-0 z-30 transition-all duration-500">
-        <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row justify-between items-center gap-3">
-            <div class="text-center sm:text-right">
-                <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
-                <p class="text-xs opacity-90 mt-0.5 font-bold">المعلم: أ/ عبدالعزيز الفيفي ثانوية الأمير عبدالمجيد مع فيس تعبيري 👨‍🏫 | الكفايات اللغوية</p>
+    <!-- 0. شاشة تسجيل الدخول بالرقم السري -->
+    <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#fdfaf1]">
+        <div class="max-w-md w-full bg-white border-2 border-amber-200/80 p-8 rounded-3xl shadow-2xl text-center space-y-6">
+            <div class="w-20 h-20 bg-[#800000] text-[#d4af37] rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-md border border-amber-200/60">
+                🔒
             </div>
-            <div class="flex gap-2">
-                <button onclick="openSettingsModal('classes')" class="bg-black/5 hover:bg-black/10 text-slate-800 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer border border-black/10 transition">🏫 الفصول</button>
-                <button onclick="openSettingsModal('actions')" class="bg-black/5 hover:bg-black/10 text-slate-800 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer border border-black/10 transition">⚙️ التقييمات</button>
+            <div>
+                <h2 class="text-2xl font-black text-slate-900 tracking-wide">تسجيل الدخول للنظام</h2>
+                <p class="text-xs text-slate-500 mt-1 font-bold">يرجى إدخال الرقم السري للوصول لبيانات الطلاب</p>
             </div>
-        </div>
-    </header>
-
-    <!-- 2. منطقة المحتوى الوسطى القابلة للتمرير (Main Scroll Container) -->
-    <main id="main-scroll-container" class="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 container mx-auto max-w-6xl w-full">
-
-        <!-- 1. الواجهة الرئيسية: شبكة الفصول ولائحة التحكم كأيقونة بجانبها -->
-        <div id="main-dashboard" class="py-2 space-y-6">
-            <div class="flex items-center justify-between border-b pb-3">
-                <h2 class="text-2xl font-black text-slate-900 tracking-wider">🏫 القائمة الرئيسية</h2>
-                <span class="text-xs font-bold text-slate-500 bg-white px-3.5 py-1.5 rounded-full border shadow-2xs">اختر الفصل أو اللوحة للبدء</span>
+            <div class="space-y-4">
+                <input type="password" id="passcode-input" placeholder="أدخل الرقم السري..." class="w-full border-2 border-amber-200 p-3.5 rounded-2xl text-center text-lg font-bold tracking-widest outline-none focus:border-[#800000] transition" onkeyup="if(event.key === 'Enter') checkPasscode()">
+                <p id="login-error" class="text-xs font-bold text-rose-600 hidden">⚠️ الرقم السري غير صحيح، حاول مرة أخرى.</p>
+                <button onclick="checkPasscode()" class="w-full bg-[#800000] hover:bg-[#660000] text-[#d4af37] py-3.5 rounded-2xl font-black text-sm shadow-md transition cursor-pointer">دخول النظام 🚀</button>
             </div>
-            
-            <!-- شبكة البطاقات الموحدة (تشمل الفصول ولوحة التحكم كبطاقة متناسقة) -->
-            <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 sm:gap-6 w-full max-w-full overflow-hidden"></div>
-
-            <!-- شريط العبارات التحفيزية الأنيق في أسفل الصفحة -->
-            <div class="bg-white/80 backdrop-blur-xs border-2 border-amber-200/80 p-5 rounded-3xl shadow-sm text-center my-4 transition hover:shadow-md">
-                <p id="quote-text" class="student-name-font text-lg text-amber-950 leading-relaxed">
-                    ✨ "التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم."
-                </p>
-                <span class="text-[11px] font-bold text-amber-800/60 block mt-1">حكمة اليوم للمعلم والطالب 🌿</span>
+            <div class="border-t border-amber-100 pt-4 text-[11px] font-bold text-slate-400">
+                أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد 👨‍🏫
             </div>
         </div>
+    </div>
 
-        <!-- 2. واجهة لوحة التحكم المدمجة (تظهر عند الضغط على أيقونتها) -->
-        <div id="admin-control-view" class="hidden py-2 space-y-4">
-            <div class="flex items-center justify-between mb-2 bg-white p-3.5 rounded-2xl shadow-sm border">
-                <button onclick="backToHome()" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">⬅ الرئيسية</button>
-                <h2 class="text-base font-black text-slate-800">🔒 لوحة التحكم والاعتمادات</h2>
-                <div class="w-12"></div>
+    <!-- المحتوى الرئيسي للنظام -->
+    <div id="app-container" class="h-full flex flex-col justify-between hidden">
+
+        <!-- 1. الترويسة العلوية الثابتة (Header) -->
+        <header id="main-header" class="p-4 shadow-sm border-b shrink-0 z-30 transition-all duration-500">
+            <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="text-center sm:text-right">
+                    <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
+                    <p class="text-xs opacity-90 mt-0.5 font-bold">المعلم: أ/ عبدالعزيز الفيفي ثانوية الأمير عبدالمجيد مع فيس تعبيري 👨‍🏫 | الكفايات اللغوية</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openSettingsModal('classes')" class="bg-black/5 hover:bg-black/10 text-slate-800 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer border border-black/10 transition">🏫 الفصول</button>
+                    <button onclick="openSettingsModal('actions')" class="bg-black/5 hover:bg-black/10 text-slate-800 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer border border-black/10 transition">⚙️ التقييمات</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. منطقة المحتوى الوسطى القابلة للتمرير (Main Scroll Container) -->
+        <main id="main-scroll-container" class="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 container mx-auto max-w-6xl w-full">
+
+            <!-- 1. الواجهة الرئيسية: شبكة الفصول ولائحة التحكم كأيقونة بجانبها -->
+            <div id="main-dashboard" class="py-2 space-y-6">
+                <div class="flex items-center justify-between border-b pb-3">
+                    <h2 class="text-2xl font-black text-slate-900 tracking-wider">🏫 القائمة الرئيسية</h2>
+                    <span class="text-xs font-bold text-slate-500 bg-white px-3.5 py-1.5 rounded-full border shadow-2xs">اختر الفصل أو اللوحة للبدء</span>
+                </div>
+                
+                <!-- شبكة البطاقات الموحدة (تشمل الفصول ولوحة التحكم كبطاقة متناسقة) -->
+                <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 sm:gap-6 w-full max-w-full overflow-hidden"></div>
+
+                <!-- شريط العبارات التحفيزية الأنيق في أسفل الصفحة -->
+                <div class="bg-white/80 backdrop-blur-xs border-2 border-amber-200/80 p-5 rounded-3xl shadow-sm text-center my-4 transition hover:shadow-md">
+                    <p id="quote-text" class="student-name-font text-lg text-amber-950 leading-relaxed">
+                        ✨ "التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم."
+                    </p>
+                    <span class="text-[11px] font-bold text-amber-800/60 block mt-1">حكمة اليوم للمعلم والطالب 🌿</span>
+                </div>
             </div>
 
-            <div class="admin-card">
-                <div class="header">
-                    <h2 class="text-lg font-black text-slate-900">🔒 لوحة التحكم المدمجة</h2>
-                    <p class="text-xs text-slate-500">إدارة الطلاب والاعتماد السريع</p>
+            <!-- 2. واجهة لوحة التحكم المدمجة (تظهر عند الضغط على أيقونتها) -->
+            <div id="admin-control-view" class="hidden py-2 space-y-4">
+                <div class="flex items-center justify-between mb-2 bg-white p-3.5 rounded-2xl shadow-sm border">
+                    <button onclick="backToHome()" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">⬅ الرئيسية</button>
+                    <h2 class="text-base font-black text-slate-800">🔒 لوحة التحكم والاعتمادات</h2>
+                    <div class="w-12"></div>
                 </div>
 
-                <div class="pending-section" id="pendingSection">
-                    <h3>🔔 طلبات جديدة للمراجعة</h3>
-                    <table id="pendingTable">
-                        <thead>
-                            <tr>
-                                <th>الاسم</th>
-                                <th>البريد</th>
-                                <th>الإجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                <div class="admin-card">
+                    <div class="header">
+                        <h2 class="text-lg font-black text-slate-900">🔒 لوحة التحكم المدمجة</h2>
+                        <p class="text-xs text-slate-500">إدارة الطلاب والاعتماد السريع</p>
+                    </div>
 
-                <div class="bulk-section">
-                    <label class="block mb-1 text-xs font-bold"><strong>لصق القائمة للاعتماد المباشر:</strong></label>
-                    <textarea id="bulkInput" placeholder="الصق الاسم والإيميل هنا.."></textarea>
-                    <div class="controls">
-                        <button class="btn btn-upload" onclick="superSmartBulkAdd()">رفع واعتماد 🚀</button>
-                        <button class="btn btn-copy" onclick="copyAllStudents()">📋 نسخ الكل</button>
-                        <button class="btn btn-delete-all" onclick="deleteAllStudents()">مسح الكل 🗑️</button>
+                    <div class="pending-section" id="pendingSection">
+                        <h3>🔔 طلبات جديدة للمراجعة</h3>
+                        <table id="pendingTable">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد</th>
+                                    <th>الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <div class="bulk-section">
+                        <label class="block mb-1 text-xs font-bold"><strong>لصق القائمة للاعتماد المباشر:</strong></label>
+                        <textarea id="bulkInput" placeholder="الصق الاسم والإيميل هنا.."></textarea>
+                        <div class="controls">
+                            <button class="btn btn-upload" onclick="superSmartBulkAdd()">رفع واعتماد 🚀</button>
+                            <button class="btn btn-copy" onclick="copyAllStudents()">📋 نسخ الكل</button>
+                            <button class="btn btn-delete-all" onclick="deleteAllStudents()">مسح الكل 🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="stats-bar">
+                        <span id="approvedCount">الطلاب: 0</span>
+                        <span id="pendingCountBadge" style="color: #d32f2f;">المعلقة: 0</span>
+                    </div>
+
+                    <div class="search-container">
+                        <h3 class="text-xs font-bold">🎓 الطلاب المعتمدين</h3>
+                        <input type="text" id="searchInput" class="search-box" onkeyup="searchStudents()" placeholder="🔍 ابحث...">
+                    </div>
+
+                    <div class="max-h-96 overflow-y-auto mt-2 border rounded-xl">
+                        <table id="studentsTable">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>الإيميل</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
                     </div>
                 </div>
-
-                <div class="stats-bar">
-                    <span id="approvedCount">الطلاب: 0</span>
-                    <span id="pendingCountBadge" style="color: #d32f2f;">المعلقة: 0</span>
-                </div>
-
-                <div class="search-container">
-                    <h3 class="text-xs font-bold">🎓 الطلاب المعتمدين</h3>
-                    <input type="text" id="searchInput" class="search-box" onkeyup="searchStudents()" placeholder="🔍 ابحث...">
-                </div>
-
-                <div class="max-h-96 overflow-y-auto mt-2 border rounded-xl">
-                    <table id="studentsTable">
-                        <thead>
-                            <tr>
-                                <th>الاسم</th>
-                                <th>الإيميل</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- 3. واجهة الطلاب داخل الفصل المختار -->
-        <div id="class-view" class="hidden py-1">
-            <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-sm border">
-                <button onclick="backToHome()" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">⬅ الرئيسية</button>
-                <h2 class="text-base font-black text-slate-800" id="class-title-header">الفصل</h2>
-                <div class="w-12"></div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="class-students-container"></div>
-        </div>
+            <!-- 3. واجهة الطلاب داخل الفصل المختار -->
+            <div id="class-view" class="hidden py-1">
+                <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-sm border">
+                    <button onclick="backToHome()" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">⬅ الرئيسية</button>
+                    <h2 class="text-base font-black text-slate-800" id="class-title-header">الفصل</h2>
+                    <div class="w-12"></div>
+                </div>
 
-    </main>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="class-students-container"></div>
+            </div>
 
-    <!-- 3. التذييل السفلي الثابت (Footer) -->
-    <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-30 transition-all duration-500">
-        <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
-            <div>إعداد أ/ عبدالعزيز الفيفي ثانوية الأمير عبدالمجيد مع فيس تعبيري 👨‍🏫</div>
-            <div>الحقوق محفوظة 2026</div>
-            <div>ثانوية الأمير عبدالمجيد</div>
-        </div>
-    </footer>
+        </main>
+
+        <!-- 3. التذييل السفلي الثابت (Footer) -->
+        <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-30 transition-all duration-500">
+            <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
+                <div>إعداد أ/ عبدالعزيز الفيفي ثانوية الأمير عبدالمجيد مع فيس تعبيري 👨‍🏫</div>
+                <div>الحقوق محفوظة 2026</div>
+                <div>ثانوية الأمير عبدالمجيد</div>
+            </div>
+        </footer>
+
+    </div>
 
     <!-- النوافذ المنبثقة (Modals) -->
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
@@ -2070,7 +2119,7 @@
                         <span class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center text-base shadow-2xs">⏰</span>
                         <span class="font-bold text-sm text-amber-900">متأخر</span>
                     </button>
-                    <button onclick="recordAction('عن بعد', 0, 'عن بعد')" class="flex items-center gap-3 bg-purple-50 border border-purple-300 hover:bg-purple-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
+                    <button onclick="recordAction('عن بعد', 0, 'عن بعد')" class="flex items-center gap-3 bg-[#6f42c1] border border-purple-300 hover:bg-purple-100 px-4 py-3 rounded-2xl shrink-0 cursor-pointer transition shadow-xs">
                         <span class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-base shadow-2xs">💻</span>
                         <span class="font-bold text-sm text-purple-900">عن بعد</span>
                     </button>
