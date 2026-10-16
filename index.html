@@ -62,7 +62,6 @@
             border-color: #94a3b8;
         }
         
-        /* تصغير حجم لوحة التحكم لتنسجم مع تصميم التقسيم */
         .admin-card { 
             background: white; 
             border-radius: 16px; 
@@ -252,7 +251,7 @@
                         id: doc.id,
                         name: name,
                         email: email,
-                        className: data.className || 'غير موزع',
+                        className: data.className || 'غير موزاد',
                         phone: data.phone || '966566688614',
                         actions: data.actions || [],
                         attendanceStats: data.attendanceStats || { absents: 0, lates: 0, excuses: 0 }
@@ -520,7 +519,6 @@
             { bg: "bg-gradient-to-br from-cyan-50/90 via-white to-sky-50/40", text: "text-stone-900" }
         ];
 
-        // تكبير أيقونات وبطاقات الفصول لتصبح ذات حضور بصري قوي
         function renderView() {
             const classesContainer = document.getElementById('dynamic-classes-grid');
             if(!classesContainer) return;
@@ -974,7 +972,7 @@
             let negativeList = [];
             let homeworkList = [];
             let portfolioList = [];
-            let generalList = [];
+            let attendanceEventsList = [];
 
             actions.forEach(act => {
                 const score = act.score || 0;
@@ -987,14 +985,16 @@
                     if (isToday) positiveCountToday++;
                 }
 
-                if (score < 0 || title.includes('نوم') || title.includes('تحدث') || title.includes('هاتف') || title.includes('هارب') || title.includes('خاطئة')) {
-                    negativeList.push(act);
-                } else if (title.includes('واجب')) {
+                if (title.includes('غائب') || title.includes('متأخر') || title.includes('مستأذن') || title.includes('حاضر') || title.includes('هارب')) {
+                    attendanceEventsList.push(act);
+                }
+
+                if (title.includes('واجب')) {
                     homeworkList.push(act);
                 } else if (title.includes('ملف') || title.includes('إنجاز')) {
                     portfolioList.push(act);
-                } else if (score > 0) {
-                    generalList.push(act);
+                } else if (score < 0 || title.includes('نوم') || title.includes('تحدث') || title.includes('هاتف') || title.includes('خاطئة')) {
+                    negativeList.push(act);
                 }
             });
 
@@ -1007,7 +1007,7 @@
                 negativeList,
                 homeworkList,
                 portfolioList,
-                generalList
+                attendanceEventsList
             };
         }
 
@@ -1155,8 +1155,8 @@
                         <div class="bg-white p-3.5 rounded-2xl border border-amber-100 shadow-2xs">
                             <span class="text-slate-900 font-black text-sm block mb-1">📘 الواجبات والملفات:</span>
                             <div class="space-y-1 text-slate-700 mt-1">
-                                <p>متابعة الواجبات: ${summary.homeworkList.length > 0 ? summary.homeworkList.map(h => h.title).join('، ') : 'منتظم'}</p>
-                                <p>الملف المدرسي: ${summary.portfolioList.length > 0 ? summary.portfolioList.map(p => p.title).join('، ') : 'مكتمل'}</p>
+                                <p>متابعة الواجبات: ${summary.homeworkList.length > 0 ? summary.homeworkList.map(h => `${h.title} (${h.timestamp})`).join('، ') : 'منتظم'}</p>
+                                <p>الملف المدرسي: ${summary.portfolioList.length > 0 ? summary.portfolioList.map(p => `${p.title} (${p.timestamp})`).join('، ') : 'مكتمل'}</p>
                             </div>
                         </div>
                     </div>
@@ -1177,6 +1177,7 @@
             document.getElementById('preview-modal').classList.remove('flex');
         };
 
+        // دالة توليد صفحة التقرير المستقلة مع تخصيص ظهور التواريخ حسب المطلوب
         window.shareStudentReportLink = function(id) {
             const student = allStudents.find(s => s.id === id);
             if (!student) return;
@@ -1200,6 +1201,7 @@
                 </head>
                 <body class="p-4 md:p-8 flex justify-center items-center min-h-screen">
                     <div class="max-w-xl w-full bg-white border-2 border-amber-200 p-6 md:p-8 rounded-3xl shadow-2xl">
+                        
                         <div class="text-center border-b border-amber-200 pb-4 mb-6">
                             <span class="text-5xl mb-2 inline-block">🎓</span>
                             <h1 class="student-title text-3xl font-bold text-slate-900">${student.name}</h1>
@@ -1208,37 +1210,74 @@
                         </div>
 
                         <div class="space-y-4 text-xs font-bold text-slate-800">
+                            
+                            <!-- 1. سجل الحضور والغياب (مع إظهار التواريخ والأوقات) -->
                             <div class="bg-amber-50/60 p-4 rounded-2xl border border-amber-200 shadow-xs">
-                                <span class="text-amber-950 font-black text-sm block mb-1">📌 سجل الحضور والغياب:</span>
-                                <div class="flex justify-between text-slate-700 mt-2 px-2">
+                                <span class="text-amber-950 font-black text-sm block mb-1">📌 سجل الحضور والغياب التفصيلي:</span>
+                                <div class="flex justify-between text-slate-700 my-2 px-2 border-b border-amber-200 pb-2">
                                     <span>🔴 الغياب: <strong class="text-rose-600">${att.absents || 0}</strong></span>
                                     <span>⏰ التأخر: <strong class="text-amber-600">${att.lates || 0}</strong></span>
                                     <span>🔵 الاستئذان: <strong class="text-sky-600">${att.excuses || 0}</strong></span>
                                 </div>
-                            </div>
-
-                            <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 shadow-xs">
-                                <span class="text-emerald-950 font-black text-sm block mb-1">💡 التفاعل والمشاركات الإيجابية:</span>
-                                <p class="text-slate-600 mt-1">عدد التقييمات الإيجابية اليوم: <span class="text-emerald-600 font-black">${summary.positiveCountToday}</span></p>
-                                <p class="text-slate-600 mt-1">إجمالي النقاط الإيجابية المكتسبة: <span class="text-emerald-600 font-black">+${summary.totalPositiveScore}</span></p>
-                            </div>
-
-                            <div class="bg-rose-50/60 p-4 rounded-2xl border border-rose-200 shadow-xs">
-                                <span class="text-rose-950 font-black text-sm block mb-1">⚠️ الملاحظات والسلوكيات:</span>
-                                ${summary.negativeList.length === 0 ? '<p class="text-emerald-600 font-semibold mt-1">لا توجد ملاحظات سلبية مسجلة (سلوك ممتاز) ✨</p>' : 
-                                    `<ul class="list-disc list-inside text-rose-700 space-y-1 mt-2">
-                                        ${summary.negativeList.map(item => `<li>${item.title} (${item.timestamp})</li>`).join('')}
+                                ${summary.attendanceEventsList.length === 0 ? 
+                                    '<p class="text-emerald-700 font-semibold mt-1">منتظم بالحضور والدوام ✨</p>' : 
+                                    `<ul class="list-disc list-inside text-slate-700 space-y-1 mt-2">
+                                        ${summary.attendanceEventsList.map(item => `<li><span class="font-bold text-rose-800">${item.title}</span> - <span class="text-[11px] text-slate-500">${item.timestamp}</span></li>`).join('')}
                                     </ul>`
                                 }
                             </div>
 
-                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-xs">
-                                <span class="text-slate-900 font-black text-sm block mb-1">📘 الواجبات والملفات:</span>
-                                <div class="space-y-1 text-slate-700 mt-2">
-                                    <p>متابعة الواجبات: ${summary.homeworkList.length > 0 ? summary.homeworkList.map(h => h.title).join('، ') : 'منتظم'}</p>
-                                    <p>الملف المدرسي: ${summary.portfolioList.length > 0 ? summary.portfolioList.map(p => p.title).join('، ') : 'مكتمل'}</p>
+                            <!-- 2. التفاعل والمشاركات الإيجابية (بدون تواريخ - أرقام وإحصاء فقط) -->
+                            <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 shadow-xs">
+                                <span class="text-emerald-950 font-black text-sm block mb-1">💡 التفاعل والمشاركات الإيجابية:</span>
+                                <div class="grid grid-cols-2 gap-2 text-center mt-2">
+                                    <div class="bg-white p-2.5 rounded-xl border border-emerald-200">
+                                        <span class="text-slate-600 block text-[11px]">مشاركات اليوم</span>
+                                        <span class="text-emerald-600 font-black text-base">${summary.positiveCountToday}</span>
+                                    </div>
+                                    <div class="bg-white p-2.5 rounded-xl border border-emerald-200">
+                                        <span class="text-slate-600 block text-[11px]">إجمالي النقاط المكتسبة</span>
+                                        <span class="text-emerald-600 font-black text-base">+${summary.totalPositiveScore}</span>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- 3. الملاحظات والسلوكيات (مع إظهار التواريخ والأوقات) -->
+                            <div class="bg-rose-50/60 p-4 rounded-2xl border border-rose-200 shadow-xs">
+                                <span class="text-rose-950 font-black text-sm block mb-1">⚠️ الملاحظات والسلوكيات:</span>
+                                ${summary.negativeList.length === 0 ? 
+                                    '<p class="text-emerald-600 font-semibold mt-1">لا توجد ملاحظات سلبية مسجلة (سلوك ممتاز) ✨</p>' : 
+                                    `<ul class="list-disc list-inside text-rose-700 space-y-1 mt-2">
+                                        ${summary.negativeList.map(item => `<li><span class="font-bold text-rose-900">${item.title}</span> - <span class="text-[11px] text-slate-600">${item.timestamp}</span></li>`).join('')}
+                                    </ul>`
+                                }
+                            </div>
+
+                            <!-- 4. الواجبات والملفات (مع إظهار التواريخ والأوقات) -->
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-xs">
+                                <span class="text-slate-900 font-black text-sm block mb-1">📘 الواجبات والملفات:</span>
+                                <div class="space-y-2 text-slate-700 mt-2">
+                                    <div>
+                                        <span class="font-bold text-slate-800 block">متابعة الواجبات:</span>
+                                        ${summary.homeworkList.length > 0 ? 
+                                            `<ul class="list-disc list-inside text-slate-600 text-[11px] space-y-0.5 mt-1">
+                                                ${summary.homeworkList.map(h => `<li>${h.title} (${h.timestamp})</li>`).join('')}
+                                            </ul>` : 
+                                            '<span class="text-emerald-600 font-bold text-[11px]">منتظم وبدون ملاحظات واجبات</span>'
+                                        }
+                                    </div>
+                                    <div class="pt-1 border-t border-slate-200">
+                                        <span class="font-bold text-slate-800 block">الملف المدرسي:</span>
+                                        ${summary.portfolioList.length > 0 ? 
+                                            `<ul class="list-disc list-inside text-slate-600 text-[11px] space-y-0.5 mt-1">
+                                                ${summary.portfolioList.map(p => `<li>${p.title} (${p.timestamp})</li>`).join('')}
+                                            </ul>` : 
+                                            '<span class="text-emerald-600 font-bold text-[11px]">مكتمل ومستوفي المطلوب</span>'
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
 
                         <div class="mt-8 text-center border-t pt-4 text-[11px] font-bold text-slate-500 flex justify-between">
@@ -1285,10 +1324,8 @@
     <!-- 2. منطقة المحتوى الوسطى القابلة للتمرير فقط (Main Scroll Container) -->
     <main id="main-scroll-container" class="flex-1 overflow-y-auto p-4 container mx-auto max-w-6xl w-full">
 
-        <!-- واجهة الشاشة القابلة للتقسيم: الفصول بحجم أكبر + لوحة التحكم بأسلوب مدمج مصغر -->
         <div id="main-dashboard" class="py-1 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             
-            <!-- قسم الفصول الدراسية بأيقونات وحجم بارز وأكبر (7 أعمدة في الشاشات الكبيرة) -->
             <div class="lg:col-span-7 space-y-4">
                 <div class="flex items-center justify-between border-b pb-2">
                     <h2 class="text-2xl font-black text-slate-900 tracking-wider">🏫 الفصول الدراسية</h2>
@@ -1297,7 +1334,6 @@
                 <div id="dynamic-classes-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
             </div>
 
-            <!-- لوحة التحكم المدمجة والمصغرة (5 أعمدة) -->
             <div class="lg:col-span-5 space-y-4">
                 <div class="admin-card">
                     <div class="header">
