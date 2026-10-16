@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام متابعة الطلاب الشامل - أ/ عبدالعزيز الفيفي</title>
+    <title>نظام متابعة الطلاب الشامل - أ/ عبدالعزيز الفيفي ثانوية الأمير عبدالمجيد مع فيس تعبيري 👨‍🏫</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Readex+Pro:wght@400;600;700&family=Tajawal:wght@400;600;700;900&display=swap" rel="stylesheet">
     
@@ -22,7 +22,8 @@
             padding: 0; 
             font-size: 1rem; 
             transition: background 0.5s ease; 
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         .click-effect:active { transform: scale(0.96); opacity: 0.8; }
@@ -168,7 +169,6 @@
                 footer.className = `py-3 px-6 border-t shrink-0 z-30 transition-all duration-500 ${selectedTheme.headerBg}`;
             }
 
-            // تحديث عبارة تحفيزية عشوائية
             const quoteEl = document.getElementById('quote-text');
             if (quoteEl) {
                 const randomQuote = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
@@ -292,7 +292,7 @@
                             </td>
                             <td style="font-size: 0.8rem; color: #475569;">${email}</td>
                             <td>
-                                <select class="action-select" onchange="handleAction(this, '${email}', '${name.replace(/'/g, "\\'")}', '${doc.id}')">
+                                <select class="action-select" onchange="handleAction(this, '${email}', '${name.replace(/'/g, "\\'")}','${doc.id}')">
                                     <option value="" disabled selected>⚙️ خيارات الإجراء</option>
                                     <optgroup label="الفصول الدراسية">
                                         ${classOptionsHtml}
@@ -549,7 +549,6 @@
             if(!classesContainer) return;
             classesContainer.innerHTML = '';
 
-            // 1. إضافة بطاقات الفصول الدراسية
             classList.forEach((cls, idx) => {
                 const count = allStudents.filter(s => s.className === cls).length;
                 const theme = classSoftThemes[idx % classSoftThemes.length];
@@ -568,7 +567,6 @@
                 `;
             });
 
-            // 2. إضافة بطاقة لوحة التحكم المدمجة بنغمة لونية فاتحة ومطابقة تماماً للفصول
             const adminTheme = classSoftThemes[classList.length % classSoftThemes.length];
             classesContainer.innerHTML += `
                 <div onclick="openAdminControlPanel()" class="class-3d-card ${adminTheme.bg} p-6 sm:p-8 rounded-3xl cursor-pointer transition flex items-center justify-between border shadow-md hover:shadow-xl">
@@ -1066,7 +1064,7 @@
                 <div class="text-center mb-6 border-b pb-4">
                     <div class="w-20 h-20 ${btnPrimaryClass} text-white rounded-full flex items-center justify-center text-4xl font-bold mx-auto mb-2 shadow-md">👤</div>
                     <h2 class="student-name-font text-3xl text-slate-900">${student.name}</h2>
-                    <p class="text-sm font-bold text-slate-600 mt-1">${student.className} | ثانوية الأمير عبدالمجيد</p>
+                    <p class="text-sm font-bold text-slate-600 mt-1">${student.className} | ثانوية الأمير عبدالمجيد 👨‍🏫</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -1165,7 +1163,7 @@
                     <div class="text-center border-b border-amber-200 pb-3 mb-4">
                         <h3 class="student-name-font text-2xl text-amber-950">📋 تقرير متابعة طالب مفصل</h3>
                         <p class="text-xs font-bold text-amber-800 mt-1">الطالب: ${student.name} | الصف: ${student.className}</p>
-                        <p class="text-[11px] text-amber-700 font-semibold mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد</p>
+                        <p class="text-[11px] text-amber-700 font-semibold mt-0.5">المعلم: أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد 👨‍🏫</p>
                     </div>
 
                     <div class="space-y-4 text-xs font-bold text-slate-800">
@@ -1246,12 +1244,11 @@
                             <span class="text-5xl mb-2 inline-block">🎓</span>
                             <h1 class="student-title text-3xl font-bold text-slate-900">${student.name}</h1>
                             <p class="text-sm font-bold text-amber-800 mt-1">الصف: ${student.className}</p>
-                            <p class="text-xs text-slate-500 mt-1 font-semibold">إعداد أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد</p>
+                            <p class="text-xs text-slate-500 mt-1 font-semibold">إعداد أ/ عبدالعزيز الفيفي | ثانوية الأمير عبدالمجيد 👨‍🏫</p>
                         </div>
 
                         <div class="space-y-4 text-xs font-bold text-slate-800">
                             
-                            <!-- 1. سجل الحضور والغياب (مع إظهار التواريخ والأوقات) -->
                             <div class="bg-amber-50/60 p-4 rounded-2xl border border-amber-200 shadow-xs">
                                 <span class="text-amber-950 font-black text-sm block mb-1">📌 سجل الحضور والغياب التفصيلي:</span>
                                 <div class="flex justify-between text-slate-700 my-2 px-2 border-b border-amber-200 pb-2">
@@ -1267,7 +1264,6 @@
                                 }
                             </div>
 
-                            <!-- 2. التفاعل والمشاركات الإيجابية (بدون تواريخ - أرقام وإحصاء فقط) -->
                             <div class="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-200 shadow-xs">
                                 <span class="text-emerald-950 font-black text-sm block mb-1">💡 التفاعل والمشاركات الإيجابية:</span>
                                 <div class="grid grid-cols-2 gap-2 text-center mt-2">
@@ -1282,7 +1278,6 @@
                                 </div>
                             </div>
 
-                            <!-- 3. الملاحظات والسلوكيات (مع إظهار التواريخ والأوقات) -->
                             <div class="bg-rose-50/60 p-4 rounded-2xl border border-rose-200 shadow-xs">
                                 <span class="text-rose-950 font-black text-sm block mb-1">⚠️ الملاحظات والسلوكيات:</span>
                                 ${summary.negativeList.length === 0 ? 
@@ -1293,7 +1288,6 @@
                                 }
                             </div>
 
-                            <!-- 4. الواجبات والملفات (مع إظهار التواريخ والأوقات) -->
                             <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 shadow-xs">
                                 <span class="text-slate-900 font-black text-sm block mb-1">📘 الواجبات والملفات:</span>
                                 <div class="space-y-2 text-slate-700 mt-2">
@@ -1323,7 +1317,7 @@
                         <div class="mt-8 text-center border-t pt-4 text-[11px] font-bold text-slate-500 flex justify-between">
                             <span>إعداد أ/ عبدالعزيز الفيفي</span>
                             <span>الحقوق محفوظة 2026</span>
-                            <span>ثانوية الأمير عبدالمجيد</span>
+                            <span>ثانوية الأمير عبدالمجيد 👨‍🏫</span>
                         </div>
                     </div>
                 </body>
@@ -1345,14 +1339,14 @@
         };
     </script>
 </head>
-<body class="text-slate-900 h-full flex flex-col justify-between text-sm overflow-hidden">
+<body class="text-slate-900 h-full flex flex-col justify-between text-sm overflow-x-hidden">
 
     <!-- 1. الترويسة العلوية الثابتة (Header) -->
     <header id="main-header" class="p-4 shadow-sm border-b shrink-0 z-30 transition-all duration-500">
         <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row justify-between items-center gap-3">
             <div class="text-center sm:text-right">
                 <h1 class="text-lg font-black tracking-wide">نظام المتابعة السحابي الشامل</h1>
-                <p class="text-xs opacity-90 mt-0.5 font-bold">المعلم: أ/ عبدالعزيز الفيفي | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
+                <p class="text-xs opacity-90 mt-0.5 font-bold">المعلم: أ/ عبدالعزيز الفيفي 👨‍🏫 | الكفايات اللغوية | ثانوية الأمير عبدالمجيد (الرياض)</p>
             </div>
             <div class="flex gap-2">
                 <button onclick="openSettingsModal('classes')" class="bg-black/5 hover:bg-black/10 text-slate-800 px-3 py-2 rounded-xl font-bold text-xs cursor-pointer border border-black/10 transition">🏫 الفصول</button>
@@ -1362,7 +1356,7 @@
     </header>
 
     <!-- 2. منطقة المحتوى الوسطى القابلة للتمرير (Main Scroll Container) -->
-    <main id="main-scroll-container" class="flex-1 overflow-y-auto p-4 sm:p-6 container mx-auto max-w-6xl w-full">
+    <main id="main-scroll-container" class="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 container mx-auto max-w-6xl w-full">
 
         <!-- 1. الواجهة الرئيسية: شبكة الفصول ولائحة التحكم معاً بشكل كامل ومتناسق -->
         <div id="main-dashboard" class="py-2 space-y-6">
@@ -1371,10 +1365,10 @@
                 <span class="text-xs font-bold text-slate-500 bg-white px-3.5 py-1.5 rounded-full border shadow-2xs">اختر الفصل أو اللوحة للبدء</span>
             </div>
             
-            <!-- شبكة البطاقات الموحدة (عرض وتناسق كامل للشاشة) -->
-            <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 sm:gap-6"></div>
+            <!-- شبكة البطاقات الموحدة (عرض وتناسق كامل للشاشة مع منع التمرير الأفقي) -->
+            <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 sm:gap-6 w-full max-w-full overflow-hidden"></div>
 
-            <!-- شريط العبارات التحفيزية الأنيق في أسفل الصفحة (يملأ المكان الشاغر بأناقة دون تقطيع الشاشة) -->
+            <!-- شريط العبارات التحفيزية الأنيق في أسفل الصفحة -->
             <div class="bg-white/80 backdrop-blur-xs border-2 border-amber-200/80 p-5 rounded-3xl shadow-sm text-center my-4 transition hover:shadow-md">
                 <p id="quote-text" class="student-name-font text-lg text-amber-950 leading-relaxed">
                     ✨ "التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم."
@@ -1383,7 +1377,7 @@
             </div>
         </div>
 
-        <!-- 2. واجهة لوحة التحكم المدمجة (تنفتح بشكل مستقل كصفحة كاملة مثل الفصول) -->
+        <!-- 2. واجهة لوحة التحكم المدمجة -->
         <div id="admin-control-view" class="hidden py-2 space-y-4">
             <div class="flex items-center justify-between mb-2 bg-white p-3.5 rounded-2xl shadow-sm border">
                 <button onclick="backToHome()" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">⬅ الرئيسية</button>
@@ -1459,10 +1453,10 @@
 
     </main>
 
-    <!-- 3. التذييل السفلي الثابت كإطار (Footer) -->
+    <!-- 3. التذييل السفلي الثابت (Footer) -->
     <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-30 transition-all duration-500">
         <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
-            <div>إعداد أ/ عبدالعزيز الفيفي</div>
+            <div>إعداد أ/ عبدالعزيز الفيفي 👨‍🏫</div>
             <div>الحقوق محفوظة 2026</div>
             <div>ثانوية الأمير عبدالمجيد</div>
         </div>
@@ -1499,7 +1493,6 @@
                         <option value="💎">💎 درة ومجوهرات الأداء</option>
                         <option value="👑💯">👑💯 القمة المطلقة</option>
                         <option value="🚀🌟">🚀🌟 تميز وانطلاق صاروخي</option>
-
                         <option value="⭐">⭐ نجمة تفوق</option>
                         <option value="👍">👍 أحسنت / تأييد</option>
                         <option value="✨">✨ تألق وإبداع</option>
@@ -1508,23 +1501,18 @@
                         <option value="🎯">🎯 إصابة الهدف بدقة</option>
                         <option value="📝">📝 تدريب وتحضير</option>
                         <option value="👌">👌 إتقان وأداء ممتاز</option>
-                        <option value="👏📝">👏📝 عمل ومشاركة رائعة</option>
-
                         <option value="⚡">⚡ نشاط وسرعة استجابة</option>
                         <option value="📚">📚 استذكار ومذاكرة</option>
                         <option value="⏳">⏳ انتظار وصبر</option>
                         <option value="🔋">🔋 طاقة جيدة</option>
                         <option value="🌤️">🌤️ تحسن ملحوظ</option>
                         <option value="🚲">🚲 محاولة مستمرة</option>
-
                         <option value="📉">📉 انخفاض بالمستوى</option>
                         <option value="⚠️">⚠️ تنبيه هام</option>
                         <option value="🛑">🛑 إيقاف / منع</option>
                         <option value="🔍">🔍 تحتاج تدقيق ومراجعة</option>
                         <option value="🔄">🔄 إعادة المحاولة</option>
                         <option value="❌">❌ خطأ / تقصير</option>
-                        <option value="⚠️📚">⚠️📚 تنبيه في التحصيل</option>
-
                         <option value="🎨">🎨 ترتيب وإبداع فني</option>
                         <option value="🧼">🧼 نظافة ومرتب</option>
                         <option value="🌸">🌸 حسن مظهر</option>
@@ -1532,21 +1520,18 @@
                         <option value="📖">📖 العناية بالكتاب المدرسي</option>
                         <option value="✏️">✏️ كتابة ممتازة ودقيقة</option>
                         <option value="📜">📜 خط جميل ومنسق</option>
-
                         <option value="🙋‍♂️">🙋‍♂️ مبادر بالمشاركة (طالب)</option>
                         <option value="🙋‍♀️">🙋‍♀️ مبادرة بالمشاركة (طالبة)</option>
                         <option value="🗣️">🗣️ تفاعل لفظي نشط</option>
                         <option value="🤝">🤝 تعاون ومساعدة الزملاء</option>
                         <option value="⏱️">⏱️ التزام بالوقت</option>
                         <option value="🏅">🏅 وسام الالتزام السلوكي</option>
-
                         <option value="😍">😍 فخور بك جداً</option>
                         <option value="🥰">🥰 أحببت عملك وأدائك</option>
                         <option value="😎">😎 إجابة واثقة ومتقنة</option>
                         <option value="🤔">🤔 فكر مجدداً بعمق</option>
                         <option value="🧐">🧐 ركز أكثر من فضلك</option>
                         <option value="😢">😢 حزين على مستواك وتقصيرك</option>
-
                         <option value="✅">✅ إجابة صحيحة / صح</option>
                         <option value="💡">💡 مشاركة وفكرة</option>
                         <option value="📘">📘 حل الواجب</option>
