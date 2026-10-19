@@ -642,7 +642,7 @@
                             <span class="bg-white/95 backdrop-blur-xs w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-black text-lg text-[#800000] shadow-sm border border-amber-200 shrink-0">➔</span>
                         </div>
                         
-                        <!-- القائمة المنسدلة الجديدة للتقارير والنسخ واللصق -->
+                        <!-- القائمة المنسدلة للتقارير والنسخ -->
                         <div class="pt-2 border-t border-amber-200/50 flex flex-col gap-2">
                             <select class="action-select w-full bg-white text-center py-2.5 rounded-xl font-bold text-xs" onchange="handleClassDropdownAction(this, '${cls}')">
                                 <option value="" disabled selected>📂 خيارات وتقارير الفصل...</option>
@@ -650,7 +650,7 @@
                                 <option value="share_detailed">🌐 مشاركة رابط التقرير الفردي</option>
                                 <option value="preview_table">👁️ معاينة جدول الفصل الشامل</option>
                                 <option value="share_table">🌐 مشاركة رابط جدول الفصل الشامل</option>
-                                <option value="copy_class_students">📋 نسخ أسماء وإيميلات طلاب الفصل</option>
+                                <option value="copy_class_students">📋 نسخ أسماء وإيميلات طلاب الفصل (اسم سطر وإيميل سطر)</option>
                             </select>
                         </div>
                     </div>
@@ -695,14 +695,16 @@
             const students = allStudents.filter(s => s.className === className);
             if (students.length === 0) return alert(`لا توجد طلاب مسجلين في ${className} للنسخ.`);
 
-            let textToCopy = `قائمة طلاب ${className}:\n`;
-            students.forEach((st, idx) => {
-                textToCopy += `${idx + 1}. ${st.name} - ${st.email || 'بدون إيميل'}\n`;
+            let textToCopy = "";
+            students.forEach((st) => {
+                const name = st.name || '';
+                const email = st.email || '';
+                textToCopy += `${name}\n${email}\n`;
             });
 
             try {
                 await navigator.clipboard.writeText(textToCopy.trim());
-                alert(`تم نسخ أسماء وإيميلات طلاب (${className}) إلى الحافظة بنجاح! 📋`);
+                alert(`تم نسخ أسماء وإيميلات طلاب (${className}) بنجاح!\n(اسم الطالب في سطر والإيميل في سطر) 📋`);
             } catch (err) {
                 alert("فشل النسخ تلقائياً.");
             }
