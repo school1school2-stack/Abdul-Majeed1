@@ -127,7 +127,6 @@
         }
         const db = firebase.firestore();
 
-        // فحص فوري للتقرير قبل تحميل واجهة النظام
         (async function earlySharedCheck() {
             const urlParams = new URLSearchParams(window.location.search);
             const reportId = urlParams.get('reportId');
@@ -257,14 +256,11 @@
 
         async function initSystem() {
             const urlParams = new URLSearchParams(window.location.search);
-            
-            // إذا كان الرابط يحتوي على reportId لا نظهر شاشة الدخول إطلاقاً
             if (urlParams.get('reportId')) {
                 document.getElementById('login-modal').classList.add('hidden');
                 return;
             }
 
-            // التحقق من حالة تسجيل الدخول للمستخدم
             if (sessionStorage.getItem('authenticated_user') === 'true') {
                 document.getElementById('login-modal').classList.add('hidden');
                 document.getElementById('app-container').classList.remove('hidden');
@@ -645,11 +641,17 @@
                             </div>
                             <span class="bg-white/95 backdrop-blur-xs w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-black text-lg text-[#800000] shadow-sm border border-amber-200 shrink-0">➔</span>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-amber-200/50">
-                            <button onclick="openClassReportPreview('${cls}', 'detailed')" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded-xl font-bold text-xs shadow cursor-pointer transition text-center flex items-center justify-center gap-1">👁️ تقرير فردي لكل طالب</button>
-                            <button onclick="shareClassReportLink('${cls}', 'detailed')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-xl font-bold text-xs shadow cursor-pointer transition text-center flex items-center justify-center gap-1">🌐 مشاركة تقرير الطلاب الفردي</button>
-                            <button onclick="openClassReportPreview('${cls}', 'table')" class="bg-stone-800 hover:bg-stone-900 text-amber-100 py-2 px-3 rounded-xl font-bold text-xs shadow cursor-pointer transition text-center flex items-center justify-center gap-1">👁️ جدول الفصل الشامل</button>
-                            <button onclick="shareClassReportLink('${cls}', 'table')" class="bg-amber-700 hover:bg-amber-800 text-white py-2 px-3 rounded-xl font-bold text-xs shadow cursor-pointer transition text-center flex items-center justify-center gap-1">🌐 مشاركة جدول الفصل الشامل</button>
+                        
+                        <!-- القائمة المنسدلة الجديدة للتقارير والنسخ واللصق -->
+                        <div class="pt-2 border-t border-amber-200/50 flex flex-col gap-2">
+                            <select class="action-select w-full bg-white text-center py-2.5 rounded-xl font-bold text-xs" onchange="handleClassDropdownAction(this, '${cls}')">
+                                <option value="" disabled selected>📂 خيارات وتقارير الفصل...</option>
+                                <option value="preview_detailed">👁️ معاينة التقرير الفردي لكل طالب</option>
+                                <option value="share_detailed">🌐 مشاركة رابط التقرير الفردي</option>
+                                <option value="preview_table">👁️ معاينة جدول الفصل الشامل</option>
+                                <option value="share_table">🌐 مشاركة رابط جدول الفصل الشامل</option>
+                                <option value="copy_class_students">📋 نسخ أسماء وإيميلات طلاب الفصل</option>
+                            </select>
                         </div>
                     </div>
                 `;
@@ -675,6 +677,35 @@
                     </div>
                 </div>
             `;
+        }
+
+        window.handleClassDropdownAction = function(selectEl, className) {
+            const val = selectEl.value;
+            selectEl.value = "";
+            if (!val) return;
+
+            if (val === 'preview_detailed') openClassReportPreview(className, 'detailed');
+            else if (val === 'share_detailed') shareClassReportLink(className, 'detailed');
+            else if (val === 'preview_table') openClassReportPreview(className, 'table');
+            else if (val === 'share_table') shareClassReportLink(className, 'table');
+            else if (val === 'copy_class_students') copyClassStudentsData(className);
+        };
+
+        async function copyClassStudentsData(className) {
+            const students = allStudents.filter(s => s.className === className);
+            if (students.length === 0) return alert(`لا توجد طلاب مسجلين في ${className} للنسخ.`);
+
+            let textToCopy = `قائمة طلاب ${className}:\n`;
+            students.forEach((st, idx) => {
+                textToCopy += `${idx + 1}. ${st.name} - ${st.email || 'بدون إيميل'}\n`;
+            });
+
+            try {
+                await navigator.clipboard.writeText(textToCopy.trim());
+                alert(`تم نسخ أسماء وإيميلات طلاب (${className}) إلى الحافظة بنجاح! 📋`);
+            } catch (err) {
+                alert("فشل النسخ تلقائياً.");
+            }
         }
 
         function getCleanActionDetails(rawTitle) {
@@ -1834,7 +1865,6 @@
 </head>
 <body class="text-slate-900 h-full flex flex-col justify-between text-sm overflow-x-hidden">
 
-    <!-- 0. شاشة تسجيل الدخول بالرقم السري -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#fdfaf1] hidden">
         <div class="max-w-md w-full bg-white border-2 border-amber-200/80 p-8 rounded-3xl shadow-2xl text-center space-y-6">
             <div class="w-20 h-20 bg-[#800000] text-[#d4af37] rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-md border border-amber-200/60">
@@ -1855,10 +1885,8 @@
         </div>
     </div>
 
-    <!-- المحتوى الرئيسي للنظام -->
     <div id="app-container" class="h-full flex flex-col justify-between hidden">
 
-        <!-- 1. الترويسة العلوية الثابتة (Header) -->
         <header id="main-header" class="p-4 shadow-sm border-b shrink-0 z-30 transition-all duration-500">
             <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row justify-between items-center gap-3">
                 <div class="text-center sm:text-right">
@@ -1872,20 +1900,16 @@
             </div>
         </header>
 
-        <!-- 2. منطقة المحتوى الوسطى القابلة للتمرير (Main Scroll Container) -->
         <main id="main-scroll-container" class="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 container mx-auto max-w-6xl w-full">
 
-            <!-- 1. الواجهة الرئيسية: شبكة الفصول ولائحة التحكم كأيقونة بجانبها -->
             <div id="main-dashboard" class="py-2 space-y-6">
                 <div class="flex items-center justify-between border-b pb-3">
                     <h2 class="text-2xl font-black text-slate-900 tracking-wider">🏫 القائمة الرئيسية</h2>
                     <span class="text-xs font-bold text-slate-500 bg-white px-3.5 py-1.5 rounded-full border shadow-2xs">اختر الفصل أو اللوحة للبدء</span>
                 </div>
                 
-                <!-- شبكة البطاقات الموحدة -->
                 <div id="dynamic-classes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 sm:gap-6 w-full max-w-full overflow-hidden"></div>
 
-                <!-- شريط العبارات التحفيزية -->
                 <div class="bg-white/80 backdrop-blur-xs border-2 border-amber-200/80 p-5 rounded-3xl shadow-sm text-center my-4 transition hover:shadow-md">
                     <p id="quote-text" class="student-name-font text-lg text-amber-950 leading-relaxed">
                         ✨ "التعليم هو السلاح الأقوى الذي يمكنك استخدامه لتغيير العالم."
@@ -1894,7 +1918,6 @@
                 </div>
             </div>
 
-            <!-- 2. واجهة لوحة التحكم المدمجة -->
             <div id="admin-control-view" class="hidden py-2 space-y-4">
                 <div class="flex items-center justify-between mb-2 bg-white p-3.5 rounded-2xl shadow-sm border">
                     <button onclick="backToHome()" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">⬅ الرئيسية</button>
@@ -1957,7 +1980,6 @@
                 </div>
             </div>
 
-            <!-- 3. واجهة الطلاب داخل الفصل المختار -->
             <div id="class-view" class="hidden py-1">
                 <div class="flex items-center justify-between mb-4 bg-white p-3.5 rounded-2xl shadow-sm border">
                     <button onclick="backToHome()" class="bg-slate-100 text-slate-800 px-4 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition">⬅ الرئيسية</button>
@@ -1970,7 +1992,6 @@
 
         </main>
 
-        <!-- 3. التذييل السفلي الثابت (Footer) -->
         <footer id="main-footer" class="py-3 px-6 border-t shrink-0 z-30 transition-all duration-500">
             <div class="container mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs font-bold text-center sm:text-right">
                 <div>إعداد أ/ عبدالعزيز الفيفي ثانوية الأمير عبدالمجيد    👨‍🏫</div>
@@ -1981,7 +2002,6 @@
 
     </div>
 
-    <!-- النوافذ المنبثقة (Modals) -->
     <div id="settings-modal" class="fixed inset-0 bg-slate-900/60 hidden items-center justify-center p-3 z-50">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 relative shadow-xl max-h-[90vh] overflow-y-auto">
             <button onclick="closeSettingsModal()" class="absolute top-4 left-4 bg-slate-100 text-slate-700 w-8 h-8 rounded-full font-bold flex items-center justify-center cursor-pointer hover:bg-slate-200">✕</button>
