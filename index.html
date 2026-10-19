@@ -650,7 +650,7 @@
                                 <option value="share_detailed">🌐 مشاركة رابط التقرير الفردي</option>
                                 <option value="preview_table">👁️ معاينة جدول الفصل الشامل</option>
                                 <option value="share_table">🌐 مشاركة رابط جدول الفصل الشامل</option>
-                                <option value="copy_class_students">📋 نسخ أسماء وإيميلات طلاب الفصل (اسم سطر وإيميل سطر)</option>
+                                <option value="copy_class_students">📋 نسخ أسماء وإيميلات طلاب الفصل (بدون أرقام)</option>
                             </select>
                         </div>
                     </div>
@@ -704,7 +704,7 @@
 
             try {
                 await navigator.clipboard.writeText(textToCopy.trim());
-                alert(`تم نسخ أسماء وإيميلات طلاب (${className}) بنجاح!\n(اسم الطالب في سطر والإيميل في سطر) 📋`);
+                alert(`تم نسخ أسماء وإيميلات طلاب (${className}) بنجاح (بدون أرقام) 📋`);
             } catch (err) {
                 alert("فشل النسخ تلقائياً.");
             }
