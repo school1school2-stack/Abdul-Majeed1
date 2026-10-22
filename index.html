@@ -4,16 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المعلم التفاعلي - الشامل في الوحدة النحوية | أ. عبدالعزيز الفيفي</title>
+    <title>الماهر بالنواسخ والنحو - المراجعة الشاملة للوحدة النحوية | أ. عبدالعزيز الفيفي</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Cairo & Amiri -->
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Cairo & Tajawal & Amiri -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- Tone.js for Audio FX -->
+    <!-- Tone.js for Audio Effects -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 
     <script>
@@ -22,31 +22,32 @@
                 extend: {
                     fontFamily: {
                         cairo: ['Cairo', 'sans-serif'],
+                        tajawal: ['Tajawal', 'sans-serif'],
                         amiri: ['Amiri', 'serif'],
                     },
                     colors: {
-                        creamBeige: {
-                            50: '#fffdfa',
-                            100: '#fbf4eb',
-                            200: '#f5e6d3',
-                            300: '#ebd3b4',
-                            400: '#dfba8e',
-                            800: '#432d18',
-                            900: '#26170a',
-                        },
-                        warmRed: {
-                            500: '#ef4444',
-                            600: '#dc2626',
-                            700: '#b91c1c',
-                            800: '#991b1b',
-                            950: '#450a0a',
+                        creamBg: '#FAF6F0',
+                        creamCard: '#FFFFFF',
+                        creamDark: '#F3EBE0',
+                        royalMaroon: {
+                            50: '#FDF2F2',
+                            100: '#FDE8E8',
+                            600: '#A31D1D',
+                            700: '#8B0000',
+                            800: '#6E0000',
+                            900: '#4A0000',
                         },
                         amberGold: {
-                            300: '#fcd34d',
-                            400: '#fbbf24',
-                            500: '#f59e0b',
-                            600: '#d97706',
-                            700: '#b45309',
+                            100: '#FEF3C7',
+                            400: '#F59E0B',
+                            500: '#D97706',
+                            600: '#B45309',
+                            700: '#854D0E',
+                        },
+                        slateNavy: {
+                            700: '#334155',
+                            800: '#1E293B',
+                            900: '#0F172A',
                         }
                     }
                 }
@@ -55,192 +56,197 @@
     </script>
     <style>
         body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #1c120c 0%, #29180e 50%, #150a05 100%);
-            color: #fbf4eb;
-            user-select: none;
+            font-family: 'Tajawal', 'Cairo', sans-serif;
+            background-color: #FAF6F0;
+            color: #1E293B;
             min-height: 100vh;
         }
-        .glass-card {
-            background: rgba(38, 23, 10, 0.85);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(251, 191, 36, 0.25);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+        .light-glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 0, 0, 0.12);
+            box-shadow: 0 10px 30px -5px rgba(139, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
         }
         .gold-border {
-            border: 1px solid rgba(251, 191, 36, 0.35);
+            border: 1px solid rgba(217, 119, 6, 0.3);
         }
-        .animated-gradient-text {
-            background: linear-gradient(135deg, #fcd34d, #f59e0b, #ef4444);
+        .royal-gradient-text {
+            background: linear-gradient(135deg, #8B0000 0%, #B45309 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .glow-btn {
-            box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+        .btn-royal {
+            background: linear-gradient(135deg, #8B0000 0%, #A31D1D 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(139, 0, 0, 0.25);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .glow-btn:hover {
-            box-shadow: 0 0 30px rgba(245, 158, 11, 0.7);
+        .btn-royal:hover {
+            background: linear-gradient(135deg, #A31D1D 0%, #B45309 100%);
+            box-shadow: 0 6px 20px rgba(139, 0, 0, 0.35);
+            transform: translateY(-2px);
         }
         .option-btn {
             transition: all 0.2s ease-in-out;
         }
         .option-btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            border-color: #fbbf24;
-            background: rgba(217, 119, 6, 0.2);
+            border-color: #A31D1D;
+            background-color: #FDF2F2;
         }
-        /* Printable Styles */
+        /* Printable Styles for Certificate */
         @media print {
             body { background: white !important; color: black !important; }
             header, nav, .no-print { display: none !important; }
-            #printable-certificate { display: block !important; border: 10px solid #d97706 !important; background: #fff !important; color: #000 !important; }
+            #printable-certificate { display: block !important; border: 12px double #8B0000 !important; background: #FFF9F2 !important; color: #1E293B !important; }
         }
     </style>
 </head>
-<body class="min-h-screen pb-12">
+<body class="min-h-screen pb-16 flex flex-col">
 
-    <!-- Header Navigation -->
-    <header class="sticky top-0 z-50 glass-card border-b border-amberGold-500/30 mb-6 bg-creamBeige-900/95">
+    <!-- TOP HEADER / NAV -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-royalMaroon-700/10 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
             <!-- Brand Badge -->
             <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-warmRed-700 via-amberGold-600 to-amberGold-400 flex items-center justify-center shadow-lg shadow-warmRed-700/40 text-white font-bold text-2xl border border-amberGold-300/40">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-royalMaroon-700 via-royalMaroon-600 to-amberGold-500 flex items-center justify-center shadow-md text-white font-bold text-2xl border border-amberGold-400/40">
                     <i class="fa-solid fa-book-quran"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg md:text-xl font-black text-creamBeige-100">المعلم التفاعلي - الوحدة النحوية</h1>
-                    <p class="text-xs text-amberGold-400 font-bold flex items-center gap-1">
-                        <i class="fa-solid fa-user-tie"></i> أ. عبدالعزيز الفيفي | ثانوية الأمير عبد المجيد
+                    <h1 class="text-lg md:text-xl font-black text-royalMaroon-700 font-cairo leading-tight">الماهر بالنواسخ والنحو</h1>
+                    <p class="text-xs text-amberGold-600 font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-graduation-cap"></i> إعداد: أ. عبدالعزيز الفيفي | ثانوية الأمير عبد المجيد
                     </p>
                 </div>
             </div>
 
             <!-- Navigation Tabs -->
-            <nav class="flex items-center gap-1.5 bg-creamBeige-900/90 p-1.5 rounded-2xl border border-amberGold-500/30 text-xs md:text-sm font-bold">
-                <button onclick="switchTab('reference')" id="tab-btn-reference" class="nav-tab px-3.5 py-2 rounded-xl transition-all bg-gradient-to-r from-warmRed-700 to-amberGold-600 text-white shadow-md">
-                    <i class="fa-solid fa-book-bookmark ml-1"></i> ملخص القواعد الشامل
+            <nav class="flex items-center gap-1 bg-creamDark p-1.5 rounded-2xl border border-royalMaroon-700/10 text-xs md:text-sm font-bold">
+                <button onclick="switchTab('reference')" id="tab-btn-reference" class="nav-tab px-3.5 py-2 rounded-xl transition-all bg-royalMaroon-700 text-white shadow-sm">
+                    <i class="fa-solid fa-book-bookmark ml-1"></i> ملخص القواعد
                 </button>
-                <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="nav-tab px-3.5 py-2 rounded-xl transition-all text-creamBeige-200 hover:text-white hover:bg-warmRed-900/40">
+                <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="nav-tab px-3.5 py-2 rounded-xl transition-all text-slateNavy-700 hover:text-royalMaroon-700 hover:bg-white/60">
                     <i class="fa-solid fa-clipboard-question ml-1"></i> الاختبار التفاعلي (40)
                 </button>
-                <button onclick="switchTab('game')" id="tab-btn-game" class="nav-tab px-3.5 py-2 rounded-xl transition-all text-creamBeige-200 hover:text-white hover:bg-warmRed-900/40">
-                    <i class="fa-solid fa-gamepad ml-1"></i> تحدي النواسخ
+                <button onclick="switchTab('game')" id="tab-btn-game" class="nav-tab px-3.5 py-2 rounded-xl transition-all text-slateNavy-700 hover:text-royalMaroon-700 hover:bg-white/60">
+                    <i class="fa-solid fa-bolt ml-1"></i> تحدي التصنيف
                 </button>
             </nav>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4">
+    <main class="max-w-6xl mx-auto px-4 mt-6 flex-grow w-full">
 
         <!-- TAB 1: DETAILED REFERENCE SUMMARY -->
         <section id="tab-reference" class="tab-content">
-            <!-- Intro Header Card -->
-            <div class="glass-card rounded-3xl p-6 md:p-8 mb-8 border border-amberGold-500/40 relative overflow-hidden bg-gradient-to-br from-creamBeige-900/90 via-creamBeige-900/80 to-warmRed-950/60">
+            <!-- Hero Banner Card -->
+            <div class="light-glass-card rounded-3xl p-6 md:p-8 mb-8 border-r-8 border-r-royalMaroon-700 relative overflow-hidden bg-gradient-to-l from-white via-amberGold-100/20 to-creamBg">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
-                        <span class="inline-block px-3.5 py-1 rounded-full bg-amberGold-500/20 text-amberGold-300 text-xs font-bold mb-3 border border-amberGold-500/30">
-                            <i class="fa-solid fa-graduation-cap ml-1"></i> قسم الموسوعة والمراجعة التفصيلية
+                        <span class="inline-block px-3.5 py-1 rounded-full bg-royalMaroon-50 text-royalMaroon-700 text-xs font-bold mb-3 border border-royalMaroon-700/10">
+                            <i class="fa-solid fa-book-open ml-1"></i> قسم الموسوعة والتلخيص النحوي الشامل
                         </span>
-                        <h2 class="text-2xl md:text-4xl font-black mb-3 text-creamBeige-50 leading-tight">
-                            الملخص الشامل والمركز <span class="animated-gradient-text">لللوحدة النحوية</span>
+                        <h2 class="text-2xl md:text-4xl font-black mb-3 text-slateNavy-900 font-cairo leading-tight">
+                            الدليل الشامل والمركز <span class="royal-gradient-text">لللوحدة النحوية</span>
                         </h2>
-                        <p class="text-creamBeige-200 text-sm md:text-base leading-relaxed max-w-3xl">
-                            دليل مرجعي تفصيلي يغطي كافة المفاهيم، القواعد، النواسخ، إعراب الفعل المضارع، والنائب عن الفاعل مع نماذج إعرابية تطبيقية مصممة خصيصاً لطلاب ثانوية الأمير عبد المجيد.
+                        <p class="text-slateNavy-700 text-sm md:text-base leading-relaxed max-w-3xl">
+                            مرجع تفصيلي منظم يتضمن الجملتين الاسمية والفعلية، النواسخ (كان وإنَّ)، إعراب الفعل المضارع بالتفصيل، والنائب عن الفاعل مع نماذج إعرابية مبسطة أُعدت خصيصاً لطلاب ثانوية الأمير عبد المجيد.
                         </p>
                     </div>
-                    <div class="hidden lg:flex flex-col items-center bg-warmRed-950/80 p-5 rounded-2xl border border-amberGold-500/40 text-center min-w-[200px]">
-                        <i class="fa-solid fa-award text-4xl text-amberGold-400 mb-2"></i>
-                        <span class="text-xs font-bold text-creamBeige-200">إشراف وتصميم</span>
-                        <span class="text-sm font-black text-amberGold-300">أ. عبدالعزيز الفيفي</span>
+                    <div class="hidden lg:flex flex-col items-center bg-white/80 p-5 rounded-2xl border border-amberGold-500/30 text-center min-w-[210px] shadow-sm">
+                        <i class="fa-solid fa-award text-4xl text-amberGold-500 mb-2"></i>
+                        <span class="text-xs font-bold text-slateNavy-700">إشراف وتنفيذ</span>
+                        <span class="text-sm font-black text-royalMaroon-700">أ. عبدالعزيز الفيفي</span>
                     </div>
                 </div>
             </div>
 
             <div class="space-y-8">
 
-                <!-- SECTION 1: الجملة الاسمية والجملة الفعلية -->
-                <div class="glass-card rounded-3xl p-6 md:p-8 border border-amberGold-500/30">
-                    <h3 class="text-xl md:text-2xl font-black text-amberGold-400 mb-6 flex items-center gap-3 border-b border-amberGold-500/20 pb-4">
-                        <i class="fa-solid fa-font text-warmRed-500"></i> أولاً: الجملة الاسمية والجملة الفعلية
+                <!-- LESSON 1: الجملة الاسمية والجملة الفعلية -->
+                <div class="light-glass-card rounded-3xl p-6 md:p-8">
+                    <h3 class="text-xl md:text-2xl font-black text-royalMaroon-700 mb-6 flex items-center gap-3 border-b border-royalMaroon-700/10 pb-4 font-cairo">
+                        <i class="fa-solid fa-font text-amberGold-500"></i> الدرس الأول: الجملة الاسمية والجملة الفعلية
                     </h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <!-- الاسمية -->
-                        <div class="bg-creamBeige-900/90 p-5 rounded-2xl border border-amberGold-500/30">
-                            <h4 class="text-lg font-bold text-amberGold-300 mb-3 flex items-center gap-2">
+                        <div class="bg-creamBg/90 p-5 rounded-2xl border border-amberGold-500/20">
+                            <h4 class="text-lg font-bold text-royalMaroon-700 mb-3 flex items-center gap-2">
                                 <i class="fa-solid fa-circle-dot text-amberGold-500"></i> 1. الجملة الاسمية
                             </h4>
-                            <p class="text-sm text-creamBeige-200 leading-relaxed mb-3">
+                            <p class="text-sm text-slateNavy-800 leading-relaxed mb-3">
                                 هي الجملة التي تبدأ بـ <strong>اسم</strong> وتتكون من ركنين أساسيين مرفوعين هما:
                             </p>
-                            <ul class="list-disc list-inside text-xs md:text-sm text-creamBeige-300 space-y-2 mb-4">
-                                <li><strong>المبتدأ:</strong> اسم مرفوع تبدأ به الجملة وهو موضوع الحديث.</li>
-                                <li><strong>الخبر:</strong> المتمم لمعنى المبتدأ ولا تتم فائدة الجملة إلا به.</li>
+                            <ul class="list-disc list-inside text-xs md:text-sm text-slateNavy-700 space-y-2 mb-4">
+                                <li><strong>المبتدأ:</strong> الاسم المرفوع الواقع في أول الجملة غالبًا.</li>
+                                <li><strong>الخبر:</strong> الجزء الذي يتم معنى الجملة مع المبتدأ ويحكم به عليه.</li>
                             </ul>
-                            <div class="bg-warmRed-950/60 p-3 rounded-xl border border-amberGold-500/30 text-xs text-creamBeige-100 font-mono">
-                                <strong class="text-amberGold-400">مثال:</strong> (العِلْمُ نُورٌ) <br/>
-                                📍 <strong>العلمُ:</strong> مبتدأ مرفوع وعلامة رفعه الضمة الظاهرة. <br/>
+                            <div class="bg-white p-3.5 rounded-xl border border-royalMaroon-700/10 text-xs md:text-sm text-slateNavy-800">
+                                <strong class="text-royalMaroon-700">مثال إعرابي:</strong> <em>(العِلْمُ نُورٌ)</em><br/>
+                                📍 <strong>العلمُ:</strong> مبتدأ مرفوع وعلامة رفعه الضمة الظاهرة.<br/>
                                 📍 <strong>نورٌ:</strong> خبر المبتدأ مرفوع وعلامة رفعه الضمة الظاهرة.
                             </div>
                         </div>
 
                         <!-- الفعلية -->
-                        <div class="bg-creamBeige-900/90 p-5 rounded-2xl border border-warmRed-500/30">
-                            <h4 class="text-lg font-bold text-warmRed-400 mb-3 flex items-center gap-2">
-                                <i class="fa-solid fa-circle-dot text-warmRed-500"></i> 2. الجملة الفعلية
+                        <div class="bg-creamBg/90 p-5 rounded-2xl border border-royalMaroon-700/20">
+                            <h4 class="text-lg font-bold text-royalMaroon-700 mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-circle-dot text-royalMaroon-600"></i> 2. الجملة الفعلية
                             </h4>
-                            <p class="text-sm text-creamBeige-200 leading-relaxed mb-3">
-                                هي الجملة التي تبدأ بـ <strong>فعل</strong> (ماضٍ، مضارع، أمر) وتتكون من ركنين أساسيين:
+                            <p class="text-sm text-slateNavy-800 leading-relaxed mb-3">
+                                هي الجملة التي تبدأ بـ <strong>فعل</strong> (ماضٍ، مضارع، أو أمر) وتتكون من:
                             </p>
-                            <ul class="list-disc list-inside text-xs md:text-sm text-creamBeige-300 space-y-2 mb-4">
-                                <li><strong>الفعل:</strong> حدث مرتبط بـزمن معين.</li>
+                            <ul class="list-disc list-inside text-xs md:text-sm text-slateNavy-700 space-y-2 mb-4">
+                                <li><strong>الفعل:</strong> يدل على حدث مقترن بزمن معين.</li>
                                 <li><strong>الفاعل:</strong> اسم مرفوع يدل على من قام بالفعل أو اتصف به.</li>
+                                <li><strong>المفعول به (إن وجد):</strong> اسم منصوب يقع عليه فعل الفاعل.</li>
                             </ul>
-                            <div class="bg-warmRed-950/60 p-3 rounded-xl border border-warmRed-500/30 text-xs text-creamBeige-100 font-mono">
-                                <strong class="text-warmRed-400">مثال:</strong> (حَضَرَ المَعَلِّمُ) <br/>
-                                📍 <strong>حضرَ:</strong> فعل ماضٍ مبني على الفتح. <br/>
+                            <div class="bg-white p-3.5 rounded-xl border border-royalMaroon-700/10 text-xs md:text-sm text-slateNavy-800">
+                                <strong class="text-royalMaroon-700">مثال إعرابي:</strong> <em>(حَضَرَ المَعَلِّمُ)</em><br/>
+                                📍 <strong>حضرَ:</strong> فعل ماضٍ مبني على الفتح.<br/>
                                 📍 <strong>المعلمُ:</strong> فاعل مرفوع وعلامة رفعه الضمة الظاهرة.
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- SECTION 2: النواسخ (كان وأخواتها وإن وأخواتها) -->
-                <div class="glass-card rounded-3xl p-6 md:p-8 border border-amberGold-500/30">
-                    <h3 class="text-xl md:text-2xl font-black text-amberGold-400 mb-6 flex items-center gap-3 border-b border-amberGold-500/20 pb-4">
-                        <i class="fa-solid fa-sliders text-amberGold-500"></i> ثانياً: النواسخ (كان وأخواتها - إنَّ وأخواتها)
+                <!-- LESSON 2: النواسخ (كان وأخواتها - إن وأخواتها) -->
+                <div class="light-glass-card rounded-3xl p-6 md:p-8">
+                    <h3 class="text-xl md:text-2xl font-black text-royalMaroon-700 mb-6 flex items-center gap-3 border-b border-royalMaroon-700/10 pb-4 font-cairo">
+                        <i class="fa-solid fa-layer-group text-amberGold-500"></i> الدرس الثاني: النواسخ (كان وأخواتها - إنَّ وأخواتها)
                     </h3>
 
-                    <p class="text-sm text-creamBeige-200 mb-6 leading-relaxed">
-                        النواسخ هي أدوات تدخل على الجملة الاسمية فتغير حكم المبتدأ والخبر إعرابياً:
+                    <p class="text-sm text-slateNavy-800 mb-6 leading-relaxed">
+                        النواسخ هي أدوات تدخل على الجملة الاسمية فتنسخ (تغير) حكم المبتدأ والخبر إعرابياً:
                     </p>
 
-                    <!-- Comparative Table -->
+                    <!-- Table -->
                     <div class="overflow-x-auto mb-6">
-                        <table class="w-full text-right text-xs md:text-sm border-collapse">
+                        <table class="w-full text-right text-xs md:text-sm border-collapse rounded-2xl overflow-hidden shadow-sm">
                             <thead>
-                                <tr class="bg-warmRed-950/80 text-amberGold-300 border-b border-amberGold-500/40">
-                                    <th class="p-3 border border-amberGold-500/20">وجه المقارنة</th>
-                                    <th class="p-3 border border-amberGold-500/20">أفعال ناسخة (كان وأخواتها)</th>
-                                    <th class="p-3 border border-amberGold-500/20">حروف ناسخة (إنَّ وأخواتها)</th>
+                                <tr class="bg-royalMaroon-700 text-white font-cairo">
+                                    <th class="p-3 border border-royalMaroon-800">وجه المقارنة</th>
+                                    <th class="p-3 border border-royalMaroon-800">الأفعال الناقصة (كان وأخواتها)</th>
+                                    <th class="p-3 border border-royalMaroon-800">الحروف المشبهة بالفعل (إنَّ وأخواتها)</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-amberGold-500/20 text-creamBeige-200">
+                            <tbody class="divide-y divide-royalMaroon-700/10 bg-white text-slateNavy-800">
                                 <tr>
-                                    <td class="p-3 font-bold bg-creamBeige-900/60 text-amberGold-400">طبيعة الأداة</td>
-                                    <td class="p-3">أفعال ناقصة ناسخة</td>
+                                    <td class="p-3 font-bold bg-creamBg text-royalMaroon-700">نوع الأدوات</td>
+                                    <td class="p-3">أفعال ناسخة ناقصة</td>
                                     <td class="p-3">حروف ناسخة</td>
                                 </tr>
-                                <tr class="bg-creamBeige-900/30">
-                                    <td class="p-3 font-bold bg-creamBeige-900/60 text-amberGold-400">الأثر الإعرابي</td>
-                                    <td class="p-3 text-amberGold-300 font-bold">ترفع المبتدأ ويسمى اسماً لها، وتنصب الخبر ويسمى خبراً لها.</td>
-                                    <td class="p-3 text-warmRed-400 font-bold">تنصب المبتدأ ويسمى اسماً لها، وترفع الخبر ويسمى خبراً لها.</td>
+                                <tr>
+                                    <td class="p-3 font-bold bg-creamBg text-royalMaroon-700">الأثر الإعرابي</td>
+                                    <td class="p-3 text-royalMaroon-700 font-bold">ترفع المبتدأ اسماً لها، وتنصب الخبر خبراً لها.</td>
+                                    <td class="p-3 text-amberGold-600 font-bold">تنصب المبتدأ اسماً لها، وترفع الخبر خبراً لها.</td>
                                 </tr>
                                 <tr>
-                                    <td class="p-3 font-bold bg-creamBeige-900/60 text-amberGold-400">أشهر الأدوات ومعانيها</td>
+                                    <td class="p-3 font-bold bg-creamBg text-royalMaroon-700">أبرز الأدوات ومعانيها</td>
                                     <td class="p-3">
                                         • <strong>كان:</strong> التوقيت بالماضي.<br/>
-                                        • <strong>أصبح/أضحى/أمسى/بات:</strong> التوقيت بالأوقات.<br/>
+                                        • <strong>أصبح / أضحى / أمسى / بات:</strong> أوقات اليوم.<br/>
                                         • <strong>صار:</strong> التحول والصيرورة.<br/>
                                         • <strong>ليس:</strong> النفي.
                                     </td>
@@ -248,19 +254,19 @@
                                         • <strong>إنَّ / أنَّ:</strong> التوكيد.<br/>
                                         • <strong>كأنَّ:</strong> التشبيه.<br/>
                                         • <strong>لكنَّ:</strong> الاستدراك.<br/>
-                                        • <strong>ليتَ:</strong> التمني (الشيء المستحيل).<br/>
-                                        • <strong>لعلَّ:</strong> الترجي (الشيء الممكن).
+                                        • <strong>ليتَ:</strong> التمني.<br/>
+                                        • <strong>لعلَّ:</strong> الترجي.
                                     </td>
                                 </tr>
-                                <tr class="bg-creamBeige-900/30">
-                                    <td class="p-3 font-bold bg-creamBeige-900/60 text-amberGold-400">نموذج تطبيقي</td>
+                                <tr>
+                                    <td class="p-3 font-bold bg-creamBg text-royalMaroon-700">نموذج تطبيقي</td>
                                     <td class="p-3 font-mono text-xs">
-                                        (كانَ الجوُّ بارداً)<br/>
+                                        <em>(كانَ الجوُّ بارداً)</em><br/>
                                         • الجوُّ: اسم كان مرفوع بالضمة.<br/>
                                         • بارداً: خبر كان منصوب بالفتحة.
                                     </td>
                                     <td class="p-3 font-mono text-xs">
-                                        (إنَّ الجوَّ باردٌ)<br/>
+                                        <em>(إنَّ الجوَّ باردٌ)</em><br/>
                                         • الجوَّ: اسم إنَّ منصوب بالفتحة.<br/>
                                         • باردٌ: خبر إنَّ مرفوع بالضمة.
                                     </td>
@@ -269,29 +275,29 @@
                         </table>
                     </div>
 
-                    <!-- Note about Ma al-Kaffah -->
-                    <div class="bg-amberGold-500/10 border border-amberGold-500/30 p-4 rounded-2xl text-xs md:text-sm text-creamBeige-200">
-                        <strong class="text-amberGold-400"><i class="fa-solid fa-triangle-exclamation ml-1"></i> تنبيه هام جداً (كفّ إنَّ عن العمل):</strong>
-                        إذا دخلت (ما) الكافية على (إنَّ) أو أخواتها (مثل: إنَّما)، فإنها **تكفُّها عن العمل**، وما بعدها يعرب مبتدأ وخبر مرفوعين عادي جداً. مثال: <em>(إِنَّمَا المُؤْمِنُونَ إِخْوَةٌ)</em> ⬅️ <strong>المؤمنون:</strong> مبتدأ مرفوع بالواو.
+                    <!-- Note -->
+                    <div class="bg-amberGold-100/60 border border-amberGold-500/30 p-4 rounded-2xl text-xs md:text-sm text-slateNavy-800">
+                        <strong class="text-amberGold-700"><i class="fa-solid fa-triangle-exclamation ml-1"></i> فائدة نحوية (كفّ إنَّ عن العمل بـ ما):</strong>
+                        إذا اتصلت (ما) الكافية بـ (إنَّ) مثل: <em>(إِنَّمَا المُؤْمِنُونَ إِخْوَةٌ)</em>، فإنها <strong>تكفها عن العمل</strong> ويُعرب ما بعدها مبتدأً وخبراً مرفوعين.
                     </div>
                 </div>
 
-                <!-- SECTION 3: إعراب الفعل المضارع بالتفصيل -->
-                <div class="glass-card rounded-3xl p-6 md:p-8 border border-amberGold-500/30">
-                    <h3 class="text-xl md:text-2xl font-black text-amberGold-400 mb-6 flex items-center gap-3 border-b border-amberGold-500/20 pb-4">
-                        <i class="fa-solid fa-bolt text-amberGold-400"></i> ثالثاً: إعراب الفعل المضارع بالتفصيل
+                <!-- LESSON 3: إعراب الفعل المضارع -->
+                <div class="light-glass-card rounded-3xl p-6 md:p-8">
+                    <h3 class="text-xl md:text-2xl font-black text-royalMaroon-700 mb-6 flex items-center gap-3 border-b border-royalMaroon-700/10 pb-4 font-cairo">
+                        <i class="fa-solid fa-bolt text-amberGold-500"></i> الدرس الثالث: إعراب الفعل المضارع بالتفصيل
                     </h3>
 
-                    <p class="text-sm text-creamBeige-200 mb-6 leading-relaxed">
-                        الفعل المضارع فعل معرب، وتتغير حالته الإعرابية بحسب الأدوات السابقة له:
+                    <p class="text-sm text-slateNavy-800 mb-6 leading-relaxed">
+                        الفعل المضارع فعل معرب (يرفع، ينصب، ويجزم بحسب الأدوات قبلة):
                     </p>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <!-- الرفع -->
-                        <div class="bg-creamBeige-900/90 p-5 rounded-2xl border border-amberGold-500/30">
-                            <h4 class="font-bold text-amberGold-300 mb-2 border-b border-amberGold-500/20 pb-2">1. حالة الرفع</h4>
-                            <p class="text-xs text-creamBeige-300 mb-3">إذا لم تسبقه أداة نصب ولا أداة جزم.</p>
-                            <div class="space-y-1.5 text-xs text-creamBeige-200">
+                        <div class="bg-creamBg p-5 rounded-2xl border border-amberGold-500/20">
+                            <h4 class="font-bold text-royalMaroon-700 mb-2 border-b border-royalMaroon-700/10 pb-2">1. حالة الرفع</h4>
+                            <p class="text-xs text-slateNavy-700 mb-3">إذا لم تسبقه أداة نصب ولا أداة جزم.</p>
+                            <div class="space-y-1.5 text-xs text-slateNavy-800">
                                 <div>• <strong>صحيح الآخر:</strong> الضمة الظاهرة (يكتبُ).</div>
                                 <div>• <strong>معتل الآخر:</strong> الضمة المقدرة (يسعى، يدعو).</div>
                                 <div>• <strong>الأفعال الخمسة:</strong> ثبوت النون (يعملونَ).</div>
@@ -299,107 +305,104 @@
                         </div>
 
                         <!-- النصب -->
-                        <div class="bg-creamBeige-900/90 p-5 rounded-2xl border border-amberGold-500/30">
-                            <h4 class="font-bold text-amberGold-400 mb-2 border-b border-amberGold-500/20 pb-2">2. حالة النصب</h4>
-                            <p class="text-xs text-creamBeige-300 mb-3">إذا سبق بـ المقررة: <strong>(لَنْ - كَيْ)</strong>.</p>
-                            <div class="space-y-1.5 text-xs text-creamBeige-200">
+                        <div class="bg-creamBg p-5 rounded-2xl border border-amberGold-500/20">
+                            <h4 class="font-bold text-amberGold-600 mb-2 border-b border-royalMaroon-700/10 pb-2">2. حالة النصب</h4>
+                            <p class="text-xs text-slateNavy-700 mb-3">إذا سبق بـ المقررة: <strong>(لَنْ - كَيْ)</strong>.</p>
+                            <div class="space-y-1.5 text-xs text-slateNavy-800">
                                 <div>• <strong>صحيح الآخر:</strong> الفتحة الظاهرة (لن يهملَ).</div>
-                                <div>• <strong>معتل الآخر:</strong> الفتحة الظاهرة / المقدرة (كي يسعى).</div>
+                                <div>• <strong>معتل الآخر:</strong> الفتحة الظاهرة أو المقدرة.</div>
                                 <div>• <strong>الأفعال الخمسة:</strong> حذف النون (لن يفرطوا).</div>
                             </div>
                         </div>
 
                         <!-- الجزم -->
-                        <div class="bg-creamBeige-900/90 p-5 rounded-2xl border border-warmRed-500/30">
-                            <h4 class="font-bold text-warmRed-400 mb-2 border-b border-amberGold-500/20 pb-2">3. حالة الجزم</h4>
-                            <p class="text-xs text-creamBeige-300 mb-3">إذا سبق بأداة الجزم المقررة: <strong>(لَمْ)</strong>.</p>
-                            <div class="space-y-1.5 text-xs text-creamBeige-200">
-                                <div>• <strong>صحيح الآخر:</strong> السكون (لم يحضرْ).</div>
+                        <div class="bg-creamBg p-5 rounded-2xl border border-royalMaroon-700/20">
+                            <h4 class="font-bold text-royalMaroon-700 mb-2 border-b border-royalMaroon-700/10 pb-2">3. حالة الجزم</h4>
+                            <p class="text-xs text-slateNavy-700 mb-3">إذا سبق بـ أداة الجزم المقررة: <strong>(لَمْ)</strong>.</p>
+                            <div class="space-y-1.5 text-xs text-slateNavy-800">
+                                <div>• <strong>صحيح الآخر:</strong> السكون الظاهر (لم يحضرْ).</div>
                                 <div>• <strong>معتل الآخر:</strong> حذف حرف العلة (لم يسعَ).</div>
                                 <div>• <strong>الأفعال الخمسة:</strong> حذف النون (لم يتأخروا).</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Summary Marks Table -->
-                    <h4 class="text-base font-bold text-amberGold-300 mb-3">جدول علامات إعراب المضارع التفصيلي:</h4>
+                    <!-- Marks Table -->
+                    <h4 class="text-base font-bold text-royalMaroon-700 mb-3 font-cairo">جدول ملخص علامات إعراب المضارع:</h4>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-right text-xs border-collapse">
+                        <table class="w-full text-right text-xs md:text-sm border-collapse rounded-xl overflow-hidden shadow-sm">
                             <thead>
-                                <tr class="bg-warmRed-950/80 text-amberGold-300 border-b border-amberGold-500/40">
-                                    <th class="p-2.5 border border-amberGold-500/20">نوع الفعل المضارع</th>
-                                    <th class="p-2.5 border border-amberGold-500/20">حالة الرفع</th>
-                                    <th class="p-2.5 border border-amberGold-500/20">حالة النصب (لن/كي)</th>
-                                    <th class="p-2.5 border border-amberGold-500/20">حالة الجزم (لم)</th>
+                                <tr class="bg-royalMaroon-700 text-white">
+                                    <th class="p-2.5 border border-royalMaroon-800">نوع الفعل المضارع</th>
+                                    <th class="p-2.5 border border-royalMaroon-800">الرفع</th>
+                                    <th class="p-2.5 border border-royalMaroon-800">النصب (لن/كي)</th>
+                                    <th class="p-2.5 border border-royalMaroon-800">الجزم (لم)</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-amberGold-500/20 text-creamBeige-200">
+                            <tbody class="divide-y divide-royalMaroon-700/10 bg-white text-slateNavy-800">
                                 <tr>
-                                    <td class="p-2.5 font-bold bg-creamBeige-900/60">صحيح الآخر (مثل: يكتب)</td>
+                                    <td class="p-2.5 font-bold bg-creamBg">صحيح الآخر (يكتب)</td>
                                     <td class="p-2.5">الضمة الظاهرة</td>
                                     <td class="p-2.5">الفتحة الظاهرة</td>
-                                    <td class="p-2.5 text-amberGold-400 font-bold">السكون الظاهر</td>
-                                </tr>
-                                <tr class="bg-creamBeige-900/30">
-                                    <td class="p-2.5 font-bold bg-creamBeige-900/60">معتل الآخر (يسعى، يدعو، يرمي)</td>
-                                    <td class="p-2.5">الضمة المقدرة</td>
-                                    <td class="p-2.5">الفتحة الظاهرة/المقدرة</td>
-                                    <td class="p-2.5 text-warmRed-400 font-bold">حذف حرف العلة</td>
+                                    <td class="p-2.5 text-royalMaroon-700 font-bold">السكون الظاهر</td>
                                 </tr>
                                 <tr>
-                                    <td class="p-2.5 font-bold bg-creamBeige-900/60">الأفعال الخمسة (يتعلمون، تفعلان)</td>
+                                    <td class="p-2.5 font-bold bg-creamBg">معتل الآخر (يسعى/يدعو)</td>
+                                    <td class="p-2.5">الضمة المقدرة</td>
+                                    <td class="p-2.5">الفتحة الظاهرة/المقدرة</td>
+                                    <td class="p-2.5 text-royalMaroon-700 font-bold">حذف حرف العلة</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2.5 font-bold bg-creamBg">الأفعال الخمسة (يتعلمون)</td>
                                     <td class="p-2.5">ثبوت النون</td>
-                                    <td class="p-2.5 text-amberGold-300 font-bold">حذف النون</td>
-                                    <td class="p-2.5 text-amberGold-300 font-bold">حذف النون</td>
+                                    <td class="p-2.5 text-amberGold-600 font-bold">حذف النون</td>
+                                    <td class="p-2.5 text-amberGold-600 font-bold">حذف النون</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- SECTION 4: الفاعل ونائب الفاعل وبناء الفعل للمجهول -->
-                <div class="glass-card rounded-3xl p-6 md:p-8 border border-amberGold-500/30">
-                    <h3 class="text-xl md:text-2xl font-black text-amberGold-400 mb-6 flex items-center gap-3 border-b border-amberGold-500/20 pb-4">
-                        <i class="fa-solid fa-user-shield text-amberGold-300"></i> رابعاً: الفاعل ونائب الفاعل وبناء الفعل للمجهول
+                <!-- LESSON 4: الفاعل ونائب الفاعل -->
+                <div class="light-glass-card rounded-3xl p-6 md:p-8">
+                    <h3 class="text-xl md:text-2xl font-black text-royalMaroon-700 mb-6 flex items-center gap-3 border-b border-royalMaroon-700/10 pb-4 font-cairo">
+                        <i class="fa-solid fa-user-shield text-amberGold-500"></i> الدرس الرابع: الفاعل ونائب الفاعل وبناء الفعل للمجهول
                     </h3>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-creamBeige-900/90 p-5 rounded-2xl border border-amberGold-500/30">
-                            <h4 class="font-bold text-amberGold-300 mb-3">1. الفعل المبني للمعلوم والفاعل</h4>
-                            <p class="text-xs md:text-sm text-creamBeige-200 leading-relaxed mb-3">
-                                تكون الجملة **مبنية للمعلوم** إذا كان فاعلها معروفاً ومذكوراً في الجملة.
+                        <div class="bg-creamBg p-5 rounded-2xl border border-amberGold-500/20">
+                            <h4 class="font-bold text-royalMaroon-700 mb-3">1. المبني للمعلوم والفاعل</h4>
+                            <p class="text-xs md:text-sm text-slateNavy-800 leading-relaxed mb-3">
+                                تكون الجملة **مبنية للمعلوم** عندما يكون الفاعل مذكوراً ومعروفاً.
                             </p>
-                            <div class="bg-warmRed-950/60 p-3 rounded-xl border border-amberGold-500/30 text-xs font-mono">
-                                <strong>مثال:</strong> (شَرِبَ الطِّفْلُ الحَلِيبَ) <br/>
-                                • الطفلُ: فاعل مرفوع بالضمة. <br/>
-                                • الحليبَ: مفعول به منصوب بالفتحة.
+                            <div class="bg-white p-3 rounded-xl border border-royalMaroon-700/10 text-xs font-mono">
+                                <strong>مثال:</strong> <em>(شَرِبَ الطِّفْلُ الحَلِيبَ)</em><br/>
+                                • الطفلُ: فاعل مرفوع بالضمة.
                             </div>
                         </div>
 
-                        <div class="bg-creamBeige-900/90 p-5 rounded-2xl border border-warmRed-500/30">
-                            <h4 class="font-bold text-warmRed-400 mb-3">2. الفعل المبني للمجهول ونائب الفاعل</h4>
-                            <p class="text-xs md:text-sm text-creamBeige-200 leading-relaxed mb-3">
-                                يُحذف الفاعل، ويحل **المفعول به محل الفاعل** ويسمى (نائب فاعل) ويصبح مرفوعاً.
+                        <div class="bg-creamBg p-5 rounded-2xl border border-royalMaroon-700/20">
+                            <h4 class="font-bold text-royalMaroon-700 mb-3">2. المبني للمجهول ونائب الفاعل</h4>
+                            <p class="text-xs md:text-sm text-slateNavy-800 leading-relaxed mb-3">
+                                يُحذف الفاعل، ويحل المفعول به محله ويصبح **نائب فاعل مرفوع**.
                             </p>
-                            <div class="bg-warmRed-950/60 p-3 rounded-xl border border-warmRed-500/30 text-xs font-mono">
-                                <strong>مثال بعد التحويل:</strong> (شُرِبَ الحَلِيبُ) <br/>
-                                • شُرِبَ: فعل ماضٍ مبني للمجهول. <br/>
+                            <div class="bg-white p-3 rounded-xl border border-royalMaroon-700/10 text-xs font-mono">
+                                <strong>مثال بعد التغيير:</strong> <em>(شُرِبَ الحَلِيبُ)</em><br/>
                                 • الحليبُ: نائب فاعل مرفوع بالضمة.
                             </div>
                         </div>
                     </div>
 
-                    <!-- Steps for Building to Passive -->
-                    <div class="bg-warmRed-950/40 p-5 rounded-2xl border border-amberGold-500/30">
-                        <h4 class="font-bold text-amberGold-300 mb-3 text-sm">قواعد صياغة الفعل المبني للمجهول:</h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm text-creamBeige-200">
-                            <div class="p-3 bg-creamBeige-900/80 rounded-xl">
+                    <div class="bg-royalMaroon-50 p-5 rounded-2xl border border-royalMaroon-700/10">
+                        <h4 class="font-bold text-royalMaroon-700 mb-3 text-sm font-cairo">قواعد صياغة الفعل المبني للمجهول:</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs md:text-sm text-slateNavy-800">
+                            <div class="p-3 bg-white rounded-xl border border-amberGold-500/20">
                                 <strong>الفعل الماضي:</strong> يُضمُّ أوَّلُهُ ويُكسَرُ ما قبلَ آخِرِه.<br/>
-                                <span class="text-amberGold-400 font-mono">كَتَبَ ⬅️ كُتِبَ / كَافَأَ ⬅️ كُوفِئَ</span>
+                                <span class="text-royalMaroon-700 font-mono">كَتَبَ ⬅️ كُتِبَ / كَافَأَ ⬅️ كُوفِئَ</span>
                             </div>
-                            <div class="p-3 bg-creamBeige-900/80 rounded-xl">
+                            <div class="p-3 bg-white rounded-xl border border-amberGold-500/20">
                                 <strong>الفعل المضارع:</strong> يُضمُّ أوَّلُهُ ويُفتَحُ ما قبلَ آخِرِه.<br/>
-                                <span class="text-amberGold-400 font-mono">يَكْتُبُ ⬅️ يُكْتَبُ / يَشْرَحُ ⬅️ يُشْرَحُ</span>
+                                <span class="text-royalMaroon-700 font-mono">يَكْتُبُ ⬅️ يُكْتَبُ / يَشْرَحُ ⬅️ يُشْرَحُ</span>
                             </div>
                         </div>
                     </div>
@@ -411,20 +414,20 @@
         <!-- TAB 2: INTERACTIVE QUIZ SECTION -->
         <section id="tab-quiz" class="tab-content hidden">
             
-            <!-- Quiz Intro Banner -->
-            <div id="quiz-intro" class="glass-card rounded-3xl p-6 md:p-10 mb-8 text-center relative overflow-hidden border border-amberGold-500/40">
-                <span class="inline-block px-4 py-1.5 rounded-full bg-amberGold-500/20 text-amberGold-400 text-xs md:text-sm font-semibold mb-4 border border-amberGold-500/30">
+            <!-- Quiz Start Card -->
+            <div id="quiz-intro" class="light-glass-card rounded-3xl p-6 md:p-10 mb-8 text-center relative overflow-hidden bg-gradient-to-br from-white via-creamBg to-creamDark">
+                <span class="inline-block px-4 py-1.5 rounded-full bg-royalMaroon-50 text-royalMaroon-700 text-xs md:text-sm font-bold mb-4 border border-royalMaroon-700/10">
                     <i class="fa-solid fa-clock-rotate-left ml-1"></i> اختبار التقييم التفاعلي الذكي
                 </span>
-                <h2 class="text-3xl md:text-5xl font-black mb-4 leading-tight text-creamBeige-100">
-                    المراجعـة الشاملـة <br/><span class="animated-gradient-text">في 40 سؤالاً جامعاً</span>
+                <h2 class="text-3xl md:text-5xl font-black mb-4 leading-tight text-slateNavy-900 font-cairo">
+                    المراجعـة الشاملـة <br/><span class="royal-gradient-text">في 40 سؤالاً جامعاً</span>
                 </h2>
-                <p class="text-creamBeige-200 max-w-2xl mx-auto text-sm md:text-base mb-8 leading-relaxed">
-                    اختبار شامل ومتنوع يخلط ترتيب الأسئلة والخيارات تلقائياً عند كل محاولة، مزود بمؤقت زمني ومؤثرات صوتية تفاعلية!
+                <p class="text-slateNavy-700 max-w-2xl mx-auto text-sm md:text-base mb-8 leading-relaxed">
+                    اختبار شامل يخلط ترتيب الأسئلة والخيارات عشوائياً عند كل محاولة لضمان الإتقان والتميّز العلمي، مع مؤقت زمني وملاحظات فورية لكل سؤال!
                 </p>
 
                 <div class="flex items-center justify-center">
-                    <button onclick="startQuiz()" class="glow-btn px-10 py-4 rounded-2xl bg-gradient-to-r from-warmRed-600 via-amberGold-600 to-amberGold-500 hover:scale-105 text-white font-black text-lg shadow-xl transform transition duration-300 flex items-center gap-3">
+                    <button onclick="startQuiz()" class="btn-royal px-10 py-4 rounded-2xl font-black text-lg flex items-center gap-3">
                         <i class="fa-solid fa-play text-xl"></i> ابدأ الاختبار الآن
                     </button>
                 </div>
@@ -432,28 +435,28 @@
 
             <!-- Active Quiz Container -->
             <div id="quiz-container" class="hidden">
-                <!-- Progress & Stats Bar -->
-                <div class="glass-card rounded-2xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4 border border-amberGold-500/40">
+                <!-- Status Bar -->
+                <div class="light-glass-card rounded-2xl p-4 mb-6 flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <span id="question-category" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amberGold-500/20 text-amberGold-300 border border-amberGold-500/30">الوحدة النحوية</span>
-                        <span id="question-number" class="text-creamBeige-200 text-xs md:text-sm font-bold">السؤال 1 من 40</span>
+                        <span id="question-category" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-amberGold-100 text-amberGold-700 border border-amberGold-500/20">الوحدة النحوية</span>
+                        <span id="question-number" class="text-slateNavy-800 text-xs md:text-sm font-bold">السؤال 1 من 40</span>
                     </div>
                     
                     <div class="flex items-center gap-4 text-xs md:text-sm font-bold">
-                        <div class="text-amberGold-300 bg-warmRed-950/80 px-3.5 py-1.5 rounded-xl border border-amberGold-500/30 flex items-center gap-2">
-                            <i class="fa-solid fa-stopwatch text-amberGold-400"></i> <span id="quiz-timer">00:00</span>
+                        <div class="text-royalMaroon-700 bg-royalMaroon-50 px-3.5 py-1.5 rounded-xl border border-royalMaroon-700/20 flex items-center gap-2">
+                            <i class="fa-solid fa-stopwatch text-amberGold-500"></i> <span id="quiz-timer">00:00</span>
                         </div>
-                        <div class="text-amberGold-400 bg-creamBeige-900/90 px-3.5 py-1.5 rounded-xl border border-amberGold-500/30">
-                            <i class="fa-solid fa-star ml-1"></i> النقاط: <span id="score-counter" class="text-white font-black">0</span>
+                        <div class="text-amberGold-700 bg-amberGold-100/60 px-3.5 py-1.5 rounded-xl border border-amberGold-500/30">
+                            <i class="fa-solid fa-star ml-1"></i> النقاط: <span id="score-counter" class="text-royalMaroon-700 font-black">0</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Question Box -->
-                <div class="glass-card rounded-3xl p-6 md:p-8 mb-6 border border-amberGold-500/30 relative overflow-hidden">
-                    <h3 id="question-text" class="text-lg md:text-2xl font-bold text-creamBeige-50 mb-4 leading-relaxed">جاري تحميل السؤال...</h3>
+                <div class="light-glass-card rounded-3xl p-6 md:p-8 mb-6 relative overflow-hidden">
+                    <h3 id="question-text" class="text-lg md:text-2xl font-bold text-slateNavy-900 mb-4 leading-relaxed font-cairo">جاري تحميل السؤال...</h3>
                     
-                    <div id="question-sentence-box" class="hidden my-5 p-4 rounded-2xl bg-warmRed-950/70 border border-amberGold-500/40 text-center text-amberGold-300 text-base md:text-xl font-bold shadow-inner font-amiri">
+                    <div id="question-sentence-box" class="hidden my-5 p-4 rounded-2xl bg-creamBg border border-amberGold-500/30 text-center text-royalMaroon-700 text-lg md:text-2xl font-bold shadow-inner font-amiri">
                         <!-- Sentence Example -->
                     </div>
 
@@ -463,58 +466,58 @@
                     </div>
 
                     <!-- Explanation Box -->
-                    <div id="explanation-box" class="hidden mt-6 p-5 rounded-2xl bg-creamBeige-900/95 border border-amberGold-500/30 text-creamBeige-200 text-sm leading-relaxed">
-                        <div class="font-bold text-amberGold-400 mb-2 flex items-center gap-2 text-base">
-                            <i class="fa-solid fa-lightbulb text-amberGold-400 text-lg"></i> الشرح والتوضيح النحوي:
+                    <div id="explanation-box" class="hidden mt-6 p-5 rounded-2xl bg-amberGold-100/40 border border-amberGold-500/30 text-slateNavy-800 text-sm leading-relaxed">
+                        <div class="font-bold text-royalMaroon-700 mb-2 flex items-center gap-2 text-base font-cairo">
+                            <i class="fa-solid fa-lightbulb text-amberGold-500 text-lg"></i> الشرح والتوضيح النحوي:
                         </div>
-                        <p id="explanation-text" class="text-creamBeige-100 text-sm font-medium"></p>
+                        <p id="explanation-text" class="text-slateNavy-800 text-sm font-medium"></p>
                     </div>
                 </div>
 
                 <!-- Next Control Button -->
                 <div class="flex justify-end">
-                    <button id="next-btn" onclick="nextQuestion()" class="hidden px-8 py-3.5 rounded-2xl bg-gradient-to-r from-warmRed-600 to-amberGold-600 hover:from-warmRed-700 hover:to-amberGold-700 text-white font-bold text-base shadow-lg transition transform hover:-translate-x-1 flex items-center gap-2">
+                    <button id="next-btn" onclick="nextQuestion()" class="hidden btn-royal px-8 py-3.5 rounded-2xl font-bold text-base flex items-center gap-2">
                         السؤال التالي <i class="fa-solid fa-arrow-left"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Result Certificate Screen -->
-            <div id="quiz-result" class="hidden glass-card rounded-3xl p-6 md:p-10 text-center border border-amberGold-500/40 relative overflow-hidden">
+            <!-- Result Screen -->
+            <div id="quiz-result" class="hidden light-glass-card rounded-3xl p-6 md:p-10 text-center relative overflow-hidden">
                 <div class="no-print">
-                    <div class="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-tr from-warmRed-600 to-amberGold-400 p-0.5 shadow-xl shadow-warmRed-600/40">
-                        <div class="w-full h-full bg-creamBeige-900 rounded-[22px] flex items-center justify-center text-amberGold-400 text-3xl">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-tr from-royalMaroon-700 to-amberGold-500 p-0.5 shadow-xl">
+                        <div class="w-full h-full bg-white rounded-[22px] flex items-center justify-center text-amberGold-500 text-3xl">
                             <i class="fa-solid fa-trophy"></i>
                         </div>
                     </div>
-                    <h2 class="text-2xl md:text-3xl font-black text-creamBeige-50 mb-2">نتيجة مراجعة الوحدة النحوية</h2>
-                    <p class="text-amberGold-400 text-xs md:text-sm font-bold mb-6">ثانوية الأمير عبد المجيد | إعداد الأستاذ عبدالعزيز الفيفي</p>
+                    <h2 class="text-2xl md:text-3xl font-black text-slateNavy-900 mb-2 font-cairo">نتيجة مراجعة الوحدة النحوية</h2>
+                    <p class="text-amberGold-600 text-xs md:text-sm font-bold mb-6">ثانوية الأمير عبد المجيد | إعداد الأستاذ عبدالعزيز الفيفي</p>
 
-                    <div class="max-w-md mx-auto bg-creamBeige-900/90 p-6 rounded-2xl border border-amberGold-500/30 mb-6 shadow-inner">
-                        <div class="text-4xl md:text-5xl font-black text-amberGold-400 mb-2" id="final-score">0 / 40</div>
-                        <p class="text-creamBeige-100 font-bold text-sm md:text-base" id="result-message">نتيجة متميزة!</p>
-                        <p class="text-xs text-creamBeige-300 mt-2">الوقت المستغرق: <span id="final-time">00:00</span></p>
+                    <div class="max-w-md mx-auto bg-creamBg p-6 rounded-2xl border border-royalMaroon-700/10 mb-6 shadow-inner">
+                        <div class="text-4xl md:text-5xl font-black text-royalMaroon-700 mb-2 font-cairo" id="final-score">0 / 40</div>
+                        <p class="text-slateNavy-800 font-bold text-sm md:text-base" id="result-message">نتيجة متميزة!</p>
+                        <p class="text-xs text-slateNavy-700 mt-2">الوقت المستغرق: <span id="final-time">00:00</span></p>
                     </div>
 
                     <div class="flex flex-wrap items-center justify-center gap-4 mb-8">
-                        <button onclick="restartQuiz()" class="px-6 py-3 rounded-xl bg-warmRed-700 hover:bg-warmRed-800 text-white font-bold text-sm transition flex items-center gap-2">
+                        <button onclick="restartQuiz()" class="px-6 py-3 rounded-xl bg-slateNavy-800 hover:bg-slateNavy-900 text-white font-bold text-sm transition flex items-center gap-2 shadow-sm">
                             <i class="fa-solid fa-rotate-right"></i> إعـادة الاختبار
                         </button>
-                        <button onclick="printCertificate()" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amberGold-600 to-amberGold-500 text-white font-bold text-sm transition flex items-center gap-2">
+                        <button onclick="printCertificate()" class="btn-royal px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2">
                             <i class="fa-solid fa-print"></i> طباعة/تصدير شهادة الإتقان
                         </button>
                     </div>
                 </div>
 
-                <!-- Printable Certificate Design -->
-                <div id="printable-certificate" class="hidden p-8 rounded-3xl border-8 border-amberGold-600 bg-creamBeige-50 text-creamBeige-900 text-center max-w-3xl mx-auto my-4 shadow-2xl">
-                    <div class="border-2 border-amberGold-400 p-6 rounded-2xl">
-                        <h1 class="text-3xl font-black text-warmRed-800 mb-2 font-amiri">شهــــادة إتْقَــــان ونَجَاح</h1>
-                        <p class="text-xs text-amberGold-700 font-bold mb-6">ثانوية الأمير عبد المجيد - قسم اللغة العربية</p>
-                        <p class="text-base text-gray-800 mb-4">يشهد الأستاذ <strong class="text-warmRed-800">عبدالعزيز الفيفي</strong> بأن الطالب المتميز قد أتمّ بنجاح:</p>
-                        <h3 class="text-xl font-bold text-amberGold-800 mb-4 font-amiri">المراجعة الشاملة للوحدة النحوية</h3>
-                        <p class="text-lg font-bold text-gray-900 mb-6">وحصل على درجة: (<span id="cert-score">40/40</span>)</p>
-                        <div class="flex justify-between items-center mt-8 pt-4 border-t border-gray-300 text-xs font-bold text-gray-700">
+                <!-- Certificate for Print -->
+                <div id="printable-certificate" class="hidden p-8 rounded-3xl border-8 border-royalMaroon-700 bg-creamBg text-slateNavy-900 text-center max-w-3xl mx-auto my-4 shadow-2xl">
+                    <div class="border-2 border-amberGold-500 p-6 rounded-2xl bg-white">
+                        <h1 class="text-3xl font-black text-royalMaroon-700 mb-2 font-amiri">شهــــادة إتْقَــــان ونَجَاح</h1>
+                        <p class="text-xs text-amberGold-600 font-bold mb-6">ثانوية الأمير عبد المجيد - قسم اللغة العربية</p>
+                        <p class="text-base text-slateNavy-800 mb-4">يشهد الأستاذ <strong class="text-royalMaroon-700">عبدالعزيز الفيفي</strong> بأن الطالب المتميز قد أتمّ بنجاح:</p>
+                        <h3 class="text-xl font-bold text-amberGold-700 mb-4 font-amiri">المراجعة الشاملة للوحدة النحوية</h3>
+                        <p class="text-lg font-bold text-slateNavy-900 mb-6">وحصل على درجة: (<span id="cert-score">40/40</span>)</p>
+                        <div class="flex justify-between items-center mt-8 pt-4 border-t border-slateNavy-700/20 text-xs font-bold text-slateNavy-700">
                             <div>التاريخ: <span id="cert-date">2026/10/22</span></div>
                             <div>توقيع المعلم: أ. عبدالعزيز الفيفي</div>
                         </div>
@@ -525,30 +528,30 @@
 
         <!-- TAB 3: SORTING MINI-GAME -->
         <section id="tab-game" class="tab-content hidden">
-            <div class="glass-card rounded-3xl p-6 md:p-8 border border-amberGold-500/30">
+            <div class="light-glass-card rounded-3xl p-6 md:p-8">
                 <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
                     <div>
-                        <h2 class="text-2xl font-black text-creamBeige-50 mb-1"><i class="fa-solid fa-gamepad ml-2 text-amberGold-400"></i>تحدي تصنيف الأدوات والنواسخ</h2>
-                        <p class="text-creamBeige-200 text-sm">حدد الفئة النحوية الصحيحة للكلمة المعروضة بسرعة عالية:</p>
+                        <h2 class="text-2xl font-black text-slateNavy-900 mb-1 font-cairo"><i class="fa-solid fa-bolt ml-2 text-amberGold-500"></i>تحدي التصنيف السريع</h2>
+                        <p class="text-slateNavy-700 text-sm">حدد الفئة النحوية الصحيحة للكلمة المحددة بسرعة وبدقة:</p>
                     </div>
-                    <div class="text-sm font-bold text-amberGold-300 bg-warmRed-950/80 px-4 py-2 rounded-xl border border-amberGold-500/30">
-                        <i class="fa-solid fa-bolt ml-1"></i> نقاط التحدي: <span id="game-score">0</span>
+                    <div class="text-sm font-bold text-royalMaroon-700 bg-royalMaroon-50 px-4 py-2 rounded-xl border border-royalMaroon-700/20">
+                        <i class="fa-solid fa-star ml-1 text-amberGold-500"></i> نقاط التحدي: <span id="game-score">0</span>
                     </div>
                 </div>
 
                 <div id="game-box" class="text-center py-4">
-                    <div id="game-item" class="text-3xl md:text-5xl font-black text-amberGold-300 bg-creamBeige-900/90 border-2 border-amberGold-500/50 py-8 px-6 rounded-3xl mb-8 shadow-2xl transition-all duration-300 font-amiri">
+                    <div id="game-item" class="text-3xl md:text-5xl font-black text-royalMaroon-700 bg-creamBg border-2 border-amberGold-500/40 py-8 px-6 rounded-3xl mb-8 shadow-inner transition-all duration-300 font-amiri">
                         ---
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <button onclick="checkGameAnswer('kana')" class="p-5 rounded-2xl bg-warmRed-950/80 border border-warmRed-500/40 hover:bg-warmRed-900/80 text-creamBeige-100 font-bold text-base transition transform hover:-translate-y-1 shadow-md">
-                            <i class="fa-solid fa-cube block mb-2 text-xl text-warmRed-400"></i> أفعال ناسخة (كان وأخواتها)
+                        <button onclick="checkGameAnswer('kana')" class="p-5 rounded-2xl bg-white border border-royalMaroon-700/20 hover:border-royalMaroon-700 text-slateNavy-800 font-bold text-base transition shadow-sm hover:shadow-md">
+                            <i class="fa-solid fa-cube block mb-2 text-xl text-royalMaroon-700"></i> أفعال ناسخة (كان وأخواتها)
                         </button>
-                        <button onclick="checkGameAnswer('inna')" class="p-5 rounded-2xl bg-amberGold-950/80 border border-amberGold-500/40 hover:bg-amberGold-900/80 text-creamBeige-100 font-bold text-base transition transform hover:-translate-y-1 shadow-md">
-                            <i class="fa-solid fa-cubes block mb-2 text-xl text-amberGold-400"></i> حروف ناسخة (إنَّ وأخواتها)
+                        <button onclick="checkGameAnswer('inna')" class="p-5 rounded-2xl bg-white border border-amberGold-500/30 hover:border-amberGold-500 text-slateNavy-800 font-bold text-base transition shadow-sm hover:shadow-md">
+                            <i class="fa-solid fa-cubes block mb-2 text-xl text-amberGold-500"></i> حروف ناسخة (إنَّ وأخواتها)
                         </button>
-                        <button onclick="checkGameAnswer('mudaria')" class="p-5 rounded-2xl bg-creamBeige-900/90 border border-amberGold-500/40 hover:bg-creamBeige-800 text-creamBeige-100 font-bold text-base transition transform hover:-translate-y-1 shadow-md">
-                            <i class="fa-solid fa-wrench block mb-2 text-xl text-amberGold-300"></i> أدوات المضارع (لن / كي / لم)
+                        <button onclick="checkGameAnswer('mudaria')" class="p-5 rounded-2xl bg-white border border-slateNavy-700/20 hover:border-slateNavy-800 text-slateNavy-800 font-bold text-base transition shadow-sm hover:shadow-md">
+                            <i class="fa-solid fa-wrench block mb-2 text-xl text-slateNavy-700"></i> أدوات المضارع (لن / كي / لم)
                         </button>
                     </div>
                 </div>
@@ -557,8 +560,15 @@
 
     </main>
 
+    <!-- FOOTER -->
+    <footer class="mt-auto py-6 bg-white border-t border-royalMaroon-700/10 text-center text-xs font-bold text-slateNavy-700">
+        <div class="max-w-6xl mx-auto px-4">
+            تطبيق الماهر بالنواسخ والنحو © 2026 | إعداد الأستاذ عبدالعزيز الفيفي - ثانوية الأمير عبد المجيد
+        </div>
+    </footer>
+
     <script>
-        // Audio Engine using Tone.js
+        // Audio Synth using Tone.js
         let synth;
         function initAudio() {
             if (!synth) {
@@ -589,12 +599,12 @@
             // 1-8: الجملة الاسمية والفعلية
             { category: "الجملة الاسمية والفعلية", question: "1. [اختيار] ما الركن الأساسي الذي تبدأ به الجملة الاسمية؟", sentence: "العِلْمُ نُورٌ يَهْدِي القُلُوبَ", options: ["المبتدأ", "الفاعل", "الفعل الماضي", "نائب الفاعل"], explanation: "تبدأ الجملة الاسمية بالمبتدأ وهو اسم مرفوع تبتدأ به الجملة." },
             { category: "الجملة الاسمية والفعلية", question: "2. [تصنيف] حدد نوع الجملة التالية: (يَحْرِصُ المَعَلِّمُ عَلَى طُلاَّبِهِ):", sentence: "يَحْرِصُ المَعَلِّمُ عَلَى طُلاَّبِهِ", options: ["جملة فعلية", "جملة اسمية", "شبه جملة", "جملة ناسخة"], explanation: "بدأت بالفعل المضارع (يحرصُ) فهي جملة فعلية." },
-            { category: "الجملة الاسمية والفعلية", question: "3. [استخرج] استخرج المبتدأ من الجملة التالية: (المَاجِدُونَ مُخْلِصُونَ فِي عَمَلِهِمْ):", sentence: "المَاجِدُونَ مُخْلِصُونَ فِي عَمَلِهِمْ", options: ["المَاجِدُونَ", "مُخْلِصُونَ", "فِي عَمَلِهِمْ", "ضمير مستتر"], explanation: "(المؤمنون/الماجدون) هو الاسم المرفوع الواقع في بداية الجملة ويعرب مبتدأً." },
+            { category: "الجملة الاسمية والفعلية", question: "3. [استخرج] استخرج المبتدأ من الجملة التالية: (المَاجِدُونَ مُخْلِصُونَ فِي عَمَلِهِمْ):", sentence: "المَاجِدُونَ مُخْلِصُونَ فِي عَمَلِهِمْ", options: ["المَاجِدُونَ", "مُخْلِصُونَ", "فِي عَمَلِهِمْ", "ضمير مستتر"], explanation: "(الماجدون) هو الاسم المرفوع الواقع في بداية الجملة ويعرب مبتدأً." },
             { category: "الجملة الاسمية والفعلية", question: "4. [صح أم خطأ] المبتدأ والخبر يكونان دائماً منصوبين بالفتحة.", sentence: null, options: ["خطأ، المبتدأ والخبر مرفوعان دائماً", "صح، المبتدأ والخبر منصوبان"], explanation: "حكم المبتدأ والخبر الأصلي هو الرفع دائماً." },
-            { category: "الجملة الاسمية والفعلية", question: "5. [أكمل] يسمى الخبر الذي يأتي كلمة واحدة مفردة ليس جملة بـ الخبر _____:", sentence: null, options: ["المفرد", "الجملة الاسمية", "الجملة الفعلية", "شبه الجملة"], explanation: "الخبر المفرد هو ما ليس جملة ولا شبه جملة." },
+            { category: "الجملة الاسمية والفعلية", question: "5. [أكمل] يسمى الخبر الذي يأتي كلمة واحدة ليس جملة بـ الخبر _____:", sentence: null, options: ["المفرد", "الجملة الاسمية", "الجملة الفعلية", "شبه الجملة"], explanation: "الخبر المفرد هو ما ليس جملة ولا شبه جملة." },
             { category: "الجملة الاسمية والفعلية", question: "6. [مثل] أيّ الجمل التالية تمثل جملة اسمية خبرها كلمة مفردة؟", sentence: null, options: ["الطَّالِبَانِ مُجْتَهِدَانِ", "الطالبُ يذاكرُ دروسَهُ", "الطالبُ في المدرسةِ", "الطالبُ أخلاقُهُ عاليةٌ"], explanation: "(مجتهدانِ) خبر مفرد لأنه كلمة واحدة وإن دلا على مثنى." },
             { category: "الجملة الاسمية والفعلية", question: "7. [إعراب] ما إعراب كلمة (الطالبانِ) في: (الطالبانِ متفوقانِ)؟", sentence: "الطالبانِ متفوقانِ", options: ["مبتدأ مرفوع وعلامة رفعه الألف لأنه مثنى", "مبتدأ مرفوع بالضمة المقدرة", "فاعل مرفوع بالألف", "خبر مرفوع بالياء"], explanation: "المثنى يرفع بالألف، لذا المبتدأ هنا مرفوع بالألف." },
-            { category: "الجملة الاسمية والفعلية", question: "8. [تصحيح الخطأ] صوّب الخطأ النحوي في الجملة: (المُهَنْدِسِينَ بَارِعُونَ):", sentence: "المُهَنْدِسِينَ بَارِعُونَ (خطأ)", options: ["المُهَنْدِسُونَ بَارِعُونَ", "المُهَنْدِسِينَ بَارِعِينَ", "المُهَنْدِسُونَ بَارِعِينَ", "المُهَنْدِسَ بَارِعٌ"], explanation: "المبتدأ يجب أن يكون مرفوعاً بالواو (المشروع/المهندسون) لأنه جمع مذكر سالم." },
+            { category: "الجملة الاسمية والفعلية", question: "8. [تصحيح الخطأ] صوّب الخطأ النحوي في الجملة: (المُهَنْدِسِينَ بَارِعُونَ):", sentence: "المُهَنْدِسِينَ بَارِعُونَ (خطأ)", options: ["المُهَنْدِسُونَ بَارِعُونَ", "المُهَنْدِسِينَ بَارِعِينَ", "المُهَنْدِسُونَ بَارِعِينَ", "المُهَنْدِسَ بَارِعٌ"], explanation: "المبتدأ يجب أن يكون مرفوعاً بالواو (المهندسون) لأنه جمع مذكر سالم." },
 
             // 9-18: النواسخ (كان وإن)
             { category: "النواسخ (كان وإنّ)", question: "9. [اختيار] ما العمل الإعرابي لـ (كان وأخواتها) عند دخولها على الجملة الاسمية؟", sentence: null, options: ["ترفع المبتدأ وتنصب الخبر", "تنصب المبتدأ وترفع الخبر", "تنصب المبتدأ والخبر", "ترفع المبتدأ والخبر"], explanation: "كان وأخواتها أفعال ناسخة ترفع المبتدأ اسماً لها وتنصب الخبر." },
@@ -620,7 +630,7 @@
             { category: "إعراب الفعل المضارع", question: "27. [استخرج] استخرج الفعل المنصوب وبين أداة نصبه في: (اجْتَهِدْ كَيْ تَتَفَوَّقَ):", sentence: "اجْتَهِدْ كَيْ تَتَفَوَّقَ", options: ["تَتَفَوَّقَ (الأداة: كي)", "اجْتَهِدْ (الأداة: كي)", "تَتَفَوَّقَ (الأداة: لم)", "لا يوجد منصوب"], explanation: "(تتفوقَ) مضارع منصوب بأداة النصب (كي)." },
             { category: "إعراب الفعل المضارع", question: "28. [تصحيح الخطأ] صوّب الخطأ في: (الطَّالِبَانِ لَنْ يُهْمِلَانِ الوَاجِبَ):", sentence: "الطَّالِبَانِ لَنْ يُهْمِلَانِ الوَاجِبَ (خطأ)", options: ["الطَّالِبَانِ لَنْ يُهْمِلاَ الوَاجِبَ", "الطَّالِبَانِ لَمْ يُهْمِلَانِ", "الطَّالِبِينَ لَنْ يُهْمِلَانِ", "الطَّالِبَانِ لَنْ يُهْمِلُوا"], explanation: "الصواب (لن يُهمِلا) بحذف النون لأنه من الأفعال الخمسة المسبوقة بـ لن." },
             { category: "إعراب الفعل المضارع", question: "29. [صح أم خطأ] الفعل المضارع المعرب هو الفعل الوحيد المعرب بين الأفعال.", sentence: null, options: ["صح، الماضي والأمر مبنيان دائماً", "خطأ، كل الأفعال معربة"], explanation: "عبارة صحيحة، فالفعل الماضي وأمر مبنيان دائماً والمضارع معرب كأصل." },
-            { category: "إعراب الفعل المضارع", question: "30. [إعراب] إعراب (يدعُ) في: (لَمْ يَدْعُ المُسْلِمُ إِلاَّ اللهَ):", sentence: "لَمْ يَدْعُ المُسْلِمُ إِلاَّ اللهَ", options: ["فعل مضارع مجزوم بـ (لم) وعلامة جزمه حذف حرف العلة (الواو)", "فعل مضارع مرفوع بالضمة", "فعل مضارع منصوب بالفتحة", "فعل ماضٍ"], explanation: "(يدعُ) أصله (يدعو) مجزوم بـ لم وعلامة جزمه حذف حرف العلة." },
+            { category: "إعراب الفعل المضارع", question: "30. [إعراب] إعراب (يدعُ) في: (لَمْ يَدْعُ المُسْلِمُ إِلاَّ اللهَ):", sentence: "لَمْ يَدْعُ المُسْلِمُ إِلاَّ اللهَ", options: ["فعل مضارع مجزوم بـ (لم) وعلامة جزمه حذف حرف العلة", "فعل مضارع مرفوع بالضمة", "فعل مضارع منصوب بالفتحة", "فعل ماضٍ"], explanation: "(يدعُ) أصله (يدعو) مجزوم بـ لم وعلامة جزمه حذف حرف العلة." },
 
             // 31-40: الفاعل ونائب الفاعل
             { category: "الفاعل ونائب الفاعل", question: "31. [تعريف] ما التعريف النحوي الدقيق لـ (الفاعِل)؟", sentence: null, options: ["اسم مرفوع يقع بعد فعل مبني للمعلوم ويدل على من قام بالفعل", "اسم منصوب يبين سبب وقوع الفعل", "اسم مرفوع يحل محل الفاعل بعد حذفه", "اسم مجرور بحرف الجر"], explanation: "الفاعل هو الاسم المرفوع الواقع بعد فعل مبني للمعلوم ليدل على من قام به." },
@@ -642,7 +652,7 @@
         let secondsElapsed = 0;
 
         function prepareQuizQuestions() {
-            // Shuffle raw questions
+            // Random Shuffle of Questions
             const shuffledRaw = [...rawQuizQuestions].sort(() => Math.random() - 0.5);
 
             quizQuestions = shuffledRaw.map((q) => {
@@ -705,8 +715,8 @@
 
             q.options.forEach((opt, idx) => {
                 const btn = document.createElement('button');
-                btn.className = "option-btn p-4 rounded-2xl bg-creamBeige-900/80 border border-amberGold-500/20 text-right font-semibold text-creamBeige-100 transition-all flex items-center justify-between text-xs md:text-sm";
-                btn.innerHTML = `<span>${opt}</span> <i class="fa-regular fa-circle text-amberGold-500/40"></i>`;
+                btn.className = "option-btn p-4 rounded-2xl bg-white border border-slateNavy-700/10 text-right font-bold text-slateNavy-800 transition-all flex items-center justify-between text-xs md:text-sm shadow-sm";
+                btn.innerHTML = `<span>${opt}</span> <i class="fa-regular fa-circle text-slateNavy-700/30"></i>`;
                 btn.onclick = () => selectOption(idx);
                 optionsContainer.appendChild(btn);
             });
@@ -721,16 +731,16 @@
             }
 
             if (selectedIndex === q.correct) {
-                options[selectedIndex].className = "p-4 rounded-2xl bg-amberGold-900/90 border-2 border-amberGold-400 text-amberGold-200 font-bold flex items-center justify-between shadow-lg shadow-amberGold-950/50 text-xs md:text-sm";
-                options[selectedIndex].innerHTML = `<span>${q.options[selectedIndex]}</span> <i class="fa-solid fa-circle-check text-amberGold-300 text-lg"></i>`;
+                options[selectedIndex].className = "p-4 rounded-2xl bg-amberGold-100 border-2 border-amberGold-500 text-amberGold-700 font-bold flex items-center justify-between shadow-md text-xs md:text-sm";
+                options[selectedIndex].innerHTML = `<span>${q.options[selectedIndex]}</span> <i class="fa-solid fa-circle-check text-amberGold-600 text-lg"></i>`;
                 score += 1;
                 document.getElementById('score-counter').innerText = score;
                 playCorrectSound();
             } else {
-                options[selectedIndex].className = "p-4 rounded-2xl bg-warmRed-950/90 border-2 border-warmRed-500 text-warmRed-200 font-bold flex items-center justify-between shadow-lg shadow-warmRed-950/50 text-xs md:text-sm";
-                options[selectedIndex].innerHTML = `<span>${q.options[selectedIndex]}</span> <i class="fa-solid fa-circle-xmark text-warmRed-400 text-lg"></i>`;
+                options[selectedIndex].className = "p-4 rounded-2xl bg-royalMaroon-50 border-2 border-royalMaroon-600 text-royalMaroon-700 font-bold flex items-center justify-between shadow-md text-xs md:text-sm";
+                options[selectedIndex].innerHTML = `<span>${q.options[selectedIndex]}</span> <i class="fa-solid fa-circle-xmark text-royalMaroon-600 text-lg"></i>`;
                 
-                options[q.correct].className = "p-4 rounded-2xl bg-amberGold-900/60 border border-amberGold-400/60 text-amberGold-300 font-bold flex items-center justify-between text-xs md:text-sm";
+                options[q.correct].className = "p-4 rounded-2xl bg-amberGold-100/60 border border-amberGold-500/60 text-amberGold-700 font-bold flex items-center justify-between text-xs md:text-sm";
                 playWrongSound();
             }
 
@@ -759,7 +769,7 @@
             document.getElementById('final-time').innerText = `${mins}:${secs}`;
 
             let message = "مستوى استثنائي ومبهر! بارك الله في إتقانك للنحو يا بطل!";
-            if (score < 25) message = "محاولة جيدة! أنصحك براجعك ملخص القواعد الموسع وإعادة التحدي للقمة.";
+            if (score < 25) message = "محاولة جيدة! أنصحك بمراجعة ملخص القواعد الموسع وإعادة التحدي للوصول للقمة.";
             else if (score < 36) message = "نتيجة رائعة جداً! اقتربت كثيراً من العلامة الكاملة.";
             document.getElementById('result-message').innerText = message;
 
@@ -781,18 +791,18 @@
             cert.classList.add('hidden');
         }
 
-        // Tab Switcher
+        // Tab Navigation Switcher
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-tab').forEach(el => {
-                el.classList.remove('bg-gradient-to-r', 'from-warmRed-700', 'to-amberGold-600', 'text-white');
-                el.classList.add('text-creamBeige-200');
+                el.classList.remove('bg-royalMaroon-700', 'text-white', 'shadow-sm');
+                el.classList.add('text-slateNavy-700');
             });
 
             document.getElementById(`tab-${tabName}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`tab-btn-${tabName}`);
-            activeBtn.classList.add('bg-gradient-to-r', 'from-warmRed-700', 'to-amberGold-600', 'text-white');
-            activeBtn.classList.remove('text-creamBeige-200');
+            activeBtn.classList.add('bg-royalMaroon-700', 'text-white', 'shadow-sm');
+            activeBtn.classList.remove('text-slateNavy-700');
 
             if(tabName === 'game') initGame();
         }
